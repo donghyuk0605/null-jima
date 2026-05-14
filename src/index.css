@@ -1,0 +1,92 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Dark theme (default) ───────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg:           #0d1117;
+  --bg2:          #161b22;
+  --bg3:          #21262d;
+  --border:       #30363d;
+  --border2:      #21262d;
+  --text:         #c9d1d9;
+  --text-head:    #e6edf3;
+  --text2:        #8b949e;
+  --text3:        #484f58;
+  --accent:       #58a6ff;
+  --accent2:      #388bfd;
+  --accent-bg:    #1c2a3f;
+  --accent-hover: #79c0ff;
+  --success:      #238636;
+  --success-h:    #2ea043;
+  --success-t:    #3fb950;
+  --success-bg:   #1a2e1a;
+  --warn:         #e3b341;
+  --err:          #f85149;
+  --err-bg:       #2d1117;
+  --err-border:   #6e1e21;
+  --info:         #1f6feb;
+  --info-h:       #388bfd;
+  --code-bg:      #161b22;
+  --code-t:       #79c0ff;
+  --nav-bg:       #161b22;
+  --run-bg:       #238636;
+  --run-h:        #2ea043;
+
+  /* level badges */
+  --lv1-bg:  #1a2e1a; --lv1-t: #56d364;
+  --lv2-bg:  #1c2a3f; --lv2-t: #58a6ff;
+  --lv3-bg:  #2d1c3f; --lv3-t: #d2a8ff;
+  --lv4-bg:  #3f2d1c; --lv4-t: #ffa657;
+}
+
+/* ── Light theme ────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:           #ffffff;
+  --bg2:          #f6f8fa;
+  --bg3:          #eaeef2;
+  --border:       #d0d7de;
+  --border2:      #d8dee4;
+  --text:         #1f2328;
+  --text-head:    #1f2328;
+  --text2:        #656d76;
+  --text3:        #818b98;
+  --accent:       #0969da;
+  --accent2:      #0550ae;
+  --accent-bg:    #ddf4ff;
+  --accent-hover: #0550ae;
+  --success:      #1a7f37;
+  --success-h:    #116329;
+  --success-t:    #1a7f37;
+  --success-bg:   #dafbe1;
+  --warn:         #9a6700;
+  --err:          #cf222e;
+  --err-bg:       #ffebe9;
+  --err-border:   #f5c0c0;
+  --info:         #0969da;
+  --info-h:       #0550ae;
+  --code-bg:      #f6f8fa;
+  --code-t:       #0550ae;
+  --nav-bg:       #f6f8fa;
+  --run-bg:       #1a7f37;
+  --run-h:        #116329;
+
+  --lv1-bg:  #dafbe1; --lv1-t: #1a7f37;
+  --lv2-bg:  #ddf4ff; --lv2-t: #0550ae;
+  --lv3-bg:  #f0e6ff; --lv3-t: #6e40c9;
+  --lv4-bg:  #fff1e0; --lv4-t: #953800;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100vh;
+  overflow: hidden;
+  transition: background .2s, color .2s;
+}
+
+#root { height: 100vh; }
+button { cursor: pointer; font-family: inherit; }
+a { text-decoration: none; color: inherit; }

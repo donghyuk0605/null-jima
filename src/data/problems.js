@@ -1,0 +1,258 @@
+export const PROBLEMS = [
+  // ── 입문 ──────────────────────────────────────────────
+  {
+    id: 1, level: '입문', tags: ['SELECT'],
+    title: '전체 직원 조회',
+    description: 'employees 테이블에서 모든 직원 정보를 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'SELECT * 를 사용하면 모든 컬럼을 조회할 수 있습니다.',
+      'FROM 절에 조회할 테이블 이름을 작성하세요.',
+      'SELECT * FROM employees;',
+    ],
+    answer: 'SELECT * FROM employees',
+    checkOrder: false,
+  },
+  {
+    id: 2, level: '입문', tags: ['SELECT'],
+    title: '직원 이름과 급여 조회',
+    description: 'employees 테이블에서 직원의 이름(name)과 급여(salary)만 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'SELECT 절에 원하는 컬럼명을 나열하세요.',
+      'SELECT name, salary 형태로 작성하세요.',
+      'SELECT name, salary FROM employees;',
+    ],
+    answer: 'SELECT name, salary FROM employees',
+    checkOrder: false,
+  },
+  {
+    id: 3, level: '입문', tags: ['SELECT'],
+    title: '전체 부서 조회',
+    description: 'departments 테이블에서 모든 부서 정보를 조회하세요.',
+    tables: ['departments'],
+    hints: [
+      'departments 테이블을 조회하세요.',
+      'SELECT * 를 사용하세요.',
+      'SELECT * FROM departments;',
+    ],
+    answer: 'SELECT * FROM departments',
+    checkOrder: false,
+  },
+  {
+    id: 4, level: '입문', tags: ['SELECT'],
+    title: '전체 상품 조회',
+    description: 'products 테이블에서 모든 상품 정보를 조회하세요.',
+    tables: ['products'],
+    hints: [
+      'products 테이블을 조회하세요.',
+      'SELECT * 를 사용하세요.',
+      'SELECT * FROM products;',
+    ],
+    answer: 'SELECT * FROM products',
+    checkOrder: false,
+  },
+
+  // ── 초급 ──────────────────────────────────────────────
+  {
+    id: 5, level: '초급', tags: ['WHERE'],
+    title: '고급여 직원 조회',
+    description: 'employees 테이블에서 급여(salary)가 6,000,000 이상인 직원을 모두 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'WHERE 절로 조건을 지정할 수 있습니다.',
+      'salary >= 6000000 조건을 사용하세요.',
+      'SELECT * FROM employees WHERE salary >= 6000000;',
+    ],
+    answer: 'SELECT * FROM employees WHERE salary >= 6000000',
+    checkOrder: false,
+  },
+  {
+    id: 6, level: '초급', tags: ['WHERE'],
+    title: '개발팀 직원 조회',
+    description: 'employees 테이블에서 개발팀(department_id = 1) 직원만 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'WHERE 절로 부서를 필터링하세요.',
+      'department_id = 1 조건을 사용하세요.',
+      'SELECT * FROM employees WHERE department_id = 1;',
+    ],
+    answer: 'SELECT * FROM employees WHERE department_id = 1',
+    checkOrder: false,
+  },
+  {
+    id: 7, level: '초급', tags: ['WHERE'],
+    title: '2021년 이후 입사 직원',
+    description: "employees 테이블에서 2021년 1월 1일 이후에 입사한 직원을 조회하세요.\n(hire_date >= '2021-01-01')",
+    tables: ['employees'],
+    hints: [
+      "날짜 비교는 문자열 비교로 가능합니다. '2021-01-01' 형태를 사용하세요.",
+      "WHERE hire_date >= '2021-01-01' 조건을 사용하세요.",
+      "SELECT * FROM employees WHERE hire_date >= '2021-01-01';",
+    ],
+    answer: "SELECT * FROM employees WHERE hire_date >= '2021-01-01'",
+    checkOrder: false,
+  },
+  {
+    id: 8, level: '초급', tags: ['ORDER BY'],
+    title: '급여 높은 순 정렬',
+    description: 'employees 테이블에서 직원을 급여(salary) 기준 높은 순(내림차순)으로 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'ORDER BY 절로 정렬 기준을 지정할 수 있습니다.',
+      'DESC 키워드는 내림차순(큰 값 먼저)을 의미합니다.',
+      'SELECT * FROM employees ORDER BY salary DESC;',
+    ],
+    answer: 'SELECT * FROM employees ORDER BY salary DESC',
+    checkOrder: true,
+  },
+  {
+    id: 9, level: '초급', tags: ['LIMIT'],
+    title: '급여 상위 3명',
+    description: 'employees 테이블에서 급여가 가장 높은 직원 3명만 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'LIMIT으로 반환할 행 수를 제한할 수 있습니다.',
+      '먼저 ORDER BY salary DESC로 정렬한 뒤 LIMIT을 사용하세요.',
+      'SELECT * FROM employees ORDER BY salary DESC LIMIT 3;',
+    ],
+    answer: 'SELECT * FROM employees ORDER BY salary DESC LIMIT 3',
+    checkOrder: true,
+  },
+  {
+    id: 10, level: '초급', tags: ['DISTINCT'],
+    title: '카테고리 목록 조회',
+    description: 'products 테이블에서 상품 카테고리(category) 종류를 중복 없이 조회하세요.',
+    tables: ['products'],
+    hints: [
+      'DISTINCT를 사용하면 중복 행을 제거할 수 있습니다.',
+      'SELECT DISTINCT category 형태로 사용하세요.',
+      'SELECT DISTINCT category FROM products;',
+    ],
+    answer: 'SELECT DISTINCT category FROM products',
+    checkOrder: false,
+  },
+
+  // ── 중급 ──────────────────────────────────────────────
+  {
+    id: 11, level: '중급', tags: ['GROUP BY', '집계함수'],
+    title: '부서별 직원 수',
+    description: 'employees 테이블에서 부서(department_id)별 직원 수를 조회하세요.\n컬럼명: department_id, 직원수',
+    tables: ['employees'],
+    hints: [
+      'GROUP BY를 사용하면 그룹별 집계가 가능합니다.',
+      'COUNT(*)는 행 수를 셉니다.',
+      'SELECT department_id, COUNT(*) AS 직원수 FROM employees GROUP BY department_id;',
+    ],
+    answer: 'SELECT department_id, COUNT(*) AS 직원수 FROM employees GROUP BY department_id',
+    checkOrder: false,
+  },
+  {
+    id: 12, level: '중급', tags: ['GROUP BY', '집계함수'],
+    title: '부서별 평균 급여',
+    description: 'employees 테이블에서 부서(department_id)별 평균 급여를 조회하세요.\n컬럼명: department_id, 평균급여',
+    tables: ['employees'],
+    hints: [
+      'AVG() 함수는 평균값을 계산합니다.',
+      'GROUP BY department_id로 부서별 그룹을 만드세요.',
+      'SELECT department_id, AVG(salary) AS 평균급여 FROM employees GROUP BY department_id;',
+    ],
+    answer: 'SELECT department_id, AVG(salary) AS 평균급여 FROM employees GROUP BY department_id',
+    checkOrder: false,
+  },
+  {
+    id: 13, level: '중급', tags: ['JOIN'],
+    title: '직원과 부서명 함께 조회',
+    description: 'employees와 departments 테이블을 JOIN하여 직원 이름(name)과 부서명(departments.name)을 조회하세요.',
+    tables: ['employees', 'departments'],
+    hints: [
+      'JOIN은 두 테이블을 연결합니다.',
+      'employees.department_id = departments.id 로 연결하세요.',
+      'SELECT e.name, d.name FROM employees e JOIN departments d ON e.department_id = d.id;',
+    ],
+    answer: 'SELECT e.name, d.name FROM employees e JOIN departments d ON e.department_id = d.id',
+    checkOrder: false,
+  },
+  {
+    id: 14, level: '중급', tags: ['JOIN', '집계함수'],
+    title: '주문 금액 합계',
+    description: 'orders와 products를 JOIN하여 각 주문의 총 금액(quantity * price)을 조회하세요.\n컬럼: orders.id, 총금액',
+    tables: ['orders', 'products'],
+    hints: [
+      'orders와 products를 product_id로 JOIN하세요.',
+      'quantity * price로 주문 금액을 계산할 수 있습니다.',
+      'SELECT o.id, o.quantity * p.price AS 총금액 FROM orders o JOIN products p ON o.product_id = p.id;',
+    ],
+    answer: 'SELECT o.id, o.quantity * p.price AS 총금액 FROM orders o JOIN products p ON o.product_id = p.id',
+    checkOrder: false,
+  },
+  {
+    id: 15, level: '중급', tags: ['HAVING', '집계함수'],
+    title: '직원 2명 이상 부서',
+    description: 'employees 테이블에서 직원이 2명 이상인 부서의 department_id와 직원 수를 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      'HAVING은 GROUP BY 이후의 집계 조건에 사용합니다.',
+      'COUNT(*) >= 2 조건을 HAVING에 사용하세요.',
+      'SELECT department_id, COUNT(*) AS 직원수 FROM employees GROUP BY department_id HAVING COUNT(*) >= 2;',
+    ],
+    answer: 'SELECT department_id, COUNT(*) AS 직원수 FROM employees GROUP BY department_id HAVING COUNT(*) >= 2',
+    checkOrder: false,
+  },
+
+  // ── 고급 ──────────────────────────────────────────────
+  {
+    id: 16, level: '고급', tags: ['서브쿼리'],
+    title: '평균 급여 이상인 직원',
+    description: '서브쿼리를 사용하여 전체 평균 급여 이상인 직원의 이름과 급여를 조회하세요.',
+    tables: ['employees'],
+    hints: [
+      '서브쿼리는 괄호 안에 SELECT를 중첩합니다.',
+      'WHERE salary >= (SELECT AVG(salary) FROM employees) 형태를 사용하세요.',
+      'SELECT name, salary FROM employees WHERE salary >= (SELECT AVG(salary) FROM employees);',
+    ],
+    answer: 'SELECT name, salary FROM employees WHERE salary >= (SELECT AVG(salary) FROM employees)',
+    checkOrder: false,
+  },
+  {
+    id: 17, level: '고급', tags: ['GROUP BY', '집계함수', 'ORDER BY'],
+    title: '카테고리별 최고가 상품',
+    description: 'products 테이블에서 카테고리별 최고 가격(MAX)을 조회하고 가격 내림차순으로 정렬하세요.\n컬럼: category, 최고가격',
+    tables: ['products'],
+    hints: [
+      'MAX() 함수는 최댓값을 반환합니다.',
+      'GROUP BY category로 카테고리별로 묶으세요.',
+      'SELECT category, MAX(price) AS 최고가격 FROM products GROUP BY category ORDER BY 최고가격 DESC;',
+    ],
+    answer: 'SELECT category, MAX(price) AS 최고가격 FROM products GROUP BY category ORDER BY 최고가격 DESC',
+    checkOrder: true,
+  },
+  {
+    id: 18, level: '고급', tags: ['JOIN', 'GROUP BY', '집계함수'],
+    title: '직원별 총 주문 금액',
+    description: 'orders, employees, products 3개 테이블을 JOIN하여 직원별 총 주문 금액을 조회하세요.\n컬럼: 직원이름, 총주문금액 / 금액 내림차순',
+    tables: ['orders', 'employees', 'products'],
+    hints: [
+      '3개 테이블을 순서대로 JOIN하세요: orders → employees, orders → products',
+      'SUM(o.quantity * p.price)로 총 금액을 계산하세요.',
+      'SELECT e.name AS 직원이름, SUM(o.quantity * p.price) AS 총주문금액 FROM orders o JOIN employees e ON o.employee_id = e.id JOIN products p ON o.product_id = p.id GROUP BY e.name ORDER BY 총주문금액 DESC;',
+    ],
+    answer: "SELECT e.name AS 직원이름, SUM(o.quantity * p.price) AS 총주문금액 FROM orders o JOIN employees e ON o.employee_id = e.id JOIN products p ON o.product_id = p.id GROUP BY e.name ORDER BY 총주문금액 DESC",
+    checkOrder: true,
+  },
+];
+
+export const LEVEL_ORDER = ['입문', '초급', '중급', '고급'];
+
+export const TAG_COLORS = {
+  'SELECT':  '#388bfd',
+  'WHERE':   '#f78166',
+  'ORDER BY':'#a371f7',
+  'LIMIT':   '#79c0ff',
+  'DISTINCT':'#56d364',
+  'GROUP BY':'#e3b341',
+  'HAVING':  '#ffa657',
+  'JOIN':    '#58a6ff',
+  '집계함수': '#3fb950',
+  '서브쿼리': '#ff7b72',
+};
