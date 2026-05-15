@@ -334,7 +334,7 @@ function ProblemDetailContent({ problem }) {
                 value={userSql}
                 onChange={updateSql}
                 onRun={execute}
-                height={editorMode === 'terminal' ? '260px' : '200px'}
+                height={editorMode === 'terminal' ? '360px' : '320px'}
                 autocomplete={effectiveAutocomplete}
                 mode={editorMode}
               />

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getUserSettings, saveUserSettings, saveUserSettingsWithSync } from '../lib/userSettings';
 import { useAuth } from './AuthContext';
 import { translations } from '../lib/translations';
@@ -26,7 +26,10 @@ function interpolate(template, vars) {
 export function LanguageProvider({ children }) {
   const { user } = useAuth();
   const userRef = useRef(user);
-  userRef.current = user;
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const [language, setLanguageState] = useState(() =>
     resolveLanguage(getUserSettings().language)
