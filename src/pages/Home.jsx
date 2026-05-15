@@ -5,10 +5,17 @@ import { PROBLEMS, LEVEL_ORDER } from '../data/problems';
 import { LEARN_TOPICS } from '../data/learn';
 import { getStreak, getTodayGoal, setTodayGoal } from '../lib/streak';
 import Icon from '../components/Icon';
+import { useLanguage } from '../contexts/LanguageContext';
+import { localizeLearnTopics, localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
 
 export default function Home() {
+  const { language, t } = useLanguage();
+  const tl = (level) => translateLevel(level, t);
+  const tt = (tag) => translateTag(tag, t);
   const [streakData] = useState(() => getStreak());
   const [goal, setGoal] = useState(() => getTodayGoal());
+  const localizedProblems = localizeProblems(PROBLEMS, language);
+  const learnTopics = localizeLearnTopics(LEARN_TOPICS, language);
 
   const prog = getAllProgress();
   const solved = Object.values(prog).filter((p) => p.solved).length;
@@ -16,7 +23,7 @@ export default function Home() {
   const accuracy = Object.values(prog).length === 0 ? null
     : Math.round((solved / Object.values(prog).length) * 100);
 
-  const todayProblem = PROBLEMS.find((p) => !prog[p.id]?.solved) || PROBLEMS[0];
+  const todayProblem = localizedProblems.find((p) => !prog[p.id]?.solved) || localizedProblems[0];
 
   const byLevel = LEVEL_ORDER.map((level) => {
     const levelProblems = PROBLEMS.filter((p) => p.level === level);
@@ -30,11 +37,11 @@ export default function Home() {
         <div className="home-hero-copy">
           <span className="home-kicker">SQL PRACTICE WORKBENCH</span>
           <h1 className="home-title">NULL지마</h1>
-          <p className="home-subtitle">실무 데이터로 배우고, 바로 실행하고, 결과로 익히는 SQL 연습장</p>
+          <p className="home-subtitle">{t('home.hero.subtitle')}</p>
           <div className="home-actions">
-            <Link to="/editor" className="btn btn-primary">에디터 열기</Link>
-            <Link to="/problems" className="btn btn-secondary">문제 풀기</Link>
-            <Link to="/learn" className="btn btn-ghost">학습 도우미</Link>
+            <Link to="/editor" className="btn btn-primary">{t('home.cta.editor')}</Link>
+            <Link to="/problems" className="btn btn-secondary">{t('home.cta.problems')}</Link>
+            <Link to="/learn" className="btn btn-ghost">{t('home.cta.learn')}</Link>
           </div>
         </div>
         <div className="home-hero-console" aria-hidden="true">
@@ -57,28 +64,28 @@ ORDER BY solved DESC;`}</pre>
         <div className="streak-main">
           <div className="streak-fire"><Icon name="fire" className="streak-fire-icon" /></div>
           <div className="streak-info">
-            <div className="streak-num">{streakData.streak}일</div>
-            <div className="streak-label">연속 학습</div>
+            <div className="streak-num">{streakData.streak}{t('home.streak.day')}</div>
+            <div className="streak-label">{t('home.streak.consecutive')}</div>
           </div>
           <div className="streak-divider" />
           <div className="streak-info">
-            <div className="streak-num">{streakData.longest}일</div>
-            <div className="streak-label">최장 기록</div>
+            <div className="streak-num">{streakData.longest}{t('home.streak.day')}</div>
+            <div className="streak-label">{t('home.streak.longest.label')}</div>
           </div>
           <div className="streak-divider" />
           <div className="streak-info">
-            <div className="streak-num">{streakData.totalDays}일</div>
-            <div className="streak-label">총 학습일</div>
+            <div className="streak-num">{streakData.totalDays}{t('home.streak.day')}</div>
+            <div className="streak-label">{t('home.streak.total.label')}</div>
           </div>
         </div>
         <div className="streak-today">
-          <span className="streak-today-label">오늘 목표</span>
+          <span className="streak-today-label">{t('home.goal.label')}</span>
           <div className="streak-goal-bar">
             <div className="streak-goal-fill" style={{ width: `${Math.min(100, (streakData.todayCount / goal) * 100)}%` }} />
           </div>
           <span className="streak-today-count">{streakData.todayCount} / {goal}</span>
           <select className="streak-goal-select" value={goal} onChange={e => { const v = Number(e.target.value); setGoal(v); setTodayGoal(v); }}>
-            {[3,5,10,15,20].map(n => <option key={n} value={n}>{n}개</option>)}
+            {[3,5,10,15,20].map(n => <option key={n} value={n}>{t('home.goal.option', { n })}</option>)}
           </select>
         </div>
       </div>
@@ -86,29 +93,29 @@ ORDER BY solved DESC;`}</pre>
       <div className="home-grid">
         {/* 내 현황 */}
         <div className="home-card">
-          <h3 className="card-title">내 현황</h3>
+          <h3 className="card-title">{t('home.stat.current')}</h3>
           <div className="stat-grid">
             <div className="stat">
               <span className="stat-value">{solved}</span>
-              <span className="stat-label">완료 문제</span>
+              <span className="stat-label">{t('home.stat.solved.label')}</span>
             </div>
             <div className="stat">
               <span className="stat-value">{total}</span>
-              <span className="stat-label">전체 문제</span>
+              <span className="stat-label">{t('home.stat.total.label')}</span>
             </div>
             <div className="stat">
               <span className="stat-value">{accuracy !== null ? `${accuracy}%` : '-'}</span>
-              <span className="stat-label">정답률</span>
+              <span className="stat-label">{t('home.stat.accuracy.label')}</span>
             </div>
           </div>
           <div className="level-progress">
-            {byLevel.map(({ level, total: t, solved: s }) => (
+            {byLevel.map(({ level, total: tot, solved: s }) => (
               <div key={level} className="level-row">
-                <span className="level-name">{level}</span>
+                <span className="level-name">{tl(level)}</span>
                 <div className="level-bar">
-                  <div className="level-fill" style={{ width: `${t > 0 ? (s / t) * 100 : 0}%` }} />
+                  <div className="level-fill" style={{ width: `${tot > 0 ? (s / tot) * 100 : 0}%` }} />
                 </div>
-                <span className="level-count">{s}/{t}</span>
+                <span className="level-count">{s}/{tot}</span>
               </div>
             ))}
           </div>
@@ -116,27 +123,27 @@ ORDER BY solved DESC;`}</pre>
 
         {/* 오늘의 문제 */}
         <div className="home-card">
-          <h3 className="card-title">다음 문제</h3>
+          <h3 className="card-title">{t('home.next.title')}</h3>
           <div className="today-problem">
             <div className="today-meta">
-              <span className={`badge level-${todayProblem.level}`}>{todayProblem.level}</span>
-              {todayProblem.tags.map((t) => (
-                <span key={t} className="tag">{t}</span>
+              <span className={`badge level-${todayProblem.level}`}>{tl(todayProblem.level)}</span>
+              {todayProblem.tags.map((tag) => (
+                <span key={tag} className="tag">{tt(tag)}</span>
               ))}
             </div>
             <p className="today-title">{todayProblem.title}</p>
             <p className="today-desc">{todayProblem.description.split('\n')[0]}</p>
             <Link to={`/problems/${todayProblem.id}`} className="btn btn-primary" style={{ marginTop: 12 }}>
-              문제 풀러가기 →
+              {t('home.next.go')}
             </Link>
           </div>
         </div>
 
         {/* 학습 도우미 바로가기 */}
         <div className="home-card">
-          <h3 className="card-title">학습 도우미</h3>
+          <h3 className="card-title">{t('home.learn.title')}</h3>
           <div className="learn-list">
-            {LEARN_TOPICS.map((topic) => (
+            {learnTopics.map((topic) => (
               <Link key={topic.id} to={`/learn/${topic.id}`} className="learn-item">
                 <span className="learn-item-title">{topic.title}</span>
                 <span className="learn-item-sub">{topic.subtitle}</span>

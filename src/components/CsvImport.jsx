@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { runQuery } from '../lib/database';
 import Icon from './Icon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function parseCSV(text) {
   const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
@@ -43,6 +44,7 @@ function sanitizeName(name) {
 }
 
 export default function CsvImport({ onSuccess, onClose }) {
+  const { t } = useLanguage();
   const [parsed, setParsed] = useState(null); // { headers, rows, types }
   const [tableName, setTableName] = useState('my_table');
   const [status, setStatus] = useState(null); // null | 'success' | 'error'
@@ -56,7 +58,7 @@ export default function CsvImport({ onSuccess, onClose }) {
     reader.onload = (e) => {
       const text = e.target.result;
       const { headers, rows } = parseCSV(text);
-      if (headers.length === 0) { setStatus('error'); setStatusMsg('CSV 파일을 파싱할 수 없습니다.'); return; }
+      if (headers.length === 0) { setStatus('error'); setStatusMsg(t('csv.error.parse')); return; }
       const types = headers.map((_, ci) => inferType(rows.map(r => r[ci] ?? '')));
       setTableName(sanitizeName(file.name.replace(/\.csv$/, '')));
       setParsed({ headers, rows, types });
@@ -95,18 +97,18 @@ export default function CsvImport({ onSuccess, onClose }) {
         if (valClauses) runQuery(`INSERT INTO "${tbl}" VALUES ${valClauses};`);
       }
       setStatus('success');
-      setStatusMsg(`"${tbl}" 테이블 생성 완료 (${rows.length}행, ${headers.length}열)`);
+      setStatusMsg(t('csv.success', { tbl, rows: rows.length, cols: headers.length }));
       onSuccess();
     } catch (e) {
       setStatus('error');
-      setStatusMsg(`오류: ${e.message}`);
+      setStatusMsg(t('csv.error.prefix') + e.message);
     }
   };
 
   return (
     <div className="csv-import">
       <div className="csv-import-header">
-        <span className="csv-import-title">CSV 파일 가져오기</span>
+        <span className="csv-import-title">{t('csv.title')}</span>
         <button className="csv-close-btn" onClick={onClose}><Icon name="close" style={{width:14,height:14}} /></button>
       </div>
 
@@ -119,14 +121,14 @@ export default function CsvImport({ onSuccess, onClose }) {
           onDrop={handleDrop}
         >
           <Icon name="table" className="csv-drop-icon" />
-          <div className="csv-drop-text">CSV 파일을 드래그하거나 클릭하여 선택</div>
-          <div className="csv-drop-sub">UTF-8 인코딩 권장 · 첫 행은 컬럼명으로 사용됩니다</div>
+          <div className="csv-drop-text">{t('csv.drop.text')}</div>
+          <div className="csv-drop-sub">{t('csv.drop.sub')}</div>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={e => processFile(e.target.files[0])} />
         </div>
       ) : (
         <div className="csv-preview">
           <div className="csv-table-name-row">
-            <label className="csv-label">테이블 이름</label>
+            <label className="csv-label">{t('csv.table.name')}</label>
             <input
               className="csv-name-input"
               value={tableName}
@@ -134,7 +136,7 @@ export default function CsvImport({ onSuccess, onClose }) {
               placeholder="table_name"
             />
           </div>
-          <div className="csv-preview-label">미리보기 (처음 5행)</div>
+          <div className="csv-preview-label">{t('csv.preview.label')}</div>
           <div className="csv-preview-scroll">
             <table className="csv-preview-table">
               <thead>
@@ -156,13 +158,13 @@ export default function CsvImport({ onSuccess, onClose }) {
               </tbody>
             </table>
           </div>
-          <div className="csv-info">{parsed.rows.length}행 · {parsed.headers.length}열</div>
+          <div className="csv-info">{t('csv.info', { rows: parsed.rows.length, cols: parsed.headers.length })}</div>
           {status === 'success' && <div className="csv-success">{statusMsg}</div>}
           {status === 'error' && <div className="csv-error">{statusMsg}</div>}
           <div className="csv-actions">
-            <button className="btn btn-ghost-sm" onClick={() => { setParsed(null); setStatus(null); }}>다시 선택</button>
+            <button className="btn btn-ghost-sm" onClick={() => { setParsed(null); setStatus(null); }}>{t('csv.reselect')}</button>
             <button className="btn btn-run" onClick={handleImport} disabled={status === 'success'}>
-              {status === 'success' ? '완료' : '테이블 생성'}
+              {status === 'success' ? t('csv.done') : t('csv.create')}
             </button>
           </div>
         </div>

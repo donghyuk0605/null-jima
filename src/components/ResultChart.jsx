@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const COLORS = ['#388bfd','#3fb950','#f78166','#e3b341','#bc8cff','#39d353','#ff7b72','#79c0ff'];
 
@@ -135,11 +136,12 @@ function detectChartType(columns, values) {
 }
 
 export default function ResultChart({ columns, values }) {
+  const { t } = useLanguage();
   const autoType = detectChartType(columns, values);
   const [chartType, setChartType] = useState(autoType || 'bar');
 
   if (!autoType) return (
-    <div className="chart-no-data">차트를 그리려면 텍스트 컬럼 + 숫자 컬럼 2개가 필요합니다.</div>
+    <div className="chart-no-data">{t('result.chart.nodata')}</div>
   );
 
   const labels = values.map(r => r[0]);

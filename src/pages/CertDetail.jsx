@@ -5,6 +5,7 @@ import { runQuery, translateSqlError } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const CORE_SQL_EXAMPLES = [
   {
@@ -42,6 +43,7 @@ const CORE_SQL_EXAMPLES = [
 export default function CertDetail() {
   const { certId } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const cert = CERT_LIST.find((c) => c.id === certId);
   const [activeTab, setActiveTab] = useState('overview');
   const [sqlResults, setSqlResults] = useState({});
@@ -59,8 +61,8 @@ export default function CertDetail() {
   if (!cert) {
     return (
       <div className="page">
-        <Link to="/cert" className="btn btn-ghost-sm">← 자격증 목록</Link>
-        <p style={{ marginTop: 16 }}>자격증 정보를 찾을 수 없습니다.</p>
+        <Link to="/cert" className="btn btn-ghost-sm">{t('cert.nav.back')}</Link>
+        <p style={{ marginTop: 16 }}>{t('cert.not.found')}</p>
       </div>
     );
   }
@@ -73,7 +75,7 @@ export default function CertDetail() {
       setSqlResults((prev) => ({ ...prev, [idx]: res }));
       setSqlErrors((prev) => ({ ...prev, [idx]: null }));
     } catch (e) {
-      setSqlErrors((prev) => ({ ...prev, [idx]: translateSqlError(e) }));
+      setSqlErrors((prev) => ({ ...prev, [idx]: translateSqlError(e, t) }));
       setSqlResults((prev) => ({ ...prev, [idx]: null }));
     }
   };
@@ -127,7 +129,7 @@ export default function CertDetail() {
       setQuizSqlResults(res);
       setQuizSqlError(null);
     } catch (e) {
-      setQuizSqlError(translateSqlError(e));
+      setQuizSqlError(translateSqlError(e, t));
       setQuizSqlResults(null);
     }
   };
@@ -137,7 +139,7 @@ export default function CertDetail() {
   return (
     <div className="page cert-detail-page">
       <div className="cert-detail-header">
-        <Link to="/cert" className="btn btn-ghost-sm">← 자격증 목록</Link>
+        <Link to="/cert" className="btn btn-ghost-sm">{t('cert.nav.back')}</Link>
         <div className="cert-detail-title-row">
           <Icon name="trophy" style={{ width: 28, height: 28, color: cert.color }} />
           <h2 className="cert-detail-title" style={{ color: cert.color }}>{cert.name}</h2>
@@ -150,7 +152,7 @@ export default function CertDetail() {
           onClick={() => navigate(`/cert/${cert.id}/exam`)}
           style={{ marginTop: 12 }}
         >
-          <Icon name="target" style={{width:14,height:14}} /> 모의고사 시작 ({quiz.length}문제 · {cert.examTime}분)
+          <Icon name="target" style={{width:14,height:14}} /> {t('cert.exam.start.full', { total: quiz.length, time: cert.examTime })}
         </button>
       </div>
 
@@ -163,7 +165,7 @@ export default function CertDetail() {
             onClick={() => setActiveTab(tab)}
             style={activeTab === tab ? { borderBottomColor: cert.color, color: cert.color } : {}}
           >
-            {tab === 'overview' ? '개요' : tab === 'sql' ? '핵심 SQL' : '예상문제'}
+            {tab === 'overview' ? t('cert.tab.overview') : tab === 'sql' ? t('cert.tab.sql') : t('cert.tab.quiz')}
           </button>
         ))}
       </div>
@@ -172,43 +174,43 @@ export default function CertDetail() {
       {activeTab === 'overview' && (
         <div className="cert-tab-content">
           <section className="cert-section">
-            <h3 className="cert-section-title">시험 정보</h3>
+            <h3 className="cert-section-title">{t('cert.info.exam.title')}</h3>
             <div className="cert-info-table">
               <div className="cert-info-row">
-                <span className="cert-info-label">주관 기관</span>
+                <span className="cert-info-label">{t('cert.info.org')}</span>
                 <span className="cert-info-value">{cert.org}</span>
               </div>
               <div className="cert-info-row">
-                <span className="cert-info-label">시험 시간</span>
-                <span className="cert-info-value">{cert.examTime}분</span>
+                <span className="cert-info-label">{t('cert.info.time')}</span>
+                <span className="cert-info-value">{t('cert.exam.minutes', { n: cert.examTime })}</span>
               </div>
               <div className="cert-info-row">
-                <span className="cert-info-label">시험 횟수</span>
+                <span className="cert-info-label">{t('cert.info.freq')}</span>
                 <span className="cert-info-value">{cert.frequency}</span>
               </div>
               <div className="cert-info-row">
-                <span className="cert-info-label">합격 기준</span>
+                <span className="cert-info-label">{t('cert.info.pass')}</span>
                 <span className="cert-info-value">{cert.passCriteria}</span>
               </div>
               <div className="cert-info-row">
-                <span className="cert-info-label">총 문항 수</span>
-                <span className="cert-info-value">{cert.totalQ}문항 / {cert.totalScore}점</span>
+                <span className="cert-info-label">{t('cert.info.total')}</span>
+                <span className="cert-info-value">{t('cert.info.total.val', { total: cert.totalQ, score: cert.totalScore })}</span>
               </div>
             </div>
           </section>
 
           <section className="cert-section">
-            <h3 className="cert-section-title">과목 구성</h3>
+            <h3 className="cert-section-title">{t('cert.subjects.title')}</h3>
             <div className="cert-subjects">
               {cert.subjects.map((sub, i) => (
                 <div key={i} className="cert-subject-card">
                   <div className="cert-subject-header">
                     <span className="cert-subject-name">{sub.name}</span>
-                    <span className="cert-subject-score">{sub.questions}문항 / {sub.score}점</span>
+                    <span className="cert-subject-score">{t('cert.subjects.val', { questions: sub.questions, score: sub.score })}</span>
                   </div>
                   <div className="cert-subject-topics">
-                    {sub.topics.map((t) => (
-                      <span key={t} className="cert-topic-chip">{t}</span>
+                    {sub.topics.map((topic) => (
+                      <span key={topic} className="cert-topic-chip">{topic}</span>
                     ))}
                   </div>
                 </div>
@@ -217,19 +219,19 @@ export default function CertDetail() {
           </section>
 
           <section className="cert-section">
-            <h3 className="cert-section-title">핵심 출제 범위</h3>
+            <h3 className="cert-section-title">{t('cert.keytopics.title')}</h3>
             <ul className="cert-key-topics">
-              {cert.keyTopics.map((t, i) => (
+              {cert.keyTopics.map((topic, i) => (
                 <li key={i} className="cert-key-topic-item">
                   <span className="cert-topic-num">{i + 1}</span>
-                  {t}
+                  {topic}
                 </li>
               ))}
             </ul>
           </section>
 
           <section className="cert-section">
-            <h3 className="cert-section-title">학습 플랜</h3>
+            <h3 className="cert-section-title">{t('cert.studyplan.title')}</h3>
             <div className="cert-study-plan">
               {cert.studyPlan.map((step, i) => (
                 <div key={i} className="cert-plan-step">
@@ -245,7 +247,7 @@ export default function CertDetail() {
       {/* 핵심 SQL 탭 */}
       {activeTab === 'sql' && (
         <div className="cert-tab-content">
-          <p className="cert-sql-intro">SQLD 시험에 자주 출제되는 SQL 패턴을 직접 실행해보세요.</p>
+          <p className="cert-sql-intro">{t('cert.sql.intro')}</p>
           {CORE_SQL_EXAMPLES.map((ex, i) => (
             <div key={i} className="cert-sql-example">
               <div className="cert-sql-example-header">
@@ -263,7 +265,7 @@ export default function CertDetail() {
                 <div className="editor-toolbar">
                   <button className="btn btn-run-sm" onClick={() => runCoreSql(i, ex.sql)}>
                     <Icon name="play" className="btn-icon" />
-                    실행
+                    {t('problem.run')}
                   </button>
                 </div>
               </div>
@@ -283,13 +285,13 @@ export default function CertDetail() {
           {isQuizDone ? (
             <div className="cert-quiz-done">
               <Icon name="trophy" style={{ width: 48, height: 48, color: cert.color }} />
-              <h3 className="cert-quiz-done-title">퀴즈 완료!</h3>
+              <h3 className="cert-quiz-done-title">{t('cert.quiz.done.title')}</h3>
               <p className="cert-quiz-done-score">
-                {quiz.length}문제 중 <strong style={{ color: cert.color }}>{score}문제</strong> 정답
+                {t('cert.quiz.done.score', { total: quiz.length, correct: score })}
               </p>
               <p className="cert-quiz-done-pct">
-                정답률: {Math.round((score / quiz.length) * 100)}%
-                {score >= quiz.length * 0.8 ? ' — 훌륭합니다!' : score >= quiz.length * 0.6 ? ' — 합격권입니다!' : ' — 더 연습이 필요합니다.'}
+                {t('cert.quiz.done.pct', { pct: Math.round((score / quiz.length) * 100) })}
+                {score >= quiz.length * 0.8 ? t('cert.quiz.done.great') : score >= quiz.length * 0.6 ? t('cert.quiz.done.good') : t('cert.quiz.done.more')}
               </p>
               <div className="cert-quiz-done-summary">
                 {quiz.map((q, i) => (
@@ -297,11 +299,11 @@ export default function CertDetail() {
                     key={i}
                     className="cert-quiz-dot"
                     style={{ background: answeredCorrect[i] ? 'var(--success)' : 'var(--err)' }}
-                    title={`Q${i + 1}: ${answeredCorrect[i] ? '정답' : '오답'}`}
+                    title={`Q${i + 1}: ${answeredCorrect[i] ? t('quiz.correct.short') : t('quiz.wrong.short')}`}
                   />
                 ))}
               </div>
-              <button className="btn btn-primary" onClick={handleReset}>다시 풀기</button>
+              <button className="btn btn-primary" onClick={handleReset}>{t('cert.quiz.done.retry')}</button>
             </div>
           ) : (
             <div className="cert-quiz-area">
@@ -313,8 +315,8 @@ export default function CertDetail() {
                     style={{ width: `${(currentQ / quiz.length) * 100}%`, background: cert.color }}
                   />
                 </div>
-                <span className="cert-quiz-progress-label">{currentQ + 1} / {quiz.length}</span>
-                <span className="cert-quiz-score-label">현재 점수: {score}점</span>
+                <span className="cert-quiz-progress-label">{t('cert.quiz.progress', { current: currentQ + 1, total: quiz.length })}</span>
+                <span className="cert-quiz-score-label">{t('cert.quiz.score.label', { score })}</span>
               </div>
 
               {/* 문제 카드 */}
@@ -353,13 +355,13 @@ export default function CertDetail() {
 
                     {submitted && (
                       <div className={`cert-quiz-explanation ${selected === q.answer ? 'correct' : 'wrong'}`}>
-                        <strong>{selected === q.answer ? '정답입니다!' : '오답입니다.'}</strong>
+                        <strong>{selected === q.answer ? t('cert.quiz.correct') : t('cert.quiz.wrong')}</strong>
                         <p>{q.explanation}</p>
                         {q.sql && (
                           <div className="cert-quiz-sql-area">
                             <button className="btn btn-ghost-sm" onClick={() => runQuizSql(q.sql)}>
                               <Icon name="play" className="btn-icon" />
-                              SQL 실행
+                              {t('cert.exam.sql.run')}
                             </button>
                             <div style={{ marginTop: 8 }}>
                               <SqlEditor value={q.sql} readOnly height="auto" autocomplete={false} />
@@ -380,7 +382,7 @@ export default function CertDetail() {
                         onClick={handlePrev}
                         disabled={currentQ === 0}
                       >
-                        이전
+                        {t('cert.quiz.prev')}
                       </button>
                       {!submitted ? (
                         <button
@@ -388,11 +390,11 @@ export default function CertDetail() {
                           onClick={handleSubmit}
                           disabled={selected === null}
                         >
-                          제출
+                          {t('cert.quiz.submit')}
                         </button>
                       ) : (
                         <button className="btn btn-primary" onClick={handleNext}>
-                          {currentQ < quiz.length - 1 ? '다음 문제' : '결과 보기'}
+                          {currentQ < quiz.length - 1 ? t('cert.quiz.next') : t('cert.quiz.result')}
                         </button>
                       )}
                     </div>

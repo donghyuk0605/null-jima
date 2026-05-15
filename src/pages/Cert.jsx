@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
 import { CERT_LIST } from '../data/cert';
 import Icon from '../components/Icon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Cert() {
+  const { t } = useLanguage();
   return (
     <div className="page cert-page">
       <div className="page-header">
-        <h2 className="page-title">자격증 안내</h2>
-        <span className="page-desc">SQL 관련 국가공인 자격증 정보를 확인하고 학습 계획을 세워보세요</span>
+        <h2 className="page-title">{t('cert.title')}</h2>
+        <span className="page-desc">{t('cert.desc')}</span>
       </div>
 
       <div className="cert-grid">
@@ -27,25 +29,25 @@ export default function Cert() {
 
             <div className="cert-stats">
               <div className="cert-stat">
-                <span className="cert-stat-label">과목 수</span>
-                <span className="cert-stat-value">{cert.subjects.length}과목</span>
+                <span className="cert-stat-label">{t('cert.subjects.label')}</span>
+                <span className="cert-stat-value">{t('cert.exam.questions', { n: cert.subjects.length })}</span>
               </div>
               <div className="cert-stat">
-                <span className="cert-stat-label">합격 기준</span>
+                <span className="cert-stat-label">{t('cert.pass.label')}</span>
                 <span className="cert-stat-value">{cert.passCriteria.split(',')[0]}</span>
               </div>
               <div className="cert-stat">
-                <span className="cert-stat-label">시험 시간</span>
-                <span className="cert-stat-value">{cert.examTime}분</span>
+                <span className="cert-stat-label">{t('cert.time.label')}</span>
+                <span className="cert-stat-value">{t('cert.exam.minutes', { n: cert.examTime })}</span>
               </div>
               <div className="cert-stat">
-                <span className="cert-stat-label">시험 횟수</span>
+                <span className="cert-stat-label">{t('cert.freq.label')}</span>
                 <span className="cert-stat-value">{cert.frequency}</span>
               </div>
             </div>
 
             <div className="cert-card-footer">
-              <span className="cert-detail-link" style={{ color: cert.color }}>자세히 보기 →</span>
+              <span className="cert-detail-link" style={{ color: cert.color }}>{t('cert.detail.link')}</span>
             </div>
           </Link>
         ))}

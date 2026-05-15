@@ -5,14 +5,14 @@ import Icon from '../components/Icon';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const PREVIEW_LINES = [
-  { indent: 0, keyword: 'SELECT', rest: ' e.name, d.name AS 부서,' },
-  { indent: 7, keyword: '', rest: '       AVG(e.salary) AS 평균급여' },
+  { indent: 0, keyword: 'SELECT', rest: ' e.name, d.name AS department,' },
+  { indent: 7, keyword: '', rest: '       AVG(e.salary) AS avg_salary' },
   { indent: 0, keyword: 'FROM', rest: ' employees e' },
   { indent: 0, keyword: 'JOIN', rest: ' departments d' },
   { indent: 5, keyword: '', rest: '  ON e.department_id = d.id' },
   { indent: 0, keyword: 'GROUP BY', rest: ' d.name' },
   { indent: 0, keyword: 'HAVING', rest: ' COUNT(*) >= 2' },
-  { indent: 0, keyword: 'ORDER BY', rest: ' 평균급여 DESC;' },
+  { indent: 0, keyword: 'ORDER BY', rest: ' avg_salary DESC;' },
 ];
 
 export default function Login() {

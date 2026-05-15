@@ -1,10 +1,10 @@
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function LanguageSwitcher({ className = '' }) {
-  const { language, languages, setLanguage } = useLanguage();
+  const { language, languages, setLanguage, t } = useLanguage();
 
   return (
-    <div className={`language-switcher ${className}`} aria-label="언어 선택">
+    <div className={`language-switcher ${className}`} aria-label={t('lang.select')}>
       {languages.map((lang) => (
         <button
           key={lang.id}

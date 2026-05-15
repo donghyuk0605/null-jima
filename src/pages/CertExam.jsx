@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
 import Icon from '../components/Icon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const EXAM_RESULTS_KEY = 'sqldojo_exam_results';
 
@@ -26,6 +27,7 @@ function formatTime(secs) {
 export default function CertExam() {
   const { certId } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const cert = CERT_LIST.find(c => c.id === certId);
   const quiz = useMemo(
     () => (certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : []),
@@ -45,9 +47,9 @@ export default function CertExam() {
     setPhase('exam');
     setTimeLeft(totalTime);
     timerRef.current = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timerRef.current); submitExam(); return 0; }
-        return t - 1;
+      setTimeLeft(prev => {
+        if (prev <= 1) { clearInterval(timerRef.current); submitExam(); return 0; }
+        return prev - 1;
       });
     }, 1000);
   };
@@ -70,8 +72,8 @@ export default function CertExam() {
   if (!cert || quiz.length === 0) {
     return (
       <div className="page">
-        <p>모의고사 데이터를 찾을 수 없습니다.</p>
-        <Link to={`/cert/${certId}`}>← 돌아가기</Link>
+        <p>{t('exam.not.found')}</p>
+        <Link to={`/cert/${certId}`}>{t('exam.back')}</Link>
       </div>
     );
   }
@@ -82,20 +84,20 @@ export default function CertExam() {
       <div className="exam-ready">
         <div className="exam-ready-card">
           <div className="exam-cert-badge" style={{ background: cert.color }}>{cert.name}</div>
-          <h2 className="exam-ready-title">{cert.fullName} 모의고사</h2>
+          <h2 className="exam-ready-title">{t('exam.ready.cert.title', { name: cert.fullName })}</h2>
           <div className="exam-ready-info">
-            <div><span>문제 수</span><strong>{quiz.length}문제</strong></div>
-            <div><span>제한 시간</span><strong>{cert.examTime}분</strong></div>
-            <div><span>합격 기준</span><strong>60점 이상</strong></div>
+            <div><span>{t('exam.ready.count')}</span><strong>{t('cert.exam.questions', { n: quiz.length })}</strong></div>
+            <div><span>{t('exam.ready.time')}</span><strong>{t('cert.exam.minutes', { n: cert.examTime })}</strong></div>
+            <div><span>{t('exam.ready.pass.crit')}</span><strong>{t('exam.pass.min')}</strong></div>
           </div>
           <ul className="exam-ready-rules">
-            <li>시험 중에는 힌트나 답이 표시되지 않습니다.</li>
-            <li>시간 종료 시 자동으로 제출됩니다.</li>
-            <li>문제 옆 <Icon name="flag" style={{width:12,height:12,display:'inline'}} /> 버튼으로 나중에 다시 확인할 문제를 표시할 수 있습니다.</li>
+            <li>{t('exam.ready.rule5')}</li>
+            <li>{t('exam.ready.rule6')}</li>
+            <li>{t('exam.ready.flag.before')}<Icon name="flag" style={{width:12,height:12,display:'inline'}} />{t('exam.ready.flag.after')}</li>
           </ul>
           <div className="exam-ready-actions">
-            <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>취소</button>
-            <button className="btn btn-run" onClick={startExam}>시험 시작</button>
+            <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>{t('exam.ready.cancel')}</button>
+            <button className="btn btn-run" onClick={startExam}>{t('exam.ready.begin')}</button>
           </div>
         </div>
       </div>
@@ -109,7 +111,7 @@ export default function CertExam() {
       <div className="exam-result-page">
         <div className="exam-result-card">
           <div className={`exam-result-badge ${result.passed ? 'pass' : 'fail'}`}>
-            {result.passed ? '합격' : '불합격'}
+            {result.passed ? t('exam.result.pass') : t('exam.result.fail')}
           </div>
           <div className="exam-score-circle">
             <svg viewBox="0 0 120 120" width="120" height="120">
@@ -119,31 +121,31 @@ export default function CertExam() {
                 strokeDasharray={`${2 * Math.PI * 52 * pct / 100} ${2 * Math.PI * 52}`}
                 strokeLinecap="round" transform="rotate(-90 60 60)" />
               <text x="60" y="55" textAnchor="middle" fontSize="22" fontWeight="800" fill="var(--text1)">{pct}</text>
-              <text x="60" y="72" textAnchor="middle" fontSize="12" fill="var(--text3)">점</text>
+              <text x="60" y="72" textAnchor="middle" fontSize="12" fill="var(--text3)">{t('exam.result.score')}</text>
             </svg>
           </div>
           <div className="exam-result-stats">
-            <div><span>정답</span><strong className="stat-correct">{result.correct}개</strong></div>
-            <div><span>오답</span><strong className="stat-wrong">{result.wrong}개</strong></div>
-            <div><span>미응답</span><strong>{result.unanswered}개</strong></div>
-            <div><span>소요 시간</span><strong>{formatTime(result.timeUsed)}</strong></div>
+            <div><span>{t('exam.stat.correct')}</span><strong className="stat-correct">{result.correct}{t('exam.stat.suffix')}</strong></div>
+            <div><span>{t('exam.stat.wrong')}</span><strong className="stat-wrong">{result.wrong}{t('exam.stat.suffix')}</strong></div>
+            <div><span>{t('exam.stat.unanswered')}</span><strong>{result.unanswered}{t('exam.stat.suffix')}</strong></div>
+            <div><span>{t('exam.stat.time')}</span><strong>{formatTime(result.timeUsed)}</strong></div>
           </div>
-          <h4 className="exam-wrong-title">오답 목록</h4>
+          <h4 className="exam-wrong-title">{t('exam.result.wrongList')}</h4>
           <div className="exam-wrong-list">
             {quiz.filter(q => result.answers[q.id] !== q.answer).map(q => (
               <div key={q.id} className="exam-wrong-item">
                 <div className="exam-wrong-q">Q{q.id}. {q.question}</div>
                 <div className="exam-wrong-ans">
-                  <span className="my-ans">내 답: {result.answers[q.id] !== undefined ? q.options[result.answers[q.id]] : '미응답'}</span>
-                  <span className="correct-ans">정답: {q.options[q.answer]}</span>
+                  <span className="my-ans">{t('exam.my.answer')} {result.answers[q.id] !== undefined ? q.options[result.answers[q.id]] : t('exam.no.answer')}</span>
+                  <span className="correct-ans">{t('exam.correct.answer.label')} {q.options[q.answer]}</span>
                 </div>
                 <div className="exam-wrong-explain">{q.explanation}</div>
               </div>
             ))}
           </div>
           <div className="exam-result-actions">
-            <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>← 자격증 페이지</button>
-            <button className="btn btn-run" onClick={() => { setAnswers({}); setFlagged(new Set()); setCurrent(0); setPhase('ready'); }}>다시 도전</button>
+            <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>{t('exam.cert.back')}</button>
+            <button className="btn btn-run" onClick={() => { setAnswers({}); setFlagged(new Set()); setCurrent(0); setPhase('ready'); }}>{t('exam.retry')}</button>
           </div>
         </div>
       </div>
@@ -161,14 +163,14 @@ export default function CertExam() {
       <div className="exam-header">
         <div className="exam-header-left">
           <span className="exam-cert-tag" style={{ background: cert.color }}>{cert.name}</span>
-          <span className="exam-progress-text">{current + 1} / {quiz.length}</span>
-          <span className="exam-answered-text">응답 {answered}/{quiz.length}</span>
+          <span className="exam-progress-text">{t('cert.quiz.progress', { current: current + 1, total: quiz.length })}</span>
+          <span className="exam-answered-text">{t('exam.q.answered', { answered, total: quiz.length })}</span>
         </div>
         <div className={`exam-timer ${timerWarning ? 'timer-warning' : ''}`}>
           {formatTime(timeLeft)}
         </div>
-        <button className="btn exam-submit-btn" onClick={() => { if (window.confirm('제출하시겠습니까?')) submitExam(); }}>
-          제출
+        <button className="btn exam-submit-btn" onClick={() => { if (window.confirm(t('exam.submit.confirm'))) submitExam(); }}>
+          {t('exam.submit')}
         </button>
       </div>
 
@@ -187,20 +189,20 @@ export default function CertExam() {
             ))}
           </div>
           <div className="exam-nav-legend">
-            <span className="legend-item"><span className="legend-dot answered" />응답</span>
-            <span className="legend-item"><span className="legend-dot flagged" />표시</span>
+            <span className="legend-item"><span className="legend-dot answered" />{t('exam.legend.answered')}</span>
+            <span className="legend-item"><span className="legend-dot flagged" />{t('exam.legend.flagged')}</span>
           </div>
         </div>
 
         {/* Question */}
         <div className="exam-question-area">
           <div className="exam-q-header">
-            <span className="exam-q-num">문제 {current + 1}</span>
+            <span className="exam-q-num">{t('exam.q.num', { n: current + 1 })}</span>
             <span className="exam-q-meta">{q.subject} · {q.difficulty}</span>
             <button
               className={`exam-flag-btn ${flagged.has(q.id) ? 'active' : ''}`}
               onClick={() => setFlagged(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
-            ><Icon name="flag" style={{width:12,height:12}} /> {flagged.has(q.id) ? '표시됨' : '표시'}</button>
+            ><Icon name="flag" style={{width:12,height:12}} /> {flagged.has(q.id) ? t('exam.flagged') : t('exam.flag')}</button>
           </div>
           <div className="exam-q-text">{q.question}</div>
           <div className="exam-options">
@@ -216,8 +218,8 @@ export default function CertExam() {
             ))}
           </div>
           <div className="exam-q-nav">
-            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0}>← 이전</button>
-            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.min(quiz.length - 1, c + 1))} disabled={current === quiz.length - 1}>다음 →</button>
+            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0}>← {t('exam.prev')}</button>
+            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.min(quiz.length - 1, c + 1))} disabled={current === quiz.length - 1}>{t('exam.next')} →</button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { getSchema, getRelationships } from '../lib/database';
 import Icon from './Icon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const COL_H = 26;
 const HDR_H = 36;
@@ -55,6 +56,7 @@ function KeyIcon({ x, y, size = 12 }) {
 }
 
 export default function ERDiagram({ onClose }) {
+  const { t } = useLanguage();
   const schema = getSchema();
   const rels = getRelationships();
   const [zoom, setZoom] = useState(1);
@@ -63,7 +65,7 @@ export default function ERDiagram({ onClose }) {
   const dragRef = useRef(null);
 
   const tables = layoutTables(schema);
-  const tblMap = Object.fromEntries(tables.map((t) => [t.name, t]));
+  const tblMap = Object.fromEntries(tables.map((tbl) => [tbl.name, tbl]));
 
   const onMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
@@ -99,21 +101,21 @@ export default function ERDiagram({ onClose }) {
   return (
     <div className="er-overlay">
       <div className="er-header">
-        <span className="er-title">ER 다이어그램</span>
+        <span className="er-title">{t('er.title')}</span>
         <div className="er-controls">
-          <button className="er-btn" onClick={zoomOut} title="축소">
+          <button className="er-btn" onClick={zoomOut} title={t('er.zoomout')}>
             <Icon name="minimize" style={{ width: 14, height: 14 }} />
           </button>
           <span className="er-zoom">{Math.round(zoom * 100)}%</span>
-          <button className="er-btn" onClick={zoomIn} title="확대">
+          <button className="er-btn" onClick={zoomIn} title={t('er.zoomin')}>
             <Icon name="maximize" style={{ width: 14, height: 14 }} />
           </button>
-          <button className="er-btn" onClick={resetView} title="초기화">
+          <button className="er-btn" onClick={resetView} title={t('er.reset')}>
             <Icon name="target" style={{ width: 14, height: 14 }} />
           </button>
-          <button className="er-btn er-btn-close" onClick={onClose} title="닫기">
+          <button className="er-btn er-btn-close" onClick={onClose} title={t('er.close')}>
             <Icon name="close" style={{ width: 14, height: 14 }} />
-            닫기
+            {t('er.close')}
           </button>
         </div>
       </div>
@@ -301,11 +303,11 @@ export default function ERDiagram({ onClose }) {
         <svg width="14" height="10">
           <line x1="0" y1="5" x2="14" y2="5" stroke="#60a5fa" strokeWidth="1.5" strokeDasharray="4,2" />
         </svg>
-        <span>FK 관계</span>
+        <span>{t('er.fk.rel')}</span>
         <svg width="12" height="12">
           <path d="M3 6a3 3 0 0 0 4.24.36l1.5-1.5A3 3 0 0 0 4.5 1.26L3.64 2.12" stroke="#60a5fa" strokeWidth="1.5" fill="none" strokeLinecap="round" />
         </svg>
-        <span>외래키</span>
+        <span>{t('er.fk')}</span>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { getSchema, runQuery } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import ERDiagram from '../components/ERDiagram';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const RELATIONS = [
   'employees.department_id  →  departments.id',
@@ -20,6 +21,7 @@ const getTablePreview = (tbl) => {
 };
 
 export default function Tables() {
+  const { t } = useLanguage();
   const [showER, setShowER] = useState(false);
   const [schema] = useState(() => getSchema());
   const [selected, setSelected] = useState(() => {
@@ -37,15 +39,15 @@ export default function Tables() {
     <div className="page">
       {showER && <ERDiagram onClose={() => setShowER(false)} />}
       <div className="page-header">
-        <h2 className="page-title">테이블 탐색</h2>
-        <span className="page-desc">연습 DB의 테이블 구조와 샘플 데이터를 확인하세요</span>
-        <button className="btn btn-ghost-sm" onClick={() => setShowER(s => !s)}>ER 다이어그램</button>
+        <h2 className="page-title">{t('tables.title')}</h2>
+        <span className="page-desc">{t('tables.desc')}</span>
+        <button className="btn btn-ghost-sm" onClick={() => setShowER(s => !s)}>{t('tables.er')}</button>
       </div>
 
       <div className="tables-layout">
         {/* 테이블 목록 */}
         <aside className="tables-sidebar">
-          <div className="sidebar-label">테이블 목록</div>
+          <div className="sidebar-label">{t('tables.sidebar.label')}</div>
           {schema.map((tbl) => (
             <button
               key={tbl.name}
@@ -57,7 +59,7 @@ export default function Tables() {
             </button>
           ))}
 
-          <div className="sidebar-label" style={{ marginTop: 20 }}>테이블 관계</div>
+          <div className="sidebar-label" style={{ marginTop: 20 }}>{t('tables.relations.label')}</div>
           <div className="relations">
             {RELATIONS.map((r, i) => (
               <div key={i} className="relation-row">{r}</div>
@@ -68,7 +70,7 @@ export default function Tables() {
         {/* 테이블 상세 */}
         <div className="tables-main">
           <section className="erd-section">
-            <div className="preview-label">ERD 관계도</div>
+            <div className="preview-label">{t('tables.erd.label')}</div>
             <div className="erd-canvas">
               <div className="erd-node erd-departments">
                 <strong>departments</strong>
@@ -111,8 +113,8 @@ export default function Tables() {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>컬럼명</th>
-                      <th>타입</th>
+                      <th>{t('tables.col.name')}</th>
+                      <th>{t('tables.col.type')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -127,7 +129,7 @@ export default function Tables() {
                 </table>
               </div>
 
-              <div className="preview-label">샘플 데이터 (최대 5행)</div>
+              <div className="preview-label">{t('tables.sample.limit')}</div>
               <ResultTable results={preview} error={null} elapsed={null} />
             </>
           )}

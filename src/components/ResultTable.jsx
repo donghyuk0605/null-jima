@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from './Icon';
 import ResultChart from './ResultChart';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const PAGE_SIZE = 100;
 
@@ -34,6 +35,8 @@ function exportSqlInsert(columns, values) {
 }
 
 export default function ResultTable({ results, error, elapsed, rowsModified }) {
+  const { t } = useLanguage();
+
   if (error) {
     return (
       <div className="result-error">
@@ -48,19 +51,19 @@ export default function ResultTable({ results, error, elapsed, rowsModified }) {
       return (
         <div className="result-info">
           <Icon name="success" className="result-status-icon" />
-          <span><strong>{rowsModified}행</strong> 변경됨</span>
+          <span>{t('result.rows.modified', { n: rowsModified })}</span>
           {elapsed != null && <span className="elapsed"> · {elapsed}ms</span>}
         </div>
       );
     }
-    return <div className="result-empty">쿼리를 실행하면 결과가 여기에 표시됩니다.</div>;
+    return <div className="result-empty">{t('result.empty')}</div>;
   }
 
   if (results.length === 0) {
     return (
       <div className="result-info">
         <Icon name="success" className="result-status-icon" />
-        <span>실행 완료{rowsModified != null && rowsModified > 0 ? ` — ${rowsModified}행 변경됨` : ' — 반환된 행 없음'}</span>
+        <span>{t('result.done')}{rowsModified != null && rowsModified > 0 ? t('result.modified', { n: rowsModified }) : t('result.no.rows')}</span>
         {elapsed != null && <span className="elapsed"> ({elapsed}ms)</span>}
       </div>
     );
@@ -70,6 +73,7 @@ export default function ResultTable({ results, error, elapsed, rowsModified }) {
 }
 
 function ResultGrid({ result, elapsed }) {
+  const { t } = useLanguage();
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [filter, setFilter] = useState('');
@@ -143,42 +147,42 @@ function ResultGrid({ result, elapsed }) {
       <div className="result-meta">
         <div className="result-meta-left">
           <span className="result-count">
-            {filter ? `${filtered.length} / ${values.length}행` : `${values.length}행`}
+            {filter ? t('result.filtered', { filtered: filtered.length, total: values.length }) : t('result.rows', { n: values.length })}
           </span>
           {elapsed != null && <span className="elapsed"> · {elapsed}ms</span>}
-          <span className="col-count"> · {columns.length}열</span>
+          <span className="col-count"> · {t('result.cols', { n: columns.length })}</span>
         </div>
         <div className="result-actions">
           <input
             className="result-filter-input"
-            placeholder="결과 필터..."
+            placeholder={t('result.filter.placeholder')}
             value={filter}
             onChange={e => { setFilter(e.target.value); setPage(0); }}
           />
           <button
             className={`result-action-btn ${showStats ? 'active' : ''}`}
             onClick={() => setShowStats(s => !s)}
-            title="컬럼 통계 보기"
+            title={t('result.stat.uniq')}
           >
-            통계
+            {t('result.stats.btn')}
           </button>
           <button
             className={`result-action-btn ${showChart ? 'active' : ''}`}
             onClick={() => setShowChart(s => !s)}
-            title="차트 보기"
+            title={t('result.chart.btn')}
           >
-            차트
+            {t('result.chart.btn')}
           </button>
           <div className="export-menu-wrap" ref={exportRef}>
             <button className="result-action-btn" onClick={() => setExportOpen(o => !o)}>
-              내보내기 ▾
+              {t('result.export.btn')}
             </button>
             {exportOpen && (
               <div className="export-menu">
-                <button onClick={copyTsv}>클립보드 복사 (TSV)</button>
-                <button onClick={() => { exportCsv(columns, sorted); setExportOpen(false); }}>CSV 다운로드</button>
-                <button onClick={() => { exportJson(columns, sorted); setExportOpen(false); }}>JSON 다운로드</button>
-                <button onClick={() => { exportSqlInsert(columns, sorted); setExportOpen(false); }}>SQL INSERT 다운로드</button>
+                <button onClick={copyTsv}>{t('result.copy.tsv')}</button>
+                <button onClick={() => { exportCsv(columns, sorted); setExportOpen(false); }}>{t('result.download.csv')}</button>
+                <button onClick={() => { exportJson(columns, sorted); setExportOpen(false); }}>{t('result.download.json')}</button>
+                <button onClick={() => { exportSqlInsert(columns, sorted); setExportOpen(false); }}>{t('result.download.sql')}</button>
               </div>
             )}
           </div>
@@ -191,13 +195,13 @@ function ResultGrid({ result, elapsed }) {
             <div key={col} className="col-stat-item">
               <div className="col-stat-name">{col}</div>
               <div className="col-stat-vals">
-                <span title="NULL 개수">NULL {colStats[i].nulls}</span>
-                <span title="고유값 수">고유 {colStats[i].uniq}</span>
+                <span title={t('result.stat.null')}>{t('result.stat.null.label', { n: colStats[i].nulls })}</span>
+                <span title={t('result.stat.uniq')}>{t('result.stat.uniq.label', { n: colStats[i].uniq })}</span>
                 {colStats[i].min !== undefined && (
                   <>
-                    <span title="최솟값">↓{colStats[i].min}</span>
-                    <span title="최댓값">↑{colStats[i].max}</span>
-                    <span title="평균">≈{colStats[i].avg.toFixed(1)}</span>
+                    <span title={t('result.stat.min')}>↓{colStats[i].min}</span>
+                    <span title={t('result.stat.max')}>↑{colStats[i].max}</span>
+                    <span title={t('result.stat.avg')}>≈{colStats[i].avg.toFixed(1)}</span>
                   </>
                 )}
               </div>
@@ -218,7 +222,7 @@ function ResultGrid({ result, elapsed }) {
                   key={col}
                   className={`col-th sortable ${sortCol === i ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : ''}`}
                   onClick={() => handleSort(i)}
-                  title="클릭하여 정렬"
+                  title={t('result.sort')}
                 >
                   <span className="col-th-text">{col}</span>
                   <span className="sort-icon">
@@ -239,7 +243,7 @@ function ResultGrid({ result, elapsed }) {
                       key={ci}
                       className={`${cell === null ? 'null-cell' : 'data-cell'} ${copiedKey === key ? 'cell-copied' : ''}`}
                       onClick={() => cell !== null && copyCell(cell, key)}
-                      title={cell !== null ? '클릭하여 복사' : 'NULL'}
+                      title={cell !== null ? t('result.copy.cell') : 'NULL'}
                     >
                       {cell === null
                         ? <span className="null-val">NULL</span>
@@ -257,7 +261,7 @@ function ResultGrid({ result, elapsed }) {
         <div className="result-pagination">
           <button className="page-btn" onClick={() => setPage(0)} disabled={page === 0}><Icon name="skip-first" style={{width:14,height:14}} /></button>
           <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 0}><Icon name="prev" style={{width:14,height:14}} /></button>
-          <span className="page-info">{page + 1} / {totalPages} 페이지 ({sorted.length}행)</span>
+          <span className="page-info">{t('result.page.info', { page: page + 1, total: totalPages, rows: sorted.length })}</span>
           <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page >= totalPages - 1}><Icon name="next" style={{width:14,height:14}} /></button>
           <button className="page-btn" onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}><Icon name="skip-last" style={{width:14,height:14}} /></button>
         </div>

@@ -8,27 +8,26 @@ import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
 import { getSavedQueries, saveQuery, deleteSavedQuery } from '../lib/savedQueries';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TABS_KEY = 'sqldojo_tabs';
 const ACTIVE_TAB_KEY = 'sqldojo_active_tab';
 const EDITOR_HISTORY_KEY = 'sqldojo_editor_history';
 const genId = () => `tab_${Date.now()}`;
 
-const DEFAULT_TABS = [
-  { id: 'tab_1', name: '쿼리 1', sql: 'SELECT *\nFROM employees\nLIMIT 10;', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null },
-];
+function makeDefaultTabs(name1) {
+  return [{ id: 'tab_1', name: name1, sql: 'SELECT *\nFROM employees\nLIMIT 10;', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null }];
+}
 
-function loadTabs() {
+function loadTabs(name1) {
   try {
-    // migrate old single-draft key
     const old = localStorage.getItem('sqldojo_editor_draft');
     const saved = JSON.parse(localStorage.getItem(TABS_KEY));
     if (Array.isArray(saved) && saved.length > 0) {
-      // ensure result fields exist (they don't persist across sessions)
-      return saved.map(t => ({
-        id: t.id,
-        name: t.name,
-        sql: t.sql,
+      return saved.map(tab => ({
+        id: tab.id,
+        name: tab.name,
+        sql: tab.sql,
         results: null,
         error: null,
         elapsed: null,
@@ -37,9 +36,9 @@ function loadTabs() {
         multiResults: null,
       }));
     }
-    if (old) return [{ id: 'tab_1', name: '쿼리 1', sql: old, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null }];
-    return DEFAULT_TABS;
-  } catch { return DEFAULT_TABS; }
+    if (old) return [{ id: 'tab_1', name: name1, sql: old, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null }];
+    return makeDefaultTabs(name1);
+  } catch { return makeDefaultTabs(name1); }
 }
 
 function saveTabs(tabs) {
@@ -54,11 +53,12 @@ const loadHistory = () => {
 const saveHistory = (items) => localStorage.setItem(EDITOR_HISTORY_KEY, JSON.stringify(items.slice(0, 12)));
 
 export default function Editor() {
-  const [tabs, setTabs] = useState(loadTabs);
+  const { t } = useLanguage();
+  const [tabs, setTabs] = useState(() => loadTabs(t('editor.newTab', { n: 1 })));
   const [activeTabId, setActiveTabId] = useState(() => {
     const saved = localStorage.getItem(ACTIVE_TAB_KEY);
-    const all = loadTabs();
-    return all.find(t => t.id === saved) ? saved : all[0]?.id;
+    const all = loadTabs(t('editor.newTab', { n: 1 }));
+    return all.find(tab => tab.id === saved) ? saved : all[0]?.id;
   });
   const [renamingId, setRenamingId] = useState(null);
   const [renameVal, setRenameVal] = useState('');
@@ -125,7 +125,7 @@ export default function Editor() {
   const addTab = () => {
     const id = genId();
     const n = tabs.length + 1;
-    const newTab = { id, name: `쿼리 ${n}`, sql: '', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null };
+    const newTab = { id, name: t('editor.newTab', { n }), sql: '', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null };
     updateTabs([...tabs, newTab]);
     switchTab(id);
   };
@@ -197,7 +197,7 @@ export default function Editor() {
             allResults.push({ sql: stmt, results: res, error: null, elapsed: stmtElapsed, ddlSuccess: false, rowsModified: modified });
           }
         } catch (e) {
-          allResults.push({ sql: stmt, results: null, error: translateSqlError(e), elapsed: null, ddlSuccess: false, rowsModified: null });
+          allResults.push({ sql: stmt, results: null, error: translateSqlError(e, t), elapsed: null, ddlSuccess: false, rowsModified: null });
           break; // stop on first error
         }
       }
@@ -221,9 +221,9 @@ export default function Editor() {
       refreshSchema();
       addHistory(sql);
     } catch (e) {
-      setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: translateSqlError(e), elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : t));
+      setTabs(prev => prev.map(tab => tab.id === activeTabId ? { ...tab, results: null, error: translateSqlError(e, t), elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : tab));
     }
-  }, [addHistory, query, selection, explainMode, activeTabId]);
+  }, [addHistory, query, selection, explainMode, activeTabId, t]);
 
   const clearEditor = () => {
     updateQuery('');
@@ -244,7 +244,7 @@ export default function Editor() {
   const [savedQueries, setSavedQueries] = useState(() => getSavedQueries());
 
   const handleSaveQuery = () => {
-    const name = window.prompt('쿼리 이름을 입력하세요:', activeTab?.name || '쿼리');
+    const name = window.prompt(t('editor.saved.prompt'), activeTab?.name);
     if (!name || !name.trim()) return;
     const sql = (selection.trim() || query).trim();
     if (!sql) return;
@@ -267,15 +267,15 @@ export default function Editor() {
   return (
     <div className={`page editor-page ${fullscreen ? 'editor-fullscreen' : ''}`}>
       <div className="page-header">
-        <h2 className="page-title">SQL 에디터</h2>
-        <span className="page-desc">여러 탭에서 쿼리를 작성하고 결과를 확인하세요</span>
+        <h2 className="page-title">{t('editor.title')}</h2>
+        <span className="page-desc">{t('editor.desc')}</span>
         <button
           className="btn btn-ghost-sm"
           style={{ marginLeft: 'auto' }}
           onClick={() => setFullscreen(f => !f)}
-          title={fullscreen ? '전체화면 해제' : '전체화면'}
+          title={fullscreen ? t('editor.fullscreen.off') : t('editor.fullscreen.on')}
         >
-          {fullscreen ? <><Icon name="minimize" style={{width:14,height:14}} /> 축소</> : <><Icon name="maximize" style={{width:14,height:14}} /> 전체화면</>}
+          {fullscreen ? <><Icon name="minimize" style={{width:14,height:14}} /> {t('editor.fullscreen.off')}</> : <><Icon name="maximize" style={{width:14,height:14}} /> {t('editor.fullscreen.on')}</>}
         </button>
       </div>
 
@@ -285,7 +285,7 @@ export default function Editor() {
           <button
             className="sidebar-toggle-btn"
             onClick={() => setSidebarOpen(o => !o)}
-            title={sidebarOpen ? '사이드바 접기' : '사이드바 펼치기'}
+            title={sidebarOpen ? t('editor.sidebar.hide') : t('editor.sidebar.show')}
           >
             <Icon name={sidebarOpen ? 'chevron-left' : 'chevron-right'} style={{width:14,height:14}} />
           </button>
@@ -293,7 +293,7 @@ export default function Editor() {
           {editorMode === 'beginner' && <SyntaxPicker onPick={updateQuery} />}
 
           <section className="editor-panel">
-            <div className="sidebar-label">테이블 스키마</div>
+            <div className="sidebar-label">{t('editor.schema')}</div>
             {schema.map(table => (
               <div key={table.name} className="schema-tbl">
                 <button
@@ -304,7 +304,7 @@ export default function Editor() {
                   <Icon name="table" className="inline-icon" />
                   <span className="schema-tbl-label">{table.name}</span>
                   {tableStats[table.name] && (
-                    <span className="schema-row-count">{tableStats[table.name].rowCount}행</span>
+                    <span className="schema-row-count">{t('editor.status.rows', { n: tableStats[table.name].rowCount })}</span>
                   )}
                 </button>
                 <div className="schema-cols">
@@ -321,13 +321,13 @@ export default function Editor() {
 
           <section className="editor-panel">
             <div className="editor-panel-head">
-              <div className="sidebar-label">실행 기록</div>
+              <div className="sidebar-label">{t('editor.history')}</div>
               {history.length > 0 && (
-                <button className="history-clear" onClick={clearHistory} type="button">지우기</button>
+                <button className="history-clear" onClick={clearHistory} type="button">{t('editor.history.clear')}</button>
               )}
             </div>
             {history.length === 0 ? (
-              <div className="editor-empty">아직 실행한 쿼리가 없습니다.</div>
+              <div className="editor-empty">{t('editor.history.empty')}</div>
             ) : (
               <div className="editor-history-list">
                 {history.map(item => (
@@ -346,10 +346,10 @@ export default function Editor() {
           </section>
           <section className="editor-panel">
             <div className="editor-panel-head">
-              <div className="sidebar-label">저장된 쿼리</div>
+              <div className="sidebar-label">{t('editor.saved')}</div>
             </div>
             {savedQueries.length === 0 ? (
-              <div className="editor-empty">저장된 쿼리가 없습니다.</div>
+              <div className="editor-empty">{t('editor.saved.empty')}</div>
             ) : (
               <div className="editor-history-list">
                 {savedQueries.map(item => (
@@ -365,7 +365,7 @@ export default function Editor() {
                       <span
                         style={{ cursor: 'pointer', color: 'var(--err, #dc2626)', fontSize: '12px', lineHeight: 1 }}
                         onClick={e => handleDeleteSavedQuery(item.id, e)}
-                        title="삭제"
+                        title={t('common.delete')}
                       >×</span>
                     </span>
                   </button>
@@ -381,7 +381,7 @@ export default function Editor() {
             className="sidebar-toggle-btn"
             style={{ alignSelf: 'flex-start', marginTop: '8px', marginRight: '4px' }}
             onClick={() => setSidebarOpen(o => !o)}
-            title="사이드바 펼치기"
+            title={t('editor.sidebar.show')}
           >
             <Icon name="chevron-right" style={{width:14,height:14}} />
           </button>
@@ -422,13 +422,13 @@ export default function Editor() {
                   )}
                 </div>
               ))}
-              <button className="tab-add-btn" onClick={addTab} type="button" title="새 탭">+</button>
+              <button className="tab-add-btn" onClick={addTab} type="button" title={t('editor.tab.new')}>+</button>
             </div>
 
             <EditorModeBar mode={editorMode} onModeChange={changeEditorMode} />
             {editorMode === 'beginner' && (
               <div className="editor-helper-strip">
-                왼쪽 문법 메뉴에서 골격을 고르고, 테이블/컬럼 이름을 바꿔 실행해보세요.
+                {t('editor.helper.comfort')}
               </div>
             )}
             {editorMode === 'terminal' && (
@@ -452,18 +452,18 @@ export default function Editor() {
             <div className="editor-toolbar">
               <button className="btn btn-run" onClick={execute}>
                 <Icon name="play" className="btn-icon" />
-                실행
+                {t('editor.run')}
               </button>
               <button className="btn btn-ghost-sm" onClick={() => updateQuery(formatSql(query))}>
                 <Icon name="format" className="status-icon" />
-                포맷
+                {t('editor.format')}
               </button>
-              <button className="btn btn-ghost-sm" onClick={clearEditor}>초기화</button>
-              <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title="쿼리 저장">저장</button>
+              <button className="btn btn-ghost-sm" onClick={clearEditor}>{t('editor.clear')}</button>
+              <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title={t('editor.save')}>{t('editor.save')}</button>
               <button
                 className={`btn btn-ghost-sm ${explainMode ? 'btn-active' : ''}`}
                 onClick={() => setExplainMode(m => !m)}
-                title="EXPLAIN QUERY PLAN 모드 토글"
+                title={t('editor.explain.toggle')}
               >
                 EXPLAIN {explainMode ? '✓' : ''}
               </button>
@@ -479,23 +479,23 @@ export default function Editor() {
               <button
                 className="btn btn-ghost-sm"
                 onClick={() => setShowShortcuts(o => !o)}
-                title="키보드 단축키"
+                title={t('editor.shortcut.title')}
               >
                 ?
               </button>
 
               {/* Feature 1: selection hint */}
               {selection.trim() ? (
-                <span className="editor-shortcut-hint selection-hint">선택 영역 실행 중</span>
+                <span className="editor-shortcut-hint selection-hint">{t('editor.selection.hint')}</span>
               ) : (
-                <span className="editor-shortcut-hint">Ctrl+Enter로 실행</span>
+                <span className="editor-shortcut-hint">{t('editor.hint.ctrlEnter')}</span>
               )}
             </div>
             <div className="editor-statusbar">
-              <span>{activeTab?.name || '쿼리'}</span>
-              <span>{editorMode === 'terminal' ? '터미널' : editorMode === 'beginner' ? '도우미' : '편의성'}</span>
-              <span>{schema.length} tables</span>
-              <span>{results?.[0]?.values?.length ?? 0} rows</span>
+              <span>{activeTab?.name}</span>
+              <span>{t(`editor.mode.${editorMode}`)}</span>
+              <span>{t('editor.status.tables', { n: schema.length })}</span>
+              <span>{t('editor.status.rows', { n: results?.[0]?.values?.length ?? 0 })}</span>
               {elapsed != null && <span>{elapsed}ms</span>}
             </div>
           </div>
@@ -510,7 +510,7 @@ export default function Editor() {
                   {entry.ddlSuccess && !entry.error && (
                     <div className="ddl-success-msg">
                       <Icon name="success" style={{ width: 16, height: 16 }} />
-                      명령이 실행되었습니다.{entry.rowsModified != null && entry.rowsModified > 0 && ` (${entry.rowsModified}행 변경)`}
+                      {t('editor.ddl.success')}{entry.rowsModified != null && entry.rowsModified > 0 && t('editor.ddl.modified', { n: entry.rowsModified })}
                     </div>
                   )}
                   <ResultTable results={entry.results} error={entry.error} elapsed={entry.elapsed} rowsModified={entry.rowsModified} />
@@ -521,7 +521,7 @@ export default function Editor() {
                 {ddlSuccess && !error && (
                   <div className="ddl-success-msg">
                     <Icon name="success" style={{ width: 16, height: 16 }} />
-                    명령이 실행되었습니다.{rowsModified != null && rowsModified > 0 && ` (${rowsModified}행 변경)`}
+                    {t('editor.ddl.success')}{rowsModified != null && rowsModified > 0 && t('editor.ddl.modified', { n: rowsModified })}
                   </div>
                 )}
                 <ResultTable results={results} error={error} elapsed={elapsed} rowsModified={rowsModified} />
@@ -536,17 +536,17 @@ export default function Editor() {
         <div className="shortcut-overlay" onClick={() => setShowShortcuts(false)}>
           <div className="shortcut-modal" onClick={e => e.stopPropagation()}>
             <div className="shortcut-modal-header">
-              <h3>키보드 단축키</h3>
+              <h3>{t('editor.shortcut.title')}</h3>
               <button onClick={() => setShowShortcuts(false)}><Icon name="close" style={{width:14,height:14}} /></button>
             </div>
             <div className="shortcut-list">
               {[
-                ['Ctrl+Enter / Cmd+Enter', '쿼리 실행'],
-                ['드래그 후 Ctrl+Enter', '선택 영역만 실행'],
-                ['Ctrl+Z', '실행 취소'],
-                ['Ctrl+Shift+F / 포맷 버튼', 'SQL 자동 포맷'],
-                ['?', '단축키 도움말'],
-                ['Esc', '단축키 창 닫기'],
+                ['Ctrl+Enter / Cmd+Enter', t('editor.shortcut.run')],
+                [t('editor.shortcut.runSel.key'), t('editor.shortcut.runSel')],
+                ['Ctrl+Z', t('editor.shortcut.undo')],
+                [t('editor.shortcut.format.key'), t('editor.shortcut.format')],
+                ['?', t('editor.shortcut.help')],
+                ['Esc', t('editor.shortcut.close')],
               ].map(([key, desc]) => (
                 <div key={key} className="shortcut-row">
                   <kbd className="shortcut-key">{key}</kbd>

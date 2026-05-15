@@ -20,28 +20,35 @@ import SqlEditor from '../components/SqlEditor';
 import EditorModeBar from '../components/EditorModeBar';
 import SyntaxPicker from '../components/SyntaxPicker';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
+import { useLanguage } from '../contexts/LanguageContext';
+import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
 
 const AC_KEY = 'sqldojo_ac';
 
-const buildHintSteps = (problem) => [
-  `사용할 테이블: ${problem.tables.join(', ')}`,
+const buildHintSteps = (problem, t) => [
+  t('problem.hint.tables', { tables: problem.tables.join(', ') }),
   problem.hints[0] || problem.description,
-  problem.hints[1] || 'SELECT, FROM, WHERE/JOIN/GROUP BY 순서로 쿼리 골격을 먼저 잡아보세요.',
+  problem.hints[1] || t('problem.hint.skeleton'),
   problem.hints[2] || `${problem.answer};`,
 ];
 
 export default function ProblemDetail() {
   const { id } = useParams();
-  const problem = PROBLEMS.find((p) => p.id === Number(id));
+  const { language, t } = useLanguage();
+  const localizedProblems = localizeProblems(PROBLEMS, language);
+  const problem = localizedProblems.find((p) => p.id === Number(id));
 
-  if (!problem) return <div className="page"><p>문제를 찾을 수 없습니다.</p></div>;
+  if (!problem) return <div className="page"><p>{t('problem.notFound')}</p></div>;
 
   return <ProblemDetailContent key={problem.id} problem={problem} />;
 }
 
 function ProblemDetailContent({ problem }) {
+  const { t } = useLanguage();
+  const tl = (level) => translateLevel(level, t);
+  const tt = (tag) => translateTag(tag, t);
   const [progress, setProgress] = useState(() => getProblemProgress(problem.id));
-  const [userSql, setUserSql] = useState(() => progress.draftSql || '-- 여기에 SQL을 작성하세요\n');
+  const [userSql, setUserSql] = useState(() => progress.draftSql || `${t('problem.editor.placeholder')}\n`);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [elapsed, setElapsed] = useState(null);
@@ -71,17 +78,17 @@ function ProblemDetailContent({ problem }) {
       setResults(res);
     } catch (e) {
       setElapsed(null);
-      setError(translateSqlError(e));
+      setError(translateSqlError(e, t));
       setResults(null);
     }
-  }, [userSql, problem]);
+  }, [userSql, problem, t]);
 
   const grade = useCallback(() => {
     if (!problem) return;
     execute();
     const result = gradeQuery(userSql.trim(), problem.answer, problem.checkOrder, {
       strictColumns: problem.strictColumns,
-    });
+    }, t);
     setGradeResult(result);
     const updated = recordAttempt(problem.id, result.correct, hintsOpen);
     setProgress(updated);
@@ -91,7 +98,7 @@ function ProblemDetailContent({ problem }) {
     } else {
       markAttempted(problem.id);
     }
-  }, [userSql, problem, hintsOpen, execute]);
+  }, [userSql, problem, hintsOpen, execute, t]);
 
   const toggleTimer = () => {
     if (timerActive) {
@@ -160,9 +167,10 @@ function ProblemDetailContent({ problem }) {
     updateSql(sql);
   };
 
-  const prevP = PROBLEMS[PROBLEMS.indexOf(problem) - 1];
-  const nextP = PROBLEMS[PROBLEMS.indexOf(problem) + 1];
-  const hintSteps = buildHintSteps(problem);
+  const problemIndex = PROBLEMS.findIndex((p) => p.id === problem.id);
+  const prevP = PROBLEMS[problemIndex - 1];
+  const nextP = PROBLEMS[problemIndex + 1];
+  const hintSteps = buildHintSteps(problem, t);
   const effectiveAutocomplete = editorMode !== 'terminal' && autocomplete;
   const attemptCount = progress?.attempts || 0;
   const openedHintCount = Math.min(hintsOpen, hintSteps.length);
@@ -172,18 +180,18 @@ function ProblemDetailContent({ problem }) {
     <div className="page problem-detail-page">
       {/* 상단 네비 */}
       <div className="problem-nav">
-        <Link to="/problems" className="btn btn-ghost-sm">← 목록</Link>
+        <Link to="/problems" className="btn btn-ghost-sm">{t('problem.nav.list')}</Link>
         <div className="problem-nav-pages">
-          {prevP && <Link to={`/problems/${prevP.id}`} className="btn btn-ghost-sm">이전</Link>}
-          {nextP && <Link to={`/problems/${nextP.id}`} className="btn btn-ghost-sm">다음</Link>}
+          {prevP && <Link to={`/problems/${prevP.id}`} className="btn btn-ghost-sm">{t('problem.nav.prev')}</Link>}
+          {nextP && <Link to={`/problems/${nextP.id}`} className="btn btn-ghost-sm">{t('problem.nav.next')}</Link>}
         </div>
       </div>
 
       <div className="problem-mobile-tabs">
         {[
-          ['info', '문제'],
-          ['write', '작성'],
-          ['result', '결과'],
+          ['info', t('problem.tab.info')],
+          ['write', t('problem.tab.write')],
+          ['result', t('problem.tab.result')],
         ].map(([key, label]) => (
           <button
             key={key}
@@ -200,22 +208,22 @@ function ProblemDetailContent({ problem }) {
         {/* 왼쪽: 문제 정보 */}
         <div className={`problem-info problem-panel ${mobilePanel === 'info' ? 'mobile-active' : ''}`}>
           <div className="problem-panel-head">
-            <span>문제</span>
+            <span>{t('problem.panel.info')}</span>
             <strong>{problem.id}</strong>
           </div>
           <div className="problem-meta">
-            <span className={`badge level-${problem.level}`}>{problem.level}</span>
-            {problem.tags.map((t) => (
-              <span key={t} className="tag" style={{ background: TAG_COLORS[t] + '22', color: TAG_COLORS[t], border: `1px solid ${TAG_COLORS[t]}44` }}>{t}</span>
+            <span className={`badge level-${problem.level}`}>{tl(problem.level)}</span>
+            {problem.tags.map((tag) => (
+              <span key={tag} className="tag" style={{ background: TAG_COLORS[tag] + '22', color: TAG_COLORS[tag], border: `1px solid ${TAG_COLORS[tag]}44` }}>{tt(tag)}</span>
             ))}
             {progress?.solved && (
               <span className="solved-badge">
                 <Icon name="success" className="status-icon" />
-                완료
+                {t('problem.status.solved')}
               </span>
             )}
-            {progress?.favorite && <span className="review-badge">즐겨찾기</span>}
-            {progress?.review && <span className="review-badge">다시 풀기</span>}
+            {progress?.favorite && <span className="review-badge">{t('problem.status.fav')}</span>}
+            {progress?.review && <span className="review-badge">{t('problem.status.review')}</span>}
           </div>
 
           <div className="problem-title-row">
@@ -223,7 +231,7 @@ function ProblemDetailContent({ problem }) {
             <button
               className={`fav-btn ${favorited ? 'fav-active' : ''}`}
               onClick={() => { const next = toggleFavoriteById(problem.id); setFavorited(next.includes(Number(problem.id))); }}
-              title="즐겨찾기"
+              title={t('problem.favorite.title')}
             >
               <Icon name="star" className="fav-icon" />
             </button>
@@ -233,19 +241,19 @@ function ProblemDetailContent({ problem }) {
           {problem.hints && problem.hints.length > 0 && (
             <div className="hint-section">
               <div className="hint-header">
-                <span className="hint-title">힌트</span>
+                <span className="hint-title">{t('problem.hint.title')}</span>
                 {hintsShown < problem.hints.length && (
                   <button className="hint-btn" onClick={() => setHintsShown(h => h + 1)}>
-                    힌트 보기 ({hintsShown}/{problem.hints.length})
+                    {t('problem.hint.show', { shown: hintsShown, total: problem.hints.length })}
                   </button>
                 )}
                 {hintsShown > 0 && (
-                  <button className="hint-reset" onClick={() => setHintsShown(0)}>초기화</button>
+                  <button className="hint-reset" onClick={() => setHintsShown(0)}>{t('problem.hint.reset')}</button>
                 )}
               </div>
               {problem.hints.slice(0, hintsShown).map((hint, i) => (
                 <div key={i} className="hint-item">
-                  <span className="hint-num">힌트 {i + 1}</span>
+                  <span className="hint-num">{t('problem.hint.title')} {i + 1}</span>
                   <span className="hint-text">{hint}</span>
                 </div>
               ))}
@@ -253,37 +261,37 @@ function ProblemDetailContent({ problem }) {
           )}
 
           <div className="problem-tables">
-            <div className="ptables-label">사용 테이블</div>
-            {problem.tables.map((t) => (
-              <span key={t} className="table-chip">{t}</span>
+            <div className="ptables-label">{t('problem.tables.label')}</div>
+            {problem.tables.map((tbl) => (
+              <span key={tbl} className="table-chip">{tbl}</span>
             ))}
           </div>
 
           <div className="problem-side-actions">
             <button className="btn btn-ghost-sm" onClick={handleFavorite}>
               <Icon name="star" className="status-icon" />
-              {progress?.favorite ? '즐겨찾기 해제' : '즐겨찾기'}
+              {progress?.favorite ? t('problem.action.unfav') : t('problem.action.fav')}
             </button>
             <button className="btn btn-ghost-sm" onClick={handleReview}>
-              {progress?.review ? '다시 풀기 해제' : '다시 풀기'}
+              {progress?.review ? t('problem.action.unreview') : t('problem.action.review')}
             </button>
           </div>
 
           {/* 힌트 */}
           <div className="hints-section">
-            <div className="hints-label">힌트</div>
+            <div className="hints-label">{t('problem.hints.label')}</div>
             {hintSteps.map((hint, i) => {
-              const labels = ['사용 테이블', '조건/핵심', '쿼리 골격', '거의 정답'];
+              const labels = [t('problem.hint.step.1'), t('problem.hint.step.2'), t('problem.hint.step.3'), t('problem.hint.step.4')];
               return (
                 <div key={i}>
                   {hintsOpen > i ? (
                     <div className="hint-box">
-                      <span className="hint-num">{labels[i] || `힌트 ${i + 1}`}</span> {hint}
+                      <span className="hint-num">{labels[i] || `${t('problem.hint.title')} ${i + 1}`}</span> {hint}
                     </div>
                   ) : (
                     i === hintsOpen && (
                       <button className="btn btn-ghost-sm" onClick={() => setHintsOpen(i + 1)}>
-                        {labels[i] || `힌트 ${i + 1}`} 보기
+                        {t('problem.hints.showStep', { label: labels[i] || `${t('problem.hint.title')} ${i + 1}` })}
                       </button>
                     )
                   )}
@@ -296,12 +304,12 @@ function ProblemDetailContent({ problem }) {
           <div className="answer-section">
             {showAnswer ? (
               <div className="answer-box">
-                <div className="answer-label">정답</div>
+                <div className="answer-label">{t('problem.answer.label')}</div>
                 <pre className="answer-sql">{problem.answer};</pre>
               </div>
             ) : (
               <button className="btn btn-ghost-sm" onClick={() => setShowAnswer(true)}>
-                정답 보기
+                {t('problem.answer.show')}
               </button>
             )}
           </div>
@@ -310,8 +318,8 @@ function ProblemDetailContent({ problem }) {
         {/* 오른쪽: 에디터 */}
         <div className={`problem-editor-area problem-panel ${mobilePanel === 'write' ? 'mobile-active' : ''}`}>
           <div className="problem-panel-head">
-            <span>SQL 작성</span>
-            <strong>{editorMode === 'terminal' ? '고급' : editorMode === 'beginner' ? '초급' : '중급'}</strong>
+            <span>{t('problem.panel.write')}</span>
+            <strong>{editorMode === 'terminal' ? t('problem.panel.writeMode.terminal') : editorMode === 'beginner' ? t('problem.panel.writeMode.beginner') : t('problem.panel.writeMode.comfort')}</strong>
           </div>
           <div className={`editor-workbench ${editorMode === 'beginner' ? 'with-helper' : ''}`}>
             {editorMode === 'beginner' && (
@@ -321,7 +329,7 @@ function ProblemDetailContent({ problem }) {
               <EditorModeBar mode={editorMode} onModeChange={changeEditorMode} />
               {editorMode === 'beginner' && (
                 <div className="editor-helper-strip">
-                  문법 골격을 고른 뒤 문제 조건에 맞게 컬럼과 조건을 바꿔보세요.
+                  {t('problem.helper.beginner')}
                 </div>
               )}
               {editorMode === 'terminal' && (
@@ -341,31 +349,31 @@ function ProblemDetailContent({ problem }) {
               <div className="editor-toolbar">
                 <button className="btn btn-run" onClick={execute}>
                   <Icon name="play" className="btn-icon" />
-                  실행
+                  {t('problem.run')}
                 </button>
                 <button className="btn btn-grade" onClick={grade}>
                   <Icon name="success" className="btn-icon" />
-                  채점
+                  {t('problem.grade')}
                 </button>
                 <button className="btn btn-ghost-sm" onClick={handleFormat}>
                   <Icon name="format" className="status-icon" />
-                  포맷
+                  {t('problem.format')}
                 </button>
                 <button
                   className={`btn btn-ghost-sm ${timerActive ? 'btn-active' : ''}`}
                   onClick={toggleTimer}
-                  title="타이머 시작/정지"
+                  title={t('problem.timer.toggle')}
                 >
-                  <><Icon name="timer" style={{width:13,height:13}} /> {timerActive ? formatTimer(timerSecs) : '타이머'}</>
+                  <><Icon name="timer" style={{width:13,height:13}} /> {timerActive ? formatTimer(timerSecs) : t('problem.timer')}</>
                 </button>
                 <button
                   className="btn btn-ghost-sm"
                   onClick={toggleAutocomplete}
-                  title="자동완성 토글"
+                  title={t('problem.autocomplete.toggle')}
                   disabled={editorMode === 'terminal'}
                   style={{ marginLeft: 'auto' }}
                 >
-                  자동완성 {effectiveAutocomplete ? '✓' : '—'}
+                  {effectiveAutocomplete ? t('problem.autocomplete.on') : t('problem.autocomplete.off')}
                 </button>
               </div>
             </div>
@@ -374,26 +382,26 @@ function ProblemDetailContent({ problem }) {
 
         <aside className={`problem-feedback-panel problem-panel ${mobilePanel === 'result' ? 'mobile-active' : ''}`}>
           <div className="problem-panel-head">
-            <span>결과와 피드백</span>
-            <strong>{gradeResult ? (gradeResult.correct ? '정답' : '확인 필요') : '대기'}</strong>
+            <span>{t('problem.panel.feedback')}</span>
+            <strong>{gradeResult ? (gradeResult.correct ? t('problem.panel.feedback.correct') : t('problem.panel.feedback.wrong')) : t('problem.panel.feedback.waiting')}</strong>
           </div>
 
           <div className="problem-quick-stats">
             <div>
-              <span>시도</span>
+              <span>{t('problem.stat.attempts')}</span>
               <strong>{attemptCount}</strong>
             </div>
             <div>
-              <span>힌트</span>
+              <span>{t('problem.stat.hints')}</span>
               <strong>{openedHintCount}</strong>
             </div>
             <div>
-              <span>결과</span>
-              <strong>{resultRowCount}행</strong>
+              <span>{t('problem.stat.rows')}</span>
+              <strong>{t('problem.stat.rows.count', { n: resultRowCount })}</strong>
             </div>
             {timerSecs > 0 && (
               <div>
-                <span>경과</span>
+                <span>{t('problem.stat.elapsed')}</span>
                 <strong style={{ color: timerActive ? 'var(--accent)' : 'var(--fg-muted)' }}>{formatTimer(timerSecs)}</strong>
               </div>
             )}
@@ -404,12 +412,12 @@ function ProblemDetailContent({ problem }) {
               {gradeResult.correct ? (
                 <>
                   <Icon name="trophy" className="grade-icon" />
-                  정답입니다!
+                  {t('problem.grade.correct')}
                 </>
               ) : (
                 <>
                   <Icon name="error" className="grade-icon" />
-                  오답 — {gradeResult.msg}
+                  {t('problem.grade.wrong')} — {gradeResult.msg}
                 </>
               )}
               {gradeResult.checks?.length > 0 && (
