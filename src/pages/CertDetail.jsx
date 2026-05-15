@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { CERT_LIST, SQLD_QUIZ } from '../data/cert';
+import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
 import { runQuery, translateSqlError } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
@@ -64,7 +64,7 @@ export default function CertDetail() {
     );
   }
 
-  const quiz = certId === 'sqld' ? SQLD_QUIZ : [];
+  const quiz = certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [];
 
   const runCoreSql = (idx, sqlStr) => {
     try {
