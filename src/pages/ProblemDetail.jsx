@@ -356,7 +356,7 @@ function ProblemDetailContent({ problem }) {
                   onClick={toggleTimer}
                   title="타이머 시작/정지"
                 >
-                  ⏱ {timerActive ? formatTimer(timerSecs) : '타이머'}
+                  <><Icon name="timer" style={{width:13,height:13}} /> {timerActive ? formatTimer(timerSecs) : '타이머'}</>
                 </button>
                 <button
                   className="btn btn-ghost-sm"

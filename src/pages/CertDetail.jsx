@@ -150,7 +150,7 @@ export default function CertDetail() {
           onClick={() => navigate(`/cert/${cert.id}/exam`)}
           style={{ marginTop: 12 }}
         >
-          🎯 모의고사 시작 ({quiz.length}문제 · {cert.examTime}분)
+          <Icon name="target" style={{width:14,height:14}} /> 모의고사 시작 ({quiz.length}문제 · {cert.examTime}분)
         </button>
       </div>
 

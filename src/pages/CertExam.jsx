@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
+import Icon from '../components/Icon';
 
 const EXAM_RESULTS_KEY = 'sqldojo_exam_results';
 
@@ -90,7 +91,7 @@ export default function CertExam() {
           <ul className="exam-ready-rules">
             <li>시험 중에는 힌트나 답이 표시되지 않습니다.</li>
             <li>시간 종료 시 자동으로 제출됩니다.</li>
-            <li>문제 옆 🚩 버튼으로 나중에 다시 확인할 문제를 표시할 수 있습니다.</li>
+            <li>문제 옆 <Icon name="flag" style={{width:12,height:12,display:'inline'}} /> 버튼으로 나중에 다시 확인할 문제를 표시할 수 있습니다.</li>
           </ul>
           <div className="exam-ready-actions">
             <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>취소</button>
@@ -199,7 +200,7 @@ export default function CertExam() {
             <button
               className={`exam-flag-btn ${flagged.has(q.id) ? 'active' : ''}`}
               onClick={() => setFlagged(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
-            >🚩 {flagged.has(q.id) ? '표시됨' : '표시'}</button>
+            ><Icon name="flag" style={{width:12,height:12}} /> {flagged.has(q.id) ? '표시됨' : '표시'}</button>
           </div>
           <div className="exam-q-text">{q.question}</div>
           <div className="exam-options">

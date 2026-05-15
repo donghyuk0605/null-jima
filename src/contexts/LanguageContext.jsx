@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useState } from 'react';
-import { getUserSettings, saveUserSettings } from '../lib/userSettings';
+import { createContext, useContext, useMemo, useRef, useState } from 'react';
+import { getUserSettings, saveUserSettings, saveUserSettingsWithSync } from '../lib/userSettings';
+import { useAuth } from './AuthContext';
 import { translations } from '../lib/translations';
 
 const LanguageContext = createContext(null);
@@ -23,6 +24,10 @@ function interpolate(template, vars) {
 }
 
 export function LanguageProvider({ children }) {
+  const { user } = useAuth();
+  const userRef = useRef(user);
+  userRef.current = user;
+
   const [language, setLanguageState] = useState(() =>
     resolveLanguage(getUserSettings().language)
   );
@@ -31,7 +36,13 @@ export function LanguageProvider({ children }) {
     const setLanguage = (nextLanguage) => {
       const resolved = resolveLanguage(nextLanguage);
       const currentSettings = getUserSettings();
-      saveUserSettings({ ...currentSettings, language: resolved });
+      const next = { ...currentSettings, language: resolved };
+      const uid = userRef.current?.uid;
+      if (uid) {
+        saveUserSettingsWithSync(next, uid).catch(() => saveUserSettings(next));
+      } else {
+        saveUserSettings(next);
+      }
       setLanguageState(resolved);
     };
 

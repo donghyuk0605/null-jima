@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react';
 import Icon from '../components/Icon';
+import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   DB_TYPES,
   getUserSettings,
   resetUserSettings,
   saveUserSettings,
+  saveUserSettingsWithSync,
 } from '../lib/userSettings';
 
 export default function Settings() {
+  const { user } = useAuth();
   const { language, languages, setLanguage, t } = useLanguage();
   const [settings, setSettings] = useState(() => getUserSettings());
   const [saved, setSaved] = useState(false);
@@ -28,17 +31,21 @@ export default function Settings() {
     setLanguage(value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const savedSettings = saveUserSettings({ ...settings, language });
+    const toSave = { ...settings, language };
+    const savedSettings = user?.uid
+      ? await saveUserSettingsWithSync(toSave, user.uid)
+      : saveUserSettings(toSave);
     setSettings(savedSettings);
     setLanguage(savedSettings.language);
     setSaved(true);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!window.confirm(t('settings.resetConfirm'))) return;
     const reset = resetUserSettings();
+    if (user?.uid) await saveUserSettingsWithSync(reset, user.uid).catch(() => {});
     setSettings(reset);
     setLanguage(reset.language);
     setSaved(false);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SQL_SNIPPET_GROUPS } from '../lib/editorModes';
+import Icon from './Icon';
 
 export default function SyntaxPicker({ onPick, compact = false }) {
   const [openGroup, setOpenGroup] = useState(SQL_SNIPPET_GROUPS[0]?.group ?? null);
@@ -15,7 +16,7 @@ export default function SyntaxPicker({ onPick, compact = false }) {
             type="button"
           >
             <span>{group.group}</span>
-            <span className="ex-group-chevron">{openGroup === group.group ? '▾' : '▸'}</span>
+            <span className="ex-group-chevron"><Icon name={openGroup === group.group ? 'chevron-down' : 'chevron-right'} style={{width:12,height:12}} /></span>
           </button>
           {openGroup === group.group && (
             <div className="syntax-items">

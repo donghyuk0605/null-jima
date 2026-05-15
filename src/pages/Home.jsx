@@ -4,6 +4,7 @@ import { getAllProgress } from '../lib/progress';
 import { PROBLEMS, LEVEL_ORDER } from '../data/problems';
 import { LEARN_TOPICS } from '../data/learn';
 import { getStreak, getTodayGoal, setTodayGoal } from '../lib/streak';
+import Icon from '../components/Icon';
 
 export default function Home() {
   const [streakData] = useState(() => getStreak());
@@ -26,18 +27,35 @@ export default function Home() {
   return (
     <div className="page home-page">
       <div className="home-hero">
-        <h1 className="home-title">NULL지마</h1>
-        <p className="home-subtitle">실무 데이터로 배우는 SQL 연습장</p>
-        <div className="home-actions">
-          <Link to="/playground" className="btn btn-primary">자유 연습 시작</Link>
-          <Link to="/problems" className="btn btn-secondary">문제 풀기</Link>
-          <Link to="/learn" className="btn btn-ghost">학습 도우미</Link>
+        <div className="home-hero-copy">
+          <span className="home-kicker">SQL PRACTICE WORKBENCH</span>
+          <h1 className="home-title">NULL지마</h1>
+          <p className="home-subtitle">실무 데이터로 배우고, 바로 실행하고, 결과로 익히는 SQL 연습장</p>
+          <div className="home-actions">
+            <Link to="/editor" className="btn btn-primary">에디터 열기</Link>
+            <Link to="/problems" className="btn btn-secondary">문제 풀기</Link>
+            <Link to="/learn" className="btn btn-ghost">학습 도우미</Link>
+          </div>
+        </div>
+        <div className="home-hero-console" aria-hidden="true">
+          <div className="home-console-bar">
+            <span />
+            <span />
+            <span />
+            <strong>practice.sql</strong>
+          </div>
+          <pre>{`SELECT department_id,
+       COUNT(*) AS solved
+FROM practice_log
+WHERE status = 'correct'
+GROUP BY department_id
+ORDER BY solved DESC;`}</pre>
         </div>
       </div>
 
       <div className="streak-widget">
         <div className="streak-main">
-          <div className="streak-fire">🔥</div>
+          <div className="streak-fire"><Icon name="fire" className="streak-fire-icon" /></div>
           <div className="streak-info">
             <div className="streak-num">{streakData.streak}일</div>
             <div className="streak-label">연속 학습</div>

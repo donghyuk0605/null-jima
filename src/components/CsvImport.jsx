@@ -107,7 +107,7 @@ export default function CsvImport({ onSuccess, onClose }) {
     <div className="csv-import">
       <div className="csv-import-header">
         <span className="csv-import-title">CSV 파일 가져오기</span>
-        <button className="csv-close-btn" onClick={onClose}>×</button>
+        <button className="csv-close-btn" onClick={onClose}><Icon name="close" style={{width:14,height:14}} /></button>
       </div>
 
       {!parsed ? (

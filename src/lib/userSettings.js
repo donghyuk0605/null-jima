@@ -72,13 +72,19 @@ function settingsRef(uid) {
 }
 
 export async function syncSettingsFromFirestore(uid) {
+  const local = getUserSettings();
   const snap = await getDoc(settingsRef(uid));
   if (snap.exists()) {
-    const merged = { ...DEFAULT_SETTINGS, ...snap.data() };
+    const remote = snap.data();
+    // Local wins for language: if local differs from remote default, keep local and push to Firestore
+    const merged = { ...DEFAULT_SETTINGS, ...remote };
+    if (local.language && local.language !== DEFAULT_SETTINGS.language && local.language !== remote.language) {
+      merged.language = local.language;
+      await setDoc(settingsRef(uid), merged);
+    }
     localStorage.setItem(KEY, JSON.stringify(merged));
     return merged;
   } else {
-    const local = getUserSettings();
     await setDoc(settingsRef(uid), local);
     return local;
   }

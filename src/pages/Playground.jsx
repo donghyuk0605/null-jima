@@ -396,7 +396,7 @@ export default function Playground() {
                     onClick={() => toggleGroup(grp.group)}
                   >
                     <span>{grp.group}</span>
-                    <span className="ex-group-chevron">{openGroup === grp.group ? '▾' : '▸'}</span>
+                    <span className="ex-group-chevron"><Icon name={openGroup === grp.group ? 'chevron-down' : 'chevron-right'} style={{width:12,height:12}} /></span>
                   </button>
                   {openGroup === grp.group && (
                     <div className="ex-group-items">

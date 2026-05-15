@@ -68,7 +68,7 @@ export default function Login() {
 
           <div className="login-features">
             <div className="login-feature">
-              <span className="login-feature-icon">📊</span>
+              <span className="login-feature-icon"><Icon name="chart" style={{width:20,height:20}} /></span>
               <span>18개 실무 SQL 문제</span>
             </div>
             <div className="login-feature">
@@ -76,7 +76,7 @@ export default function Login() {
               <span>단계별 학습 도우미</span>
             </div>
             <div className="login-feature">
-              <span className="login-feature-icon">🏆</span>
+              <span className="login-feature-icon"><Icon name="trophy" style={{width:20,height:20}} /></span>
               <span>SQLD / SQLP 자격증 대비</span>
             </div>
           </div>

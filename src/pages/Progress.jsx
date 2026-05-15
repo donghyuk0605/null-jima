@@ -106,7 +106,7 @@ export default function Progress() {
         <div className="heatmap-header">
           <h3 className="section-title">학습 활동</h3>
           <div className="heatmap-stats">
-            <span>🔥 {streak.streak}일 연속</span>
+            <span><><Icon name="fire" style={{width:14,height:14}} /> {streak.streak}일 연속</></span>
             <span>최장 {streak.longest}일</span>
             <span>총 {streak.totalDays}일</span>
           </div>

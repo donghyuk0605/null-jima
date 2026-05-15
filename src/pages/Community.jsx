@@ -257,7 +257,7 @@ export default function Community() {
                 onChange={e => { setSearchQuery(e.target.value); setPage(0); }}
               />
               {searchQuery && (
-                <button className="search-clear-btn" onClick={() => { setSearchQuery(''); setPage(0); }}>×</button>
+                <button className="search-clear-btn" onClick={() => { setSearchQuery(''); setPage(0); }}><Icon name="close" style={{width:10,height:10}} /></button>
               )}
             </div>
           </div>
@@ -293,8 +293,8 @@ export default function Community() {
 
           {totalPages > 1 && (
             <div className="community-pagination">
-              <button className="page-btn" onClick={() => setPage(0)} disabled={currentPage === 0}>«</button>
-              <button className="page-btn" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}>‹</button>
+              <button className="page-btn" onClick={() => setPage(0)} disabled={currentPage === 0}><Icon name="skip-first" style={{width:14,height:14}} /></button>
+              <button className="page-btn" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}><Icon name="prev" style={{width:14,height:14}} /></button>
               {Array.from({ length: totalPages }, (_, i) => i).map(i => (
                 <button
                   key={i}
@@ -304,8 +304,8 @@ export default function Community() {
                   {i + 1}
                 </button>
               ))}
-              <button className="page-btn" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1}>›</button>
-              <button className="page-btn" onClick={() => setPage(totalPages - 1)} disabled={currentPage >= totalPages - 1}>»</button>
+              <button className="page-btn" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1}><Icon name="next" style={{width:14,height:14}} /></button>
+              <button className="page-btn" onClick={() => setPage(totalPages - 1)} disabled={currentPage >= totalPages - 1}><Icon name="skip-last" style={{width:14,height:14}} /></button>
             </div>
           )}
 

@@ -255,11 +255,11 @@ function ResultGrid({ result, elapsed }) {
 
       {totalPages > 1 && (
         <div className="result-pagination">
-          <button className="page-btn" onClick={() => setPage(0)} disabled={page === 0}>«</button>
-          <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 0}>‹</button>
+          <button className="page-btn" onClick={() => setPage(0)} disabled={page === 0}><Icon name="skip-first" style={{width:14,height:14}} /></button>
+          <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 0}><Icon name="prev" style={{width:14,height:14}} /></button>
           <span className="page-info">{page + 1} / {totalPages} 페이지 ({sorted.length}행)</span>
-          <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page >= totalPages - 1}>›</button>
-          <button className="page-btn" onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}>»</button>
+          <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page >= totalPages - 1}><Icon name="next" style={{width:14,height:14}} /></button>
+          <button className="page-btn" onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}><Icon name="skip-last" style={{width:14,height:14}} /></button>
         </div>
       )}
     </div>

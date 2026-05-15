@@ -275,7 +275,7 @@ export default function Editor() {
           onClick={() => setFullscreen(f => !f)}
           title={fullscreen ? '전체화면 해제' : '전체화면'}
         >
-          {fullscreen ? '⊠ 축소' : '⊞ 전체화면'}
+          {fullscreen ? <><Icon name="minimize" style={{width:14,height:14}} /> 축소</> : <><Icon name="maximize" style={{width:14,height:14}} /> 전체화면</>}
         </button>
       </div>
 
@@ -287,7 +287,7 @@ export default function Editor() {
             onClick={() => setSidebarOpen(o => !o)}
             title={sidebarOpen ? '사이드바 접기' : '사이드바 펼치기'}
           >
-            {sidebarOpen ? '◂' : '▸'}
+            <Icon name={sidebarOpen ? 'chevron-left' : 'chevron-right'} style={{width:14,height:14}} />
           </button>
 
           {editorMode === 'beginner' && <SyntaxPicker onPick={updateQuery} />}
@@ -383,7 +383,7 @@ export default function Editor() {
             onClick={() => setSidebarOpen(o => !o)}
             title="사이드바 펼치기"
           >
-            ▸
+            <Icon name="chevron-right" style={{width:14,height:14}} />
           </button>
         )}
 
@@ -418,7 +418,7 @@ export default function Editor() {
                     </span>
                   )}
                   {tabs.length > 1 && (
-                    <button className="tab-close-btn" onClick={e => closeTab(tab.id, e)} type="button">×</button>
+                    <button className="tab-close-btn" onClick={e => closeTab(tab.id, e)} type="button"><Icon name="close" style={{width:10,height:10}} /></button>
                   )}
                 </div>
               ))}
@@ -537,7 +537,7 @@ export default function Editor() {
           <div className="shortcut-modal" onClick={e => e.stopPropagation()}>
             <div className="shortcut-modal-header">
               <h3>키보드 단축키</h3>
-              <button onClick={() => setShowShortcuts(false)}>×</button>
+              <button onClick={() => setShowShortcuts(false)}><Icon name="close" style={{width:14,height:14}} /></button>
             </div>
             <div className="shortcut-list">
               {[

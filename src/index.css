@@ -44,12 +44,12 @@
 
 /* ── Light theme ────────────────────────────────────── */
 [data-theme="light"] {
-  --bg:           #ffffff;
+  --bg:           #f4f7fb;
   --bg1:          #ffffff;
-  --bg2:          #f6f8fa;
-  --bg3:          #eaeef2;
-  --border:       #d0d7de;
-  --border2:      #d8dee4;
+  --bg2:          #ffffff;
+  --bg3:          #eef3f8;
+  --border:       #cfd8e3;
+  --border2:      #e4eaf1;
   --text:         #1f2328;
   --text1:        #1f2328;
   --text-head:    #1f2328;
@@ -72,7 +72,7 @@
   --info-h:       #0550ae;
   --code-bg:      #f6f8fa;
   --code-t:       #0550ae;
-  --nav-bg:       #f6f8fa;
+  --nav-bg:       #ffffff;
   --run-bg:       #1a7f37;
   --run-h:        #116329;
 
@@ -96,3 +96,8 @@ body {
 #root { height: 100vh; }
 button { cursor: pointer; font-family: inherit; }
 a { text-decoration: none; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
