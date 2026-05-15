@@ -8,6 +8,9 @@ import {
   saveProblemDraft,
   toggleFavorite,
   toggleReview,
+  toggleFavoriteById,
+  isFavorite,
+  markAttempted,
 } from '../lib/progress';
 import { formatSql } from '../lib/sqlFormatter';
 import Icon from '../components/Icon';
@@ -43,7 +46,9 @@ function ProblemDetailContent({ problem }) {
   const [elapsed, setElapsed] = useState(null);
   const [gradeResult, setGradeResult] = useState(null);
   const [hintsOpen, setHintsOpen] = useState(0);
+  const [hintsShown, setHintsShown] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [favorited, setFavorited] = useState(() => isFavorite(problem.id));
   const [editorMode, setEditorMode] = useState(() => getStoredEditorMode());
   const [mobilePanel, setMobilePanel] = useState('write');
   const [autocomplete, setAutocomplete] = useState(() => {
@@ -76,6 +81,9 @@ function ProblemDetailContent({ problem }) {
     setGradeResult(result);
     const updated = recordAttempt(problem.id, result.correct, hintsOpen);
     setProgress(updated);
+    if (!result.correct) {
+      markAttempted(problem.id);
+    }
   }, [userSql, problem, hintsOpen, execute]);
 
   useEffect(() => {
@@ -183,8 +191,39 @@ function ProblemDetailContent({ problem }) {
             {progress?.review && <span className="review-badge">다시 풀기</span>}
           </div>
 
-          <h2 className="problem-title">{problem.title}</h2>
+          <div className="problem-title-row">
+            <h2 className="problem-title">{problem.title}</h2>
+            <button
+              className={`fav-btn ${favorited ? 'fav-active' : ''}`}
+              onClick={() => { const next = toggleFavoriteById(problem.id); setFavorited(next.includes(Number(problem.id))); }}
+              title="즐겨찾기"
+            >
+              <Icon name="star" className="fav-icon" />
+            </button>
+          </div>
           <p className="problem-desc">{problem.description}</p>
+
+          {problem.hints && problem.hints.length > 0 && (
+            <div className="hint-section">
+              <div className="hint-header">
+                <span className="hint-title">힌트</span>
+                {hintsShown < problem.hints.length && (
+                  <button className="hint-btn" onClick={() => setHintsShown(h => h + 1)}>
+                    힌트 보기 ({hintsShown}/{problem.hints.length})
+                  </button>
+                )}
+                {hintsShown > 0 && (
+                  <button className="hint-reset" onClick={() => setHintsShown(0)}>초기화</button>
+                )}
+              </div>
+              {problem.hints.slice(0, hintsShown).map((hint, i) => (
+                <div key={i} className="hint-item">
+                  <span className="hint-num">힌트 {i + 1}</span>
+                  <span className="hint-text">{hint}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="problem-tables">
             <div className="ptables-label">사용 테이블</div>

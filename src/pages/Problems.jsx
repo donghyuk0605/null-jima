@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
-import { getAllProgress } from '../lib/progress';
+import { getAllProgress, getFavorites, toggleFavoriteById } from '../lib/progress';
 import Icon from '../components/Icon';
 
 export default function Problems() {
@@ -10,6 +10,8 @@ export default function Problems() {
   const [levelFilter, setLevelFilter] = useState('전체');
   const [tagFilter, setTagFilter] = useState('전체');
   const [statusFilter, setStatusFilter] = useState('전체');
+  const [favorites, setFavorites] = useState(() => getFavorites());
+  const [showFavsOnly, setShowFavsOnly] = useState(false);
   const tags = [...new Set(PROBLEMS.flatMap((problem) => problem.tags))];
 
   const filteredProblems = PROBLEMS.filter((problem) => {
@@ -21,7 +23,8 @@ export default function Problems() {
       (statusFilter === '즐겨찾기' && status?.favorite) ||
       (statusFilter === '다시 풀기' && status?.review) ||
       (statusFilter === '미완료' && !status?.solved);
-    return matchesLevel && matchesTag && matchesStatus;
+    const matchesFavs = !showFavsOnly || favorites.includes(problem.id);
+    return matchesLevel && matchesTag && matchesStatus && matchesFavs;
   });
 
   const goRandomProblem = () => {
@@ -52,6 +55,13 @@ export default function Problems() {
           <option>즐겨찾기</option>
           <option>다시 풀기</option>
         </select>
+        <button
+          className={`btn ${showFavsOnly ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setShowFavsOnly(v => !v)}
+        >
+          <Icon name="star" className="status-icon" />
+          즐겨찾기만
+        </button>
         <button className="btn btn-secondary" onClick={goRandomProblem}>
           <Icon name="shuffle" className="status-icon" />
           랜덤 문제
@@ -74,6 +84,13 @@ export default function Problems() {
                 const isSolved = status?.solved;
                 return (
                   <Link key={problem.id} to={`/problems/${problem.id}`} className={`problem-row ${isSolved ? 'solved' : ''}`}>
+                    <button
+                      className={`fav-btn${favorites.includes(problem.id) ? ' fav-active' : ''}`}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavoriteById(problem.id)); }}
+                      title="즐겨찾기"
+                    >
+                      <Icon name="star" className="fav-icon" />
+                    </button>
                     <span className="problem-num">#{problem.id.toString().padStart(2, '0')}</span>
                     <span className="problem-name">{problem.title}</span>
                     <div className="problem-tags">

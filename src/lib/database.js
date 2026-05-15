@@ -250,6 +250,27 @@ export function getTableStats() {
   return stats;
 }
 
+export function getTableIndexes() {
+  if (!db) return {};
+  const tables = getSchema();
+  const result = {};
+  for (const tbl of tables) {
+    try {
+      const idxList = db.exec(`PRAGMA index_list("${tbl.name}")`);
+      if (!idxList.length) { result[tbl.name] = []; continue; }
+      const indexes = [];
+      for (const row of idxList[0].values) {
+        const [, idxName, unique] = row;
+        const colRes = db.exec(`PRAGMA index_info("${idxName}")`);
+        const cols = colRes.length ? colRes[0].values.map(r => r[2]) : [];
+        indexes.push({ name: String(idxName), unique: Boolean(unique), columns: cols });
+      }
+      result[tbl.name] = indexes;
+    } catch { result[tbl.name] = []; }
+  }
+  return result;
+}
+
 export function gradeQuery(userSql, answerSql, checkOrder = false, options = {}) {
   try {
     const userRes = db.exec(userSql.trim());

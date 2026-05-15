@@ -1802,3 +1802,160 @@
   background: var(--err-bg); border: 1px solid var(--err-border);
   border-radius: 6px; color: var(--err); font-size: 12px;
 }
+
+/* ── EDITOR SIDEBAR COLLAPSE ─────────────────────────── */
+.sidebar-toggle-btn {
+  padding: 4px 8px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--bg2); color: var(--text2); cursor: pointer; font-size: 13px;
+  align-self: flex-start; margin-bottom: 4px;
+}
+.sidebar-toggle-btn:hover { background: var(--bg3); }
+.editor-page-layout.sidebar-hidden .editor-page-sidebar { display: none !important; }
+
+/* ── FONT SIZE CONTROL ───────────────────────────────── */
+.font-size-ctrl { display: flex; align-items: center; gap: 4px; }
+.font-sz-btn {
+  padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border);
+  background: var(--bg2); color: var(--text2); cursor: pointer; font-size: 12px; font-family: inherit;
+}
+.font-sz-btn:hover { background: var(--bg3); }
+.font-sz-val { font-size: 11px; color: var(--text3); width: 28px; text-align: center; }
+
+/* ── SHORTCUT MODAL ──────────────────────────────────── */
+.shortcut-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.shortcut-modal {
+  background: var(--bg1); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; min-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+}
+.shortcut-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.shortcut-modal-header h3 { margin: 0; font-size: 15px; }
+.shortcut-modal-header button { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); }
+.shortcut-list { display: flex; flex-direction: column; gap: 10px; }
+.shortcut-row { display: flex; align-items: center; gap: 12px; }
+.shortcut-key {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 5px;
+  padding: 3px 8px; font-size: 12px; font-family: monospace; color: var(--text2);
+  white-space: nowrap; min-width: 180px;
+}
+.shortcut-desc { font-size: 13px; color: var(--text1); }
+
+/* ── SELECTION RUN HINT ──────────────────────────────── */
+.selection-hint { color: var(--accent); font-size: 11px; font-weight: 600; }
+
+/* ── COMMUNITY SEARCH ────────────────────────────────── */
+.community-search { position: relative; margin-bottom: 12px; }
+.community-search-input {
+  width: 100%; padding: 8px 36px 8px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg2); color: var(--text1);
+  font-size: 13px; font-family: inherit; box-sizing: border-box;
+}
+.community-search-input:focus { outline: none; border-color: var(--accent); }
+.search-clear-btn {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--text3); font-size: 16px; cursor: pointer;
+}
+.community-search-count { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+
+/* ── SQL CODE HIGHLIGHTING ───────────────────────────── */
+.post-code-block {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 6px;
+  padding: 12px 14px; font-size: 12px; font-family: monospace;
+  overflow-x: auto; white-space: pre; margin: 8px 0; line-height: 1.6;
+}
+.post-body-text { margin: 4px 0; line-height: 1.6; font-size: 14px; color: var(--text1); }
+.sql-kw { color: #569cd6; font-weight: 700; }
+.sql-str { color: #ce9178; }
+.sql-num { color: #b5cea8; }
+.sql-comment { color: var(--text3); font-style: italic; }
+[data-theme="light"] .sql-kw { color: #0000ff; }
+[data-theme="light"] .sql-str { color: #a31515; }
+[data-theme="light"] .sql-num { color: #098658; }
+
+/* ── CSV IMPORT ──────────────────────────────────────── */
+.csv-import {
+  background: var(--bg1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-bottom: 12px;
+}
+.csv-import-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.csv-import-title { font-size: 14px; font-weight: 700; color: var(--text1); }
+.csv-close-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text2); }
+.csv-drop-zone {
+  border: 2px dashed var(--border); border-radius: 8px; padding: 32px;
+  text-align: center; cursor: pointer; transition: all .15s;
+}
+.csv-drop-zone:hover, .csv-drop-zone.dragging { border-color: var(--accent); background: var(--accent-subtle); }
+.csv-drop-icon {
+  width: 32px; height: 32px; margin: 0 auto 8px;
+  color: var(--accent);
+}
+.csv-drop-text { font-size: 14px; color: var(--text1); margin-bottom: 4px; }
+.csv-drop-sub { font-size: 12px; color: var(--text3); }
+.csv-preview { display: flex; flex-direction: column; gap: 10px; }
+.csv-table-name-row { display: flex; align-items: center; gap: 8px; }
+.csv-label { font-size: 12px; color: var(--text2); font-weight: 600; white-space: nowrap; }
+.csv-name-input {
+  flex: 1; padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg2); color: var(--text1); font-size: 13px; font-family: monospace;
+}
+.csv-preview-label { font-size: 11px; color: var(--text3); font-weight: 600; }
+.csv-preview-scroll { overflow-x: auto; border: 1px solid var(--border2); border-radius: 6px; }
+.csv-preview-table { border-collapse: collapse; font-size: 12px; width: max-content; min-width: 100%; }
+.csv-preview-table th { background: var(--bg2); padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 11px; }
+.csv-preview-table td { padding: 4px 10px; border-bottom: 1px solid var(--border2); color: var(--text1); }
+.csv-type-badge {
+  display: inline-block; margin-left: 4px; padding: 1px 4px; border-radius: 3px;
+  background: var(--bg3); color: var(--text3); font-size: 9px; font-weight: 700;
+}
+.csv-info { font-size: 11px; color: var(--text3); }
+.csv-success { color: var(--success-t); font-size: 13px; background: var(--success-bg, rgba(50,200,120,.1)); padding: 8px; border-radius: 6px; }
+.csv-error { color: var(--err); font-size: 13px; background: var(--err-bg); padding: 8px; border-radius: 6px; }
+.csv-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── FAVORITES ───────────────────────────────────────── */
+.fav-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); padding: 2px 6px; border-radius: 4px; line-height: 1;
+}
+.fav-btn:hover { color: #f5c518; }
+.fav-btn.fav-active { color: #f5c518; }
+.fav-icon { width: 18px; height: 18px; }
+.fav-active .fav-icon { fill: currentColor; }
+
+.problem-title-row {
+  display: flex; align-items: center; gap: 6px;
+}
+.problem-title-row .problem-title { flex: 1; margin: 0; }
+
+/* ── HINTS ───────────────────────────────────────────── */
+.hint-section {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 16px; margin-top: 12px;
+}
+.hint-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.hint-title { font-size: 13px; font-weight: 700; color: var(--text2); }
+.hint-btn {
+  padding: 3px 10px; border-radius: 5px; border: 1px solid var(--accent);
+  background: var(--accent-subtle); color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.hint-btn:hover { background: var(--accent); color: #fff; }
+.hint-reset { padding: 3px 8px; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--text3); font-size: 11px; cursor: pointer; font-family: inherit; }
+.hint-item { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; padding: 8px 10px; background: var(--bg1); border-radius: 6px; }
+.hint-num { font-size: 11px; font-weight: 700; color: var(--accent); white-space: nowrap; padding-top: 1px; }
+.hint-text { font-size: 13px; color: var(--text1); line-height: 1.5; }
+
+/* ── WRONG ANSWERS (오답 노트) ───────────────────────── */
+.wrong-section { margin-top: 24px; }
+.wrong-count { background: var(--err-bg); color: var(--err); border-radius: 8px; padding: 2px 8px; font-size: 12px; margin-left: 6px; }
+.wrong-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.wrong-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  text-decoration: none; color: var(--text1); transition: background .1s;
+}
+.wrong-item:hover { background: var(--bg3); }
+.wrong-id { font-size: 11px; color: var(--text3); font-family: monospace; width: 28px; }
+.wrong-title { flex: 1; font-size: 13px; }

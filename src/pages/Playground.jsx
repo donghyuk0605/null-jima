@@ -6,6 +6,7 @@ import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
 import EditorModeBar from '../components/EditorModeBar';
 import SyntaxPicker from '../components/SyntaxPicker';
+import CsvImport from '../components/CsvImport';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
 
 const AC_KEY = 'sqldojo_ac';
@@ -298,6 +299,7 @@ export default function Playground() {
     const stored = localStorage.getItem(AC_KEY);
     return stored === null ? true : stored === 'true';
   });
+  const [showCsvImport, setShowCsvImport] = useState(false);
 
   const schemaForEditor = useMemo(() => {
     const obj = {};
@@ -440,6 +442,12 @@ export default function Playground() {
 
         {/* 오른쪽: 에디터 + 결과 */}
         <div className="playground-main">
+          {showCsvImport && (
+            <CsvImport
+              onSuccess={() => { setSchema(getSchema()); setShowCsvImport(false); }}
+              onClose={() => setShowCsvImport(false)}
+            />
+          )}
           <div className="editor-card">
             <EditorModeBar mode={editorMode} onModeChange={changeEditorMode} />
             {editorMode === 'beginner' && (
@@ -473,6 +481,9 @@ export default function Playground() {
                 포맷
               </button>
               <button className="btn btn-ghost-sm" onClick={() => { setQuery(''); setResults(null); setError(null); }}>초기화</button>
+              <button className="btn btn-ghost-sm" onClick={() => setShowCsvImport(v => !v)}>
+                CSV 가져오기
+              </button>
               <span className="editor-shortcut-hint">Ctrl+Enter로 실행</span>
               <button
                 className="btn btn-ghost-sm"

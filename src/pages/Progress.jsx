@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
-import { getAllProgress, resetProgress } from '../lib/progress';
+import { getAllProgress, resetProgress, getWrongProblems } from '../lib/progress';
 import { useState } from 'react';
 import Icon from '../components/Icon';
 
 export default function Progress() {
   const [, forceUpdate] = useState(0);
   const prog = getAllProgress();
+  const wrongIds = getWrongProblems();
+  const wrongProblems = PROBLEMS.filter(p => wrongIds.includes(p.id));
 
   const solved = Object.values(prog).filter((p) => p.solved).length;
   const total = PROBLEMS.length;
@@ -119,6 +121,22 @@ export default function Progress() {
           })}
         </div>
       </div>
+
+      {/* 오답 노트 */}
+      {wrongProblems.length > 0 && (
+        <section className="wrong-section">
+          <h3 className="section-title">오답 노트 <span className="wrong-count">{wrongProblems.length}문제</span></h3>
+          <div className="wrong-list">
+            {wrongProblems.map(p => (
+              <Link key={p.id} to={`/problems/${p.id}`} className="wrong-item">
+                <span className="wrong-id">#{p.id}</span>
+                <span className="wrong-title">{p.title}</span>
+                <span className={`diff-badge diff-${p.difficulty}`}>{p.difficulty}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

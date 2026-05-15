@@ -8,6 +8,77 @@ import { useAuth } from '../contexts/AuthContext';
 
 const CATEGORIES = ['전체', '질문', '풀이 공유', '팁', '자유'];
 
+function highlightSql(code) {
+  const keywords = ['SELECT','FROM','WHERE','GROUP BY','HAVING','ORDER BY','JOIN','LEFT','RIGHT','INNER','OUTER','ON','INSERT','UPDATE','DELETE','CREATE','DROP','ALTER','TABLE','INDEX','VIEW','AS','AND','OR','NOT','IN','IS','NULL','LIKE','BETWEEN','DISTINCT','COUNT','SUM','AVG','MAX','MIN','CASE','WHEN','THEN','ELSE','END','WITH','UNION','INTERSECT','EXCEPT','LIMIT','OFFSET','BY','ASC','DESC','INTO','VALUES','SET'];
+
+  // Escape HTML first
+  let result = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Highlight strings
+  result = result.replace(/'([^']*)'/g, '<span class="sql-str">\'$1\'</span>');
+
+  // Highlight comments
+  result = result.replace(/--(.*)/g, '<span class="sql-comment">--$1</span>');
+
+  // Highlight numbers
+  result = result.replace(/\b(\d+)\b/g, '<span class="sql-num">$1</span>');
+
+  // Highlight keywords (word boundary)
+  const keywordRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+  result = result.replace(keywordRegex, '<span class="sql-kw">$1</span>');
+
+  return result;
+}
+
+function renderBody(text) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const blocks = [];
+  let codeLines = [];
+  let inCode = false;
+  let textLines = [];
+
+  const flushText = () => {
+    if (textLines.length > 0) {
+      blocks.push({ type: 'text', content: textLines.join('\n') });
+      textLines = [];
+    }
+  };
+
+  for (const line of lines) {
+    if (line.startsWith('```') || line.startsWith('~~~')) {
+      if (!inCode) {
+        flushText();
+        inCode = true;
+      } else {
+        blocks.push({ type: 'code', content: codeLines.join('\n') });
+        codeLines = [];
+        inCode = false;
+      }
+    } else if (inCode) {
+      codeLines.push(line);
+    } else if (line.startsWith('    ') || line.startsWith('\t')) {
+      flushText();
+      blocks.push({ type: 'code', content: line.replace(/^( {4}|\t)/, '') });
+    } else {
+      textLines.push(line);
+    }
+  }
+  if (codeLines.length > 0) blocks.push({ type: 'code', content: codeLines.join('\n') });
+  flushText();
+
+  return blocks.map((block, i) => {
+    if (block.type === 'code') {
+      return (
+        <pre key={i} className="post-code-block" dangerouslySetInnerHTML={{ __html: highlightSql(block.content) }} />
+      );
+    }
+    return (
+      <p key={i} className="post-body-text" style={{ whiteSpace: 'pre-wrap' }}>{block.content}</p>
+    );
+  });
+}
+
 const formatDate = (value) => {
   try {
     return new Intl.DateTimeFormat('ko-KR', {
@@ -143,13 +214,22 @@ export default function Community() {
                 </button>
               ))}
             </div>
-            <input
-              className="community-search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="제목, 작성자, 내용 검색"
-            />
+            <div className="community-search">
+              <input
+                className="community-search-input"
+                placeholder="게시글 검색..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button className="search-clear-btn" onClick={() => setSearchQuery('')}>×</button>
+              )}
+            </div>
           </div>
+
+          {searchQuery && (
+            <div className="community-search-count">검색 결과: {filteredPosts.length}개</div>
+          )}
 
           <div className="community-list">
             {loading ? (
@@ -196,7 +276,7 @@ export default function Community() {
                 </div>
               </div>
 
-              <p className="community-detail-body">{selectedPost.body}</p>
+              <div className="community-detail-body">{renderBody(selectedPost.body)}</div>
 
               <div className="community-comments">
                 <div className="community-comments-title">

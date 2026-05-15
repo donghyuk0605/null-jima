@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getSchema, runQuery, translateSqlError, getRowsModified, getTableStats } from '../lib/database';
 import { formatSql } from '../lib/sqlFormatter';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
@@ -14,7 +14,7 @@ const EDITOR_HISTORY_KEY = 'sqldojo_editor_history';
 const genId = () => `tab_${Date.now()}`;
 
 const DEFAULT_TABS = [
-  { id: 'tab_1', name: '쿼리 1', sql: 'SELECT *\nFROM employees\nLIMIT 10;' },
+  { id: 'tab_1', name: '쿼리 1', sql: 'SELECT *\nFROM employees\nLIMIT 10;', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null },
 ];
 
 function loadTabs() {
@@ -22,14 +22,27 @@ function loadTabs() {
     // migrate old single-draft key
     const old = localStorage.getItem('sqldojo_editor_draft');
     const saved = JSON.parse(localStorage.getItem(TABS_KEY));
-    if (Array.isArray(saved) && saved.length > 0) return saved;
-    if (old) return [{ id: 'tab_1', name: '쿼리 1', sql: old }];
+    if (Array.isArray(saved) && saved.length > 0) {
+      // ensure result fields exist (they don't persist across sessions)
+      return saved.map(t => ({
+        id: t.id,
+        name: t.name,
+        sql: t.sql,
+        results: null,
+        error: null,
+        elapsed: null,
+        ddlSuccess: false,
+        rowsModified: null,
+      }));
+    }
+    if (old) return [{ id: 'tab_1', name: '쿼리 1', sql: old, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null }];
     return DEFAULT_TABS;
   } catch { return DEFAULT_TABS; }
 }
 
 function saveTabs(tabs) {
-  localStorage.setItem(TABS_KEY, JSON.stringify(tabs));
+  // Only persist id, name, sql — not result state
+  localStorage.setItem(TABS_KEY, JSON.stringify(tabs.map(({ id, name, sql }) => ({ id, name, sql }))));
 }
 
 const loadHistory = () => {
@@ -51,14 +64,42 @@ export default function Editor() {
   const [editorMode, setEditorMode] = useState(() => getStoredEditorMode());
   const [schema, setSchema] = useState(() => getSchema());
   const [tableStats, setTableStats] = useState(() => getTableStats());
-  const [results, setResults] = useState(null);
-  const [error, setError] = useState(null);
-  const [elapsed, setElapsed] = useState(null);
-  const [ddlSuccess, setDdlSuccess] = useState(false);
-  const [rowsModified, setRowsModified] = useState(null);
   const [history, setHistory] = useState(() => loadHistory());
   const [fullscreen, setFullscreen] = useState(false);
   const [explainMode, setExplainMode] = useState(false);
+
+  // Feature 1: selection tracking
+  const [selection, setSelection] = useState('');
+
+  // Feature 3: font size
+  const [fontSize, setFontSize] = useState(() => Number(localStorage.getItem('sqldojo_fontsize')) || 14);
+
+  // Feature 4: sidebar collapse
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Feature 5: shortcut modal
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  // Persist font size
+  useEffect(() => {
+    localStorage.setItem('sqldojo_fontsize', String(fontSize));
+  }, [fontSize]);
+
+  // Feature 5: keyboard listener for ? and Escape
+  useEffect(() => {
+    const handler = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (e.key === 'Escape' && showShortcuts) {
+        setShowShortcuts(false);
+        return;
+      }
+      if (e.key === '?' && tag !== 'input' && tag !== 'textarea') {
+        setShowShortcuts(o => !o);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showShortcuts]);
 
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
   const query = activeTab?.sql || '';
@@ -76,13 +117,13 @@ export default function Editor() {
   const switchTab = (id) => {
     setActiveTabId(id);
     localStorage.setItem(ACTIVE_TAB_KEY, id);
-    setResults(null); setError(null); setElapsed(null); setDdlSuccess(false); setRowsModified(null);
+    // Feature 2: don't clear results — each tab holds its own
   };
 
   const addTab = () => {
     const id = genId();
     const n = tabs.length + 1;
-    const newTab = { id, name: `쿼리 ${n}`, sql: '' };
+    const newTab = { id, name: `쿼리 ${n}`, sql: '', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null };
     updateTabs([...tabs, newTab]);
     switchTab(id);
   };
@@ -131,9 +172,11 @@ export default function Editor() {
   }, []);
 
   const execute = useCallback(() => {
-    const sql = query.trim();
+    // Feature 1: run selection if non-empty, otherwise full query
+    const sql = (selection.trim() || query).trim();
     if (!sql) return;
-    setError(null); setResults(null); setDdlSuccess(false); setRowsModified(null);
+    // Clear current tab result before running
+    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null } : t));
     const start = performance.now();
     try {
       const targetSql = explainMode && !sql.toUpperCase().startsWith('EXPLAIN')
@@ -141,24 +184,22 @@ export default function Editor() {
         : sql;
       const res = runQuery(targetSql);
       const modified = getRowsModified();
-      setElapsed(Math.round(performance.now() - start));
+      const elapsed = Math.round(performance.now() - start);
       if (res.length === 0) {
-        setDdlSuccess(true);
-        setRowsModified(modified);
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed, ddlSuccess: true, rowsModified: modified } : t));
       } else {
-        setResults(res);
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: res, error: null, elapsed, ddlSuccess: false, rowsModified: modified } : t));
       }
       refreshSchema();
       addHistory(sql);
     } catch (e) {
-      setElapsed(null);
-      setError(translateSqlError(e));
+      setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: translateSqlError(e), elapsed: null, ddlSuccess: false, rowsModified: null } : t));
     }
-  }, [addHistory, query, explainMode]);
+  }, [addHistory, query, selection, explainMode, activeTabId]);
 
   const clearEditor = () => {
     updateQuery('');
-    setResults(null); setError(null); setElapsed(null); setDdlSuccess(false); setRowsModified(null);
+    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null } : t));
   };
 
   const clearHistory = () => { setHistory([]); localStorage.removeItem(EDITOR_HISTORY_KEY); };
@@ -170,6 +211,13 @@ export default function Editor() {
     schema.forEach(tbl => { obj[tbl.name] = tbl.columns.map(c => c.col); });
     return obj;
   }, [schema]);
+
+  // Derived result state from active tab (Feature 2)
+  const results = activeTab?.results ?? null;
+  const error = activeTab?.error ?? null;
+  const elapsed = activeTab?.elapsed ?? null;
+  const ddlSuccess = activeTab?.ddlSuccess ?? false;
+  const rowsModified = activeTab?.rowsModified ?? null;
 
   return (
     <div className={`page editor-page ${fullscreen ? 'editor-fullscreen' : ''}`}>
@@ -186,8 +234,17 @@ export default function Editor() {
         </button>
       </div>
 
-      <div className="editor-page-layout">
+      <div className={`editor-page-layout ${!sidebarOpen ? 'sidebar-hidden' : ''}`}>
         <aside className="editor-page-sidebar">
+          {/* Feature 4: sidebar toggle button */}
+          <button
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarOpen(o => !o)}
+            title={sidebarOpen ? '사이드바 접기' : '사이드바 펼치기'}
+          >
+            {sidebarOpen ? '◂' : '▸'}
+          </button>
+
           {editorMode === 'beginner' && <SyntaxPicker onPick={updateQuery} />}
 
           <section className="editor-panel">
@@ -244,6 +301,18 @@ export default function Editor() {
           </section>
         </aside>
 
+        {/* Feature 4: toggle button when sidebar is closed */}
+        {!sidebarOpen && (
+          <button
+            className="sidebar-toggle-btn"
+            style={{ alignSelf: 'flex-start', marginTop: '8px', marginRight: '4px' }}
+            onClick={() => setSidebarOpen(o => !o)}
+            title="사이드바 펼치기"
+          >
+            ▸
+          </button>
+        )}
+
         <main className="editor-page-main">
           <div className="editor-card">
             {/* Tab bar */}
@@ -298,6 +367,8 @@ export default function Editor() {
               schemaOverride={schemaForEditor}
               mode={editorMode}
               placeholder="SELECT * FROM employees;"
+              onSelectionChange={setSelection}
+              fontSize={fontSize}
             />
             <div className="editor-toolbar">
               <button className="btn btn-run" onClick={execute}>
@@ -316,7 +387,29 @@ export default function Editor() {
               >
                 EXPLAIN {explainMode ? '✓' : ''}
               </button>
-              <span className="editor-shortcut-hint">Ctrl+Enter로 실행</span>
+
+              {/* Feature 3: font size controls */}
+              <div className="font-size-ctrl">
+                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.max(11, s - 1))}>A-</button>
+                <span className="font-sz-val">{fontSize}px</span>
+                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.min(22, s + 1))}>A+</button>
+              </div>
+
+              {/* Feature 5: shortcut help button */}
+              <button
+                className="btn btn-ghost-sm"
+                onClick={() => setShowShortcuts(o => !o)}
+                title="키보드 단축키"
+              >
+                ?
+              </button>
+
+              {/* Feature 1: selection hint */}
+              {selection.trim() ? (
+                <span className="editor-shortcut-hint selection-hint">선택 영역 실행 중</span>
+              ) : (
+                <span className="editor-shortcut-hint">Ctrl+Enter로 실행</span>
+              )}
             </div>
             <div className="editor-statusbar">
               <span>{activeTab?.name || '쿼리'}</span>
@@ -338,6 +431,33 @@ export default function Editor() {
           </div>
         </main>
       </div>
+
+      {/* Feature 5: shortcut modal */}
+      {showShortcuts && (
+        <div className="shortcut-overlay" onClick={() => setShowShortcuts(false)}>
+          <div className="shortcut-modal" onClick={e => e.stopPropagation()}>
+            <div className="shortcut-modal-header">
+              <h3>키보드 단축키</h3>
+              <button onClick={() => setShowShortcuts(false)}>×</button>
+            </div>
+            <div className="shortcut-list">
+              {[
+                ['Ctrl+Enter / Cmd+Enter', '쿼리 실행'],
+                ['드래그 후 Ctrl+Enter', '선택 영역만 실행'],
+                ['Ctrl+Z', '실행 취소'],
+                ['Ctrl+Shift+F / 포맷 버튼', 'SQL 자동 포맷'],
+                ['?', '단축키 도움말'],
+                ['Esc', '단축키 창 닫기'],
+              ].map(([key, desc]) => (
+                <div key={key} className="shortcut-row">
+                  <kbd className="shortcut-key">{key}</kbd>
+                  <span className="shortcut-desc">{desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
