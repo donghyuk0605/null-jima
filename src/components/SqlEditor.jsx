@@ -3,6 +3,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { autocompletion } from '@codemirror/autocomplete';
+import { keymap } from '@codemirror/view';
 import { useAppTheme } from '../lib/useAppTheme';
 
 const SCHEMA = {
@@ -15,6 +16,7 @@ const SCHEMA = {
 export default function SqlEditor({
   value,
   onChange,
+  onRun,
   height = '200px',
   readOnly = false,
   autocomplete = true,
@@ -28,8 +30,14 @@ export default function SqlEditor({
     const resolvedSchema = autocomplete ? (schemaOverride || SCHEMA) : undefined;
     const exts = [sql({ dialect: SQLite, schema: resolvedSchema, upperCaseKeywords: true })];
     if (!autocomplete) exts.push(autocompletion({ activateOnTyping: false, override: [] }));
+    if (onRun) {
+      exts.push(keymap.of([
+        { key: 'Ctrl-Enter', run: () => { onRun(); return true; } },
+        { key: 'Mod-Enter', run: () => { onRun(); return true; } },
+      ]));
+    }
     return exts;
-  }, [autocomplete, schemaOverride]);
+  }, [autocomplete, schemaOverride, onRun]);
 
   return (
     <CodeMirror

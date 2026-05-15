@@ -4,17 +4,20 @@
 :root,
 [data-theme="dark"] {
   --bg:           #0d1117;
+  --bg1:          #0d1117;
   --bg2:          #161b22;
   --bg3:          #21262d;
   --border:       #30363d;
   --border2:      #21262d;
   --text:         #c9d1d9;
+  --text1:        #e6edf3;
   --text-head:    #e6edf3;
   --text2:        #8b949e;
   --text3:        #484f58;
   --accent:       #58a6ff;
   --accent2:      #388bfd;
   --accent-bg:    #1c2a3f;
+  --accent-subtle: rgba(56,139,253,.12);
   --accent-hover: #79c0ff;
   --success:      #238636;
   --success-h:    #2ea043;
@@ -42,17 +45,20 @@
 /* ── Light theme ────────────────────────────────────── */
 [data-theme="light"] {
   --bg:           #ffffff;
+  --bg1:          #ffffff;
   --bg2:          #f6f8fa;
   --bg3:          #eaeef2;
   --border:       #d0d7de;
   --border2:      #d8dee4;
   --text:         #1f2328;
+  --text1:        #1f2328;
   --text-head:    #1f2328;
   --text2:        #656d76;
   --text3:        #818b98;
   --accent:       #0969da;
   --accent2:      #0550ae;
   --accent-bg:    #ddf4ff;
+  --accent-subtle: rgba(9,105,218,.10);
   --accent-hover: #0550ae;
   --success:      #1a7f37;
   --success-h:    #116329;

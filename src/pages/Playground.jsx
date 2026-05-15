@@ -456,6 +456,7 @@ export default function Playground() {
             <SqlEditor
               value={query}
               onChange={setQuery}
+              onRun={execute}
               height={editorMode === 'terminal' ? '260px' : '200px'}
               autocomplete={effectiveAutocomplete}
               schemaOverride={schemaForEditor}
@@ -472,6 +473,7 @@ export default function Playground() {
                 포맷
               </button>
               <button className="btn btn-ghost-sm" onClick={() => { setQuery(''); setResults(null); setError(null); }}>초기화</button>
+              <span className="editor-shortcut-hint">Ctrl+Enter로 실행</span>
               <button
                 className="btn btn-ghost-sm"
                 onClick={toggleAutocomplete}

@@ -85,6 +85,75 @@ export async function initDB() {
     `);
   }
 
+  // Create customers + sales tables
+  db.run(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT,
+      region TEXT,
+      grade TEXT,
+      join_date TEXT
+    );
+    CREATE TABLE IF NOT EXISTS sales (
+      id INTEGER PRIMARY KEY,
+      customer_id INTEGER,
+      product_id INTEGER,
+      employee_id INTEGER,
+      quantity INTEGER,
+      unit_price INTEGER,
+      total_amount INTEGER,
+      sale_date TEXT,
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (product_id) REFERENCES products(id),
+      FOREIGN KEY (employee_id) REFERENCES employees(id)
+    );
+  `);
+
+  const custExist = db.exec("SELECT COUNT(*) FROM customers")[0].values[0][0];
+  if (custExist === 0) {
+    db.run(`
+      INSERT INTO customers VALUES
+        (1,  '황민철', 'hwang@example.com',  '서울', 'VIP',  '2021-03-10'),
+        (2,  '오지은', 'oh@example.com',     '부산', '일반', '2022-07-15'),
+        (3,  '백준호', 'baek@example.com',   '서울', '골드', '2020-11-20'),
+        (4,  '신예린', 'shin@example.com',   '대구', '일반', '2023-01-05'),
+        (5,  '류성민', 'ryu@example.com',    '인천', 'VIP',  '2019-08-30'),
+        (6,  '곽다영', 'kwak@example.com',   '서울', '골드', '2022-04-12'),
+        (7,  '문태준', 'moon@example.com',   '광주', '일반', '2023-05-18'),
+        (8,  '배소희', 'bae@example.com',    '부산', 'VIP',  '2020-12-01'),
+        (9,  '서동훈', 'seo@example.com',    '서울', '일반', '2021-09-07'),
+        (10, '전미래', 'jeon@example.com',   '인천', '골드', '2022-02-28'),
+        (11, '홍태양', 'hong@example.com',   '서울', 'VIP',  '2020-06-15'),
+        (12, '남지수', 'nam@example.com',    '대구', '일반', '2023-03-22'),
+        (13, '마준혁', 'ma@example.com',     '부산', '골드', '2021-10-10'),
+        (14, '유하린', 'yoo@example.com',    '서울', '일반', '2022-08-05'),
+        (15, '엄기태', 'eom@example.com',    '광주', 'VIP',  '2019-12-20');
+
+      INSERT INTO sales VALUES
+        (1,  1,  1, 1,  2, 1200000, 2400000, '2024-01-08'),
+        (2,  3,  3, 3,  3,   85000,  255000, '2024-01-15'),
+        (3,  5,  4, 5,  1,  450000,  450000, '2024-02-03'),
+        (4,  8,  2, 2, 10,   35000,  350000, '2024-02-20'),
+        (5,  11, 1, 9,  1, 1200000, 1200000, '2024-03-05'),
+        (6,  2,  6, 4,  2,  280000,  560000, '2024-03-10'),
+        (7,  6,  5, 7,  1,  320000,  320000, '2024-03-22'),
+        (8,  15, 1, 1,  3, 1200000, 3600000, '2024-04-01'),
+        (9,  4,  8, 6,  5,   12000,   60000, '2024-04-11'),
+        (10, 10, 4, 8,  2,  450000,  900000, '2024-04-18'),
+        (11, 1,  3, 1,  1,   85000,   85000, '2024-05-02'),
+        (12, 13, 7, 5,  1,  150000,  150000, '2024-05-09'),
+        (13, 7,  2, 3,  4,   35000,  140000, '2024-05-20'),
+        (14, 5,  1, 9,  2, 1200000, 2400000, '2024-06-01'),
+        (15, 9,  6, 2,  1,  280000,  280000, '2024-06-08'),
+        (16, 12, 5, 7,  2,  320000,  640000, '2024-06-15'),
+        (17, 3,  4, 4,  1,  450000,  450000, '2024-06-22'),
+        (18, 8,  3, 1,  2,   85000,  170000, '2024-07-03'),
+        (19, 11, 2, 5,  5,   35000,  175000, '2024-07-10'),
+        (20, 14, 1, 3,  1, 1200000, 1200000, '2024-07-20');
+    `);
+  }
+
   return db;
 }
 
@@ -163,6 +232,23 @@ const findFirstDifferentCell = (userRows, ansRows) => {
   }
   return null;
 };
+
+export function getRowsModified() {
+  return db ? db.getRowsModified() : 0;
+}
+
+export function getTableStats() {
+  if (!db) return {};
+  const tables = getSchema();
+  const stats = {};
+  for (const tbl of tables) {
+    try {
+      const r = db.exec(`SELECT COUNT(*) FROM "${tbl.name}"`);
+      stats[tbl.name] = { rowCount: r[0]?.values[0]?.[0] ?? 0 };
+    } catch { stats[tbl.name] = { rowCount: 0 }; }
+  }
+  return stats;
+}
 
 export function gradeQuery(userSql, answerSql, checkOrder = false, options = {}) {
   try {
