@@ -11,6 +11,13 @@
       })();
     </script>
     <script src="/sql-wasm-browser.js"></script>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#3b82f6" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js').catch(function(){}); });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

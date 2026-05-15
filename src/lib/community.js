@@ -91,12 +91,13 @@ export async function seedPostsIfEmpty() {
   await batch.commit();
 }
 
-export async function addPost({ title, category, author, body, uid, displayName }) {
+export async function addPost({ title, category, author, body, uid, displayName, language = 'ko' }) {
   return addDoc(collection(db, POSTS_COL), {
     title: title.trim(),
     category,
     author: (displayName || author || '익명').trim(),
     authorUid: uid || null,
+    language,
     body: body.trim(),
     createdAt: serverTimestamp(),
     likes: 0,
@@ -111,6 +112,14 @@ export async function likePost(postId) {
 
 export async function deletePost(postId) {
   await deleteDoc(doc(db, POSTS_COL, postId));
+}
+
+export async function editPost(postId, { title, category, body }) {
+  await updateDoc(doc(db, POSTS_COL, postId), {
+    title: title.trim(),
+    category,
+    body: body.trim(),
+  });
 }
 
 export async function addComment(postId, { author, body, uid, displayName }) {

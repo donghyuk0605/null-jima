@@ -1,0 +1,18 @@
+{
+  "name": "NULL지마 — SQL 연습장",
+  "short_name": "NULL지마",
+  "description": "브라우저에서 SQL을 직접 작성하고 연습하는 앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

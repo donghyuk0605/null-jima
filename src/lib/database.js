@@ -271,6 +271,25 @@ export function getTableIndexes() {
   return result;
 }
 
+export function getRelationships() {
+  if (!db) return [];
+  const tables = getSchema();
+  const rels = [];
+  for (const tbl of tables) {
+    try {
+      const res = db.exec(`PRAGMA foreign_key_list("${tbl.name}")`);
+      if (!res.length) continue;
+      for (const row of res[0].values) {
+        // row: [id, seq, table, from, to, on_update, on_delete, match]
+        rels.push({ from: tbl.name, fromCol: row[3], to: row[2], toCol: row[4] });
+      }
+    } catch {
+      // Ignore tables whose foreign key metadata cannot be read.
+    }
+  }
+  return rels;
+}
+
 export function gradeQuery(userSql, answerSql, checkOrder = false, options = {}) {
   try {
     const userRes = db.exec(userSql.trim());

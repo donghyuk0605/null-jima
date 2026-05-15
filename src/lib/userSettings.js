@@ -36,6 +36,7 @@ export const DB_TYPES = [
 
 export const DEFAULT_SETTINGS = {
   displayName: '',
+  language: 'ko',
   dbType: 'sqlite',
   editorFontSize: 13,
   autoSaveSql: true,

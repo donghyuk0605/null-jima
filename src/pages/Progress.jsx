@@ -3,9 +3,65 @@ import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
 import { getAllProgress, resetProgress, getWrongProblems } from '../lib/progress';
 import { useState } from 'react';
 import Icon from '../components/Icon';
+import { getHeatmapData, getStreak } from '../lib/streak';
+
+function HeatmapChart({ data }) {
+  const weeks = [];
+  for (let i = 0; i < data.length; i += 7) {
+    weeks.push(data.slice(i, i + 7));
+  }
+
+  const maxCount = Math.max(...data.map(d => d.count), 1);
+  const getLevel = (count) => {
+    if (count === 0) return 0;
+    if (count <= maxCount * 0.25) return 1;
+    if (count <= maxCount * 0.5) return 2;
+    if (count <= maxCount * 0.75) return 3;
+    return 4;
+  };
+
+  const DAYS = ['일','월','화','수','목','금','토'];
+  const months = [];
+  let lastMonth = -1;
+  weeks.forEach((week, wi) => {
+    const firstDay = week.find(d => d);
+    if (firstDay) {
+      const m = new Date(firstDay.date).getMonth();
+      if (m !== lastMonth) { months.push({ wi, label: `${m+1}월` }); lastMonth = m; }
+    }
+  });
+
+  return (
+    <div className="heatmap-container">
+      <div className="heatmap-months">
+        {months.map(m => <span key={m.wi} style={{ gridColumnStart: m.wi + 1 }}>{m.label}</span>)}
+      </div>
+      <div className="heatmap-rows">
+        <div className="heatmap-day-labels">
+          {DAYS.map((d, i) => <span key={i} className={i % 2 === 1 ? 'visible' : ''}>{d}</span>)}
+        </div>
+        <div className="heatmap-cells">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="heatmap-week">
+              {week.map((day, di) => (
+                <div
+                  key={di}
+                  className={`heatmap-cell level-${getLevel(day.count)}`}
+                  title={`${day.date}: ${day.count}회 활동`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Progress() {
   const [, forceUpdate] = useState(0);
+  const heatmap = getHeatmapData(17);
+  const streak = getStreak();
   const prog = getAllProgress();
   const wrongIds = getWrongProblems();
   const wrongProblems = PROBLEMS.filter(p => wrongIds.includes(p.id));
@@ -45,6 +101,28 @@ export default function Progress() {
         <h2 className="page-title">내 진행률</h2>
         <button className="btn btn-ghost-sm" onClick={handleReset} style={{ marginLeft: 'auto' }}>초기화</button>
       </div>
+
+      <section className="heatmap-section">
+        <div className="heatmap-header">
+          <h3 className="section-title">학습 활동</h3>
+          <div className="heatmap-stats">
+            <span>🔥 {streak.streak}일 연속</span>
+            <span>최장 {streak.longest}일</span>
+            <span>총 {streak.totalDays}일</span>
+          </div>
+        </div>
+        <div className="heatmap-wrap">
+          <div className="heatmap-grid">
+            {/* Month labels */}
+            <HeatmapChart data={heatmap} />
+          </div>
+          <div className="heatmap-legend">
+            <span className="legend-label">적음</span>
+            {[0,1,2,3,4].map(l => <div key={l} className={`heatmap-cell legend-cell level-${l}`} />)}
+            <span className="legend-label">많음</span>
+          </div>
+        </div>
+      </section>
 
       {/* 전체 통계 */}
       <div className="progress-stats">

@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { PROBLEMS, TAG_COLORS } from '../data/problems';
 import { runQuery, gradeQuery, translateSqlError } from '../lib/database';
+import { recordActivity } from '../lib/streak';
 import {
   getProblemProgress,
   recordAttempt,
@@ -51,6 +52,9 @@ function ProblemDetailContent({ problem }) {
   const [favorited, setFavorited] = useState(() => isFavorite(problem.id));
   const [editorMode, setEditorMode] = useState(() => getStoredEditorMode());
   const [mobilePanel, setMobilePanel] = useState('write');
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerSecs, setTimerSecs] = useState(0);
+  const timerRef = useRef(null);
   const [autocomplete, setAutocomplete] = useState(() => {
     const stored = localStorage.getItem(AC_KEY);
     return stored === null ? true : stored === 'true';
@@ -81,10 +85,33 @@ function ProblemDetailContent({ problem }) {
     setGradeResult(result);
     const updated = recordAttempt(problem.id, result.correct, hintsOpen);
     setProgress(updated);
-    if (!result.correct) {
+    if (result.correct) {
+      recordActivity('problem');
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; setTimerActive(false); }
+    } else {
       markAttempted(problem.id);
     }
   }, [userSql, problem, hintsOpen, execute]);
+
+  const toggleTimer = () => {
+    if (timerActive) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+      setTimerActive(false);
+    } else {
+      setTimerSecs(0);
+      setTimerActive(true);
+      timerRef.current = setInterval(() => setTimerSecs(s => s + 1), 1000);
+    }
+  };
+
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+
+  const formatTimer = (s) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     const handler = (e) => {
@@ -325,6 +352,13 @@ function ProblemDetailContent({ problem }) {
                   포맷
                 </button>
                 <button
+                  className={`btn btn-ghost-sm ${timerActive ? 'btn-active' : ''}`}
+                  onClick={toggleTimer}
+                  title="타이머 시작/정지"
+                >
+                  ⏱ {timerActive ? formatTimer(timerSecs) : '타이머'}
+                </button>
+                <button
                   className="btn btn-ghost-sm"
                   onClick={toggleAutocomplete}
                   title="자동완성 토글"
@@ -357,6 +391,12 @@ function ProblemDetailContent({ problem }) {
               <span>결과</span>
               <strong>{resultRowCount}행</strong>
             </div>
+            {timerSecs > 0 && (
+              <div>
+                <span>경과</span>
+                <strong style={{ color: timerActive ? 'var(--accent)' : 'var(--fg-muted)' }}>{formatTimer(timerSecs)}</strong>
+              </div>
+            )}
           </div>
 
           {gradeResult && (

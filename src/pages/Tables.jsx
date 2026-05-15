@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { getSchema, runQuery } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
+import ERDiagram from '../components/ERDiagram';
 
 const RELATIONS = [
   'employees.department_id  →  departments.id',
@@ -19,6 +20,7 @@ const getTablePreview = (tbl) => {
 };
 
 export default function Tables() {
+  const [showER, setShowER] = useState(false);
   const [schema] = useState(() => getSchema());
   const [selected, setSelected] = useState(() => {
     const s = getSchema();
@@ -33,9 +35,11 @@ export default function Tables() {
 
   return (
     <div className="page">
+      {showER && <ERDiagram onClose={() => setShowER(false)} />}
       <div className="page-header">
         <h2 className="page-title">테이블 탐색</h2>
         <span className="page-desc">연습 DB의 테이블 구조와 샘플 데이터를 확인하세요</span>
+        <button className="btn btn-ghost-sm" onClick={() => setShowER(s => !s)}>ER 다이어그램</button>
       </div>
 
       <div className="tables-layout">

@@ -2,42 +2,44 @@ import { NavLink } from 'react-router-dom';
 import { getAllProgress } from '../lib/progress';
 import { PROBLEMS } from '../data/problems';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import Icon from './Icon';
 
 const NAV = [
   {
-    group: '학습',
+    groupKey: 'nav.group.study',
     items: [
-      { to: '/', label: '홈', icon: 'home' },
-      { to: '/learn', label: '학습 도우미', icon: 'book' },
-      { to: '/cert', label: '자격증', icon: 'trophy' },
+      { to: '/', labelKey: 'nav.home', icon: 'home' },
+      { to: '/learn', labelKey: 'nav.learn', icon: 'book' },
+      { to: '/cert', labelKey: 'nav.cert', icon: 'trophy' },
     ],
   },
   {
-    group: '실습',
+    groupKey: 'nav.group.practice',
     items: [
-      { to: '/editor', label: 'SQL 에디터', icon: 'keyboard' },
-      { to: '/playground', label: '자유 연습', icon: 'keyboard' },
-      { to: '/problems', label: '문제 풀기', icon: 'pencil' },
+      { to: '/editor', labelKey: 'nav.editor', icon: 'keyboard' },
+      { to: '/playground', labelKey: 'nav.playground', icon: 'keyboard' },
+      { to: '/problems', labelKey: 'nav.problems', icon: 'pencil' },
     ],
   },
   {
-    group: '데이터',
+    groupKey: 'nav.group.data',
     items: [
-      { to: '/tables', label: '테이블 탐색', icon: 'database' },
+      { to: '/tables', labelKey: 'nav.tables', icon: 'database' },
     ],
   },
   {
-    group: '내 정보',
+    groupKey: 'nav.group.me',
     items: [
-      { to: '/community', label: '커뮤니티', icon: 'community' },
-      { to: '/progress', label: '내 진행률', icon: 'chart' },
-      { to: '/settings', label: '사용자 설정', icon: 'settings' },
+      { to: '/community', labelKey: 'nav.community', icon: 'community' },
+      { to: '/progress', labelKey: 'nav.progress', icon: 'chart' },
+      { to: '/settings', labelKey: 'nav.settings', icon: 'settings' },
     ],
   },
 ];
 
 export default function Layout({ children, theme, onToggleTheme }) {
+  const { t } = useLanguage();
   const prog = getAllProgress();
   const solved = Object.values(prog).filter((p) => p.solved).length;
   const total = PROBLEMS.length;
@@ -51,26 +53,26 @@ export default function Layout({ children, theme, onToggleTheme }) {
             <Icon name="null" className="nav-logo-icon" />
             <div>
               <span>NULL지마</span>
-              <span className="nav-logo-sub">SQL 연습장</span>
+              <span className="nav-logo-sub">{t('app.subtitle')}</span>
             </div>
           </div>
           <button
             className="theme-toggle"
             onClick={onToggleTheme}
-            title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
           >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} style={{ width: 15, height: 15 }} />
           </button>
         </div>
 
-        <div className="nav-progress-bar" title={`${solved} / ${total} 완료`}>
+        <div className="nav-progress-bar" title={t('nav.progress.title', { solved, total })}>
           <div className="nav-progress-fill" style={{ width: `${(solved / total) * 100}%` }} />
         </div>
-        <div className="nav-progress-label">{solved} / {total} 문제 완료</div>
+        <div className="nav-progress-label">{t('nav.progress.label', { solved, total })}</div>
 
         {NAV.map((section) => (
-          <div key={section.group} className="nav-section">
-            <div className="nav-group-label">{section.group}</div>
+          <div key={section.groupKey} className="nav-section">
+            <div className="nav-group-label">{t(section.groupKey)}</div>
             {section.items.map((item) => (
               <NavLink
                 key={item.to}
@@ -79,7 +81,7 @@ export default function Layout({ children, theme, onToggleTheme }) {
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
               >
                 <Icon name={item.icon} className="nav-icon" />
-                {item.label}
+                {t(item.labelKey)}
               </NavLink>
             ))}
           </div>
@@ -89,22 +91,22 @@ export default function Layout({ children, theme, onToggleTheme }) {
           {user ? (
             <div className="nav-user">
               {user.photoURL && (
-                <img src={user.photoURL} alt="프로필" className="nav-avatar" referrerPolicy="no-referrer" />
+                <img src={user.photoURL} alt={t('nav.profileAlt')} className="nav-avatar" referrerPolicy="no-referrer" />
               )}
               <div className="nav-user-info">
                 <span className="nav-user-name">{user.displayName || user.email}</span>
-                <button className="nav-logout-btn" onClick={logout}>로그아웃</button>
+                <button className="nav-logout-btn" onClick={logout}>{t('nav.logout')}</button>
               </div>
             </div>
           ) : isGuest ? (
             <div className="nav-guest">
-              <span className="nav-guest-label">게스트 모드</span>
+              <span className="nav-guest-label">{t('nav.guest')}</span>
               <button
                 className="nav-login-btn"
                 onClick={() => { exitGuestMode(); login().catch(() => {}); }}
               >
                 <GoogleIcon />
-                로그인하기
+                {t('nav.login')}
               </button>
             </div>
           ) : null}

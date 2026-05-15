@@ -1,12 +1,23 @@
 import { useMemo, useState, useEffect } from 'react';
 import Icon from '../components/Icon';
 import {
-  subscribeToPosts, addPost, likePost, deletePost, addComment,
+  subscribeToPosts, addPost, likePost, deletePost, addComment, editPost,
   seedPostsIfEmpty, SEED_POSTS,
 } from '../lib/community';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const CATEGORIES = ['전체', '질문', '풀이 공유', '팁', '자유'];
+const CATEGORIES = [
+  { value: '전체', key: 'category.all' },
+  { value: '질문', key: 'category.question' },
+  { value: '풀이 공유', key: 'category.solution' },
+  { value: '팁', key: 'category.tip' },
+  { value: '자유', key: 'category.free' },
+];
+
+function getCategoryKey(value) {
+  return CATEGORIES.find((item) => item.value === value)?.key ?? 'category.free';
+}
 
 function highlightSql(code) {
   const keywords = ['SELECT','FROM','WHERE','GROUP BY','HAVING','ORDER BY','JOIN','LEFT','RIGHT','INNER','OUTER','ON','INSERT','UPDATE','DELETE','CREATE','DROP','ALTER','TABLE','INDEX','VIEW','AS','AND','OR','NOT','IN','IS','NULL','LIKE','BETWEEN','DISTINCT','COUNT','SUM','AVG','MAX','MIN','CASE','WHEN','THEN','ELSE','END','WITH','UNION','INTERSECT','EXCEPT','LIMIT','OFFSET','BY','ASC','DESC','INTO','VALUES','SET'];
@@ -79,9 +90,9 @@ function renderBody(text) {
   });
 }
 
-const formatDate = (value) => {
+const formatDate = (value, language) => {
   try {
-    return new Intl.DateTimeFormat('ko-KR', {
+    return new Intl.DateTimeFormat(language === 'ja' ? 'ja-JP' : 'ko-KR', {
       month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit',
     }).format(new Date(value));
@@ -92,6 +103,7 @@ const formatDate = (value) => {
 
 export default function Community() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fsError, setFsError] = useState(null);
@@ -100,6 +112,8 @@ export default function Community() {
   const [searchQuery, setSearchQuery] = useState('');
   const [draft, setDraft] = useState({ title: '', category: '질문', author: '', body: '' });
   const [commentDraft, setCommentDraft] = useState({ author: '', body: '' });
+  const [editingPost, setEditingPost] = useState(null);
+  const [editDraft, setEditDraft] = useState({ title: '', category: '질문', body: '' });
   const [submitting, setSubmitting] = useState(false);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
@@ -148,13 +162,14 @@ export default function Community() {
     try {
       const ref = await addPost({
         ...draft,
+        language,
         uid: user?.uid,
         displayName: user?.displayName,
       });
       setSelectedId(ref.id);
       setDraft({ title: '', category: '질문', author: '', body: '' });
     } catch (e) {
-      alert('글 등록에 실패했습니다: ' + e.message);
+      alert(t('community.createFailed', { message: e.message }));
     } finally {
       setSubmitting(false);
     }
@@ -165,12 +180,26 @@ export default function Community() {
   };
 
   const handleDelete = async (postId) => {
-    if (!window.confirm('이 게시글을 삭제할까요?')) return;
+    if (!window.confirm(t('community.deleteConfirm'))) return;
     try {
       await deletePost(postId);
       if (selectedId === postId) setSelectedId(null);
     } catch (e) {
-      alert('삭제에 실패했습니다: ' + e.message);
+      alert(t('community.deleteFailed', { message: e.message }));
+    }
+  };
+
+  const handleEditPost = async (event) => {
+    event.preventDefault();
+    if (!editDraft.title.trim() || !editDraft.body.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      await editPost(editingPost, editDraft);
+      setEditingPost(null);
+    } catch (e) {
+      alert(t('community.editFailed', { message: e.message }));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -186,7 +215,7 @@ export default function Community() {
       });
       setCommentDraft({ author: '', body: '' });
     } catch (e) {
-      alert('댓글 등록에 실패했습니다: ' + e.message);
+      alert(t('community.commentFailed', { message: e.message }));
     } finally {
       setSubmitting(false);
     }
@@ -195,14 +224,14 @@ export default function Community() {
   return (
     <div className="page community-page">
       <div className="page-header">
-        <h2 className="page-title">커뮤니티</h2>
-        <span className="page-desc">질문, 풀이, 학습 팁을 공유해보세요</span>
+        <h2 className="page-title">{t('community.title')}</h2>
+        <span className="page-desc">{t('community.desc')}</span>
       </div>
 
       {fsError && (
         <div className="community-fs-error">
           <Icon name="error" style={{ width: 14, height: 14 }} />
-          Firestore 연결 오류 — 읽기 전용으로 표시 중 ({fsError})
+          {t('community.fsError', { message: fsError })}
         </div>
       )}
 
@@ -212,18 +241,18 @@ export default function Community() {
             <div className="community-tabs">
               {CATEGORIES.map((item) => (
                 <button
-                  key={item}
-                  className={`community-tab ${category === item ? 'active' : ''}`}
-                  onClick={() => { setCategory(item); setPage(0); }}
+                  key={item.value}
+                  className={`community-tab ${category === item.value ? 'active' : ''}`}
+                  onClick={() => { setCategory(item.value); setPage(0); }}
                 >
-                  {item}
+                  {t(item.key)}
                 </button>
               ))}
             </div>
             <div className="community-search">
               <input
                 className="community-search-input"
-                placeholder="게시글 검색..."
+                placeholder={t('community.searchPlaceholder')}
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setPage(0); }}
               />
@@ -234,14 +263,14 @@ export default function Community() {
           </div>
 
           {searchQuery && (
-            <div className="community-search-count">검색 결과: {filteredPosts.length}개</div>
+            <div className="community-search-count">{t('community.searchCount', { count: filteredPosts.length })}</div>
           )}
 
           <div className="community-list">
             {loading ? (
-              <div className="community-empty">불러오는 중...</div>
+              <div className="community-empty">{t('community.loading')}</div>
             ) : filteredPosts.length === 0 ? (
-              <div className="community-empty">조건에 맞는 게시글이 없습니다.</div>
+              <div className="community-empty">{t('community.empty')}</div>
             ) : (
               pagedPosts.map((post) => (
                 <button
@@ -249,11 +278,11 @@ export default function Community() {
                   className={`community-row ${selectedPost?.id === post.id ? 'selected' : ''}`}
                   onClick={() => setSelectedId(post.id)}
                 >
-                  <span className="community-row-category">{post.category}</span>
+                  <span className="community-row-category">{t(getCategoryKey(post.category))}</span>
                   <span className="community-row-body">
                     <span className="community-row-title">{post.title}</span>
                     <span className="community-row-meta">
-                      {post.author} · {formatDate(post.createdAt)} · 댓글 {post.comments.length}
+                      {post.author} · {formatDate(post.createdAt, language)} · {t('community.comments', { count: post.comments.length })}
                     </span>
                   </span>
                   <span className="community-row-likes">{post.likes}</span>
@@ -284,33 +313,52 @@ export default function Community() {
             <article className="community-detail">
               <div className="community-detail-head">
                 <div>
-                  <span className="community-detail-category">{selectedPost.category}</span>
+                  <span className="community-detail-category">{t(getCategoryKey(selectedPost.category))}</span>
                   <h3 className="community-detail-title">{selectedPost.title}</h3>
                   <p className="community-detail-meta">
-                    {selectedPost.author} · {formatDate(selectedPost.createdAt)}
+                    {selectedPost.author} · {formatDate(selectedPost.createdAt, language)}
                   </p>
                 </div>
                 <div className="community-detail-actions">
                   <button className="btn btn-ghost-sm" onClick={() => handleLike(selectedPost.id)}>
-                    추천 {selectedPost.likes}
+                    {t('community.like', { count: selectedPost.likes })}
+                  </button>
+                  <button className="btn btn-ghost-sm" onClick={() => { setEditingPost(selectedPost.id); setEditDraft({ title: selectedPost.title, category: selectedPost.category, body: selectedPost.body }); }}>
+                    {t('community.edit')}
                   </button>
                   <button className="btn btn-ghost-sm" onClick={() => handleDelete(selectedPost.id)}>
-                    삭제
+                    {t('community.delete')}
                   </button>
                 </div>
               </div>
 
-              <div className="community-detail-body">{renderBody(selectedPost.body)}</div>
+              {editingPost === selectedPost?.id ? (
+                <form className="community-edit-form" onSubmit={handleEditPost}>
+                  <input value={editDraft.title} onChange={e => setEditDraft(v => ({...v, title: e.target.value}))} placeholder={t('community.postTitle')} />
+                  <select value={editDraft.category} onChange={e => setEditDraft(v => ({...v, category: e.target.value}))}>
+                    {CATEGORIES.filter(c => c.value !== '전체').map(c => (
+                      <option key={c.value} value={c.value}>{t(c.key)}</option>
+                    ))}
+                  </select>
+                  <textarea value={editDraft.body} onChange={e => setEditDraft(v => ({...v, body: e.target.value}))} rows={8} />
+                  <div style={{display:'flex', gap:8}}>
+                    <button className="btn btn-primary" type="submit" disabled={submitting}>{t('settings.save')}</button>
+                    <button className="btn btn-ghost-sm" type="button" onClick={() => setEditingPost(null)}>{t('community.cancel')}</button>
+                  </div>
+                </form>
+              ) : (
+                <div className="community-detail-body">{renderBody(selectedPost.body)}</div>
+              )}
 
               <div className="community-comments">
                 <div className="community-comments-title">
                   <Icon name="message" className="inline-icon" />
-                  댓글 {selectedPost.comments.length}
+                  {t('community.comments', { count: selectedPost.comments.length })}
                 </div>
                 {selectedPost.comments.map((comment) => (
                   <div key={comment.id} className="community-comment">
                     <div className="community-comment-meta">
-                      {comment.author} · {formatDate(comment.createdAt)}
+                      {comment.author} · {formatDate(comment.createdAt, language)}
                     </div>
                     <div className="community-comment-body">{comment.body}</div>
                   </div>
@@ -321,17 +369,17 @@ export default function Community() {
                     <input
                       value={commentDraft.author}
                       onChange={(e) => setCommentDraft((v) => ({ ...v, author: e.target.value }))}
-                      placeholder="이름 (선택)"
+                      placeholder={t('community.commentAuthorPlaceholder')}
                     />
                   )}
                   <textarea
                     value={commentDraft.body}
                     onChange={(e) => setCommentDraft((v) => ({ ...v, body: e.target.value }))}
-                    placeholder="댓글을 입력하세요"
+                    placeholder={t('community.commentPlaceholder')}
                     rows={3}
                   />
                   <button className="btn btn-secondary" type="submit" disabled={submitting}>
-                    댓글 등록
+                    {t('community.commentSubmit')}
                   </button>
                 </form>
               </div>
@@ -340,52 +388,52 @@ export default function Community() {
         </section>
 
         <aside className="community-compose">
-          <div className="community-compose-title">새 글 작성</div>
+          <div className="community-compose-title">{t('community.composeTitle')}</div>
           <form onSubmit={handleCreatePost}>
             <label>
-              제목
+              {t('community.postTitle')}
               <input
                 value={draft.title}
                 onChange={(e) => setDraft((v) => ({ ...v, title: e.target.value }))}
-                placeholder="질문이나 공유할 내용을 적어보세요"
+                placeholder={t('community.postTitlePlaceholder')}
               />
             </label>
             <label>
-              분류
+              {t('community.category')}
               <select
                 value={draft.category}
                 onChange={(e) => setDraft((v) => ({ ...v, category: e.target.value }))}
               >
-                {CATEGORIES.filter((item) => item !== '전체').map((item) => (
-                  <option key={item}>{item}</option>
+                {CATEGORIES.filter((item) => item.value !== '전체').map((item) => (
+                  <option key={item.value} value={item.value}>{t(item.key)}</option>
                 ))}
               </select>
             </label>
             {!user && (
               <label>
-                작성자
+                {t('community.author')}
                 <input
                   value={draft.author}
                   onChange={(e) => setDraft((v) => ({ ...v, author: e.target.value }))}
-                  placeholder="익명"
+                  placeholder={t('community.authorPlaceholder')}
                 />
               </label>
             )}
             <label>
-              내용
+              {t('community.body')}
               <textarea
                 value={draft.body}
                 onChange={(e) => setDraft((v) => ({ ...v, body: e.target.value }))}
-                placeholder="SQL 코드, 오류 메시지, 풀이 아이디어를 자유롭게 남겨보세요"
+                placeholder={t('community.bodyPlaceholder')}
                 rows={9}
               />
             </label>
             <button className="btn btn-primary" type="submit" disabled={submitting || !!fsError}>
-              {submitting ? '등록 중...' : '등록'}
+              {submitting ? t('community.submitting') : t('community.submit')}
             </button>
             {fsError && (
               <p style={{ fontSize: 11, color: 'var(--err)', marginTop: 6 }}>
-                Firestore 오류로 글을 등록할 수 없습니다.
+                {t('community.writeDisabled')}
               </p>
             )}
           </form>

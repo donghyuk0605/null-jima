@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Icon from '../components/Icon';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   DB_TYPES,
   getUserSettings,
@@ -8,6 +9,7 @@ import {
 } from '../lib/userSettings';
 
 export default function Settings() {
+  const { language, languages, setLanguage, t } = useLanguage();
   const [settings, setSettings] = useState(() => getUserSettings());
   const [saved, setSaved] = useState(false);
 
@@ -21,23 +23,38 @@ export default function Settings() {
     setSaved(false);
   };
 
+  const updateLanguage = (value) => {
+    updateSetting('language', value);
+    setLanguage(value);
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    setSettings(saveUserSettings(settings));
+    const savedSettings = saveUserSettings({ ...settings, language });
+    setSettings(savedSettings);
+    setLanguage(savedSettings.language);
     setSaved(true);
   };
 
   const handleReset = () => {
-    if (!window.confirm('사용자 설정을 기본값으로 되돌릴까요?')) return;
-    setSettings(resetUserSettings());
+    if (!window.confirm(t('settings.resetConfirm'))) return;
+    const reset = resetUserSettings();
+    setSettings(reset);
+    setLanguage(reset.language);
     setSaved(false);
+  };
+
+  const dbStatusLabel = (db) => {
+    if (!db.available) return t('db.status.soon');
+    if (db.id === 'sqlite') return t('db.status.available');
+    return t('db.status.reference');
   };
 
   return (
     <div className="page settings-page">
       <div className="page-header">
-        <h2 className="page-title">사용자 설정</h2>
-        <span className="page-desc">학습 환경과 기본 DB 종류를 조정하세요</span>
+        <h2 className="page-title">{t('settings.title')}</h2>
+        <span className="page-desc">{t('settings.desc')}</span>
       </div>
 
       <form className="settings-layout" onSubmit={handleSubmit}>
@@ -45,22 +62,35 @@ export default function Settings() {
           <div className="settings-section">
             <div className="settings-section-head">
               <Icon name="settings" className="inline-icon" />
-              <h3>기본 정보</h3>
+              <h3>{t('settings.basic')}</h3>
             </div>
             <label className="settings-field">
-              표시 이름
+              {t('settings.displayName')}
               <input
                 value={settings.displayName}
                 onChange={(event) => updateSetting('displayName', event.target.value)}
-                placeholder="커뮤니티에서 사용할 이름"
+                placeholder={t('settings.displayNamePlaceholder')}
               />
+            </label>
+            <label className="settings-field">
+              {t('settings.language')}
+              <select
+                value={language}
+                onChange={(event) => updateLanguage(event.target.value)}
+              >
+                {languages.map((lang) => (
+                  <option key={lang.id} value={lang.id}>
+                    {lang.nativeLabel}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 
           <div className="settings-section">
             <div className="settings-section-head">
               <Icon name="database" className="inline-icon" />
-              <h3>DB 종류</h3>
+              <h3>{t('settings.dbType')}</h3>
             </div>
             <div className="db-type-grid">
               {DB_TYPES.map((db) => (
@@ -74,25 +104,23 @@ export default function Settings() {
                   <span className="db-type-card-top">
                     <span className="db-type-name">{db.name}</span>
                     <span className={`db-type-status ${db.available ? 'available' : 'soon'}`}>
-                      {db.status}
+                      {dbStatusLabel(db)}
                     </span>
                   </span>
-                  <span className="db-type-desc">{db.description}</span>
+                  <span className="db-type-desc">{t(`db.${db.id}.desc`)}</span>
                 </button>
               ))}
             </div>
-            <p className="settings-note">
-              현재 쿼리 실행은 SQLite 엔진을 사용합니다. 다른 DB 종류는 문법 학습 기준으로 먼저 제공합니다.
-            </p>
+            <p className="settings-note">{t('settings.dbNote')}</p>
           </div>
 
           <div className="settings-section">
             <div className="settings-section-head">
               <Icon name="keyboard" className="inline-icon" />
-              <h3>학습 기능</h3>
+              <h3>{t('settings.learning')}</h3>
             </div>
             <label className="settings-field">
-              에디터 글자 크기
+              {t('settings.editorFontSize')}
               <input
                 type="number"
                 min="11"
@@ -110,8 +138,8 @@ export default function Settings() {
                 onChange={(event) => updateSetting('autoSaveSql', event.target.checked)}
               />
               <span>
-                작성 중인 SQL 자동 저장
-                <small>문제와 자유 연습에서 작성하던 쿼리를 이어서 볼 수 있게 준비합니다.</small>
+                {t('settings.autoSave')}
+                <small>{t('settings.autoSaveHelp')}</small>
               </span>
             </label>
             <label className="settings-toggle">
@@ -123,8 +151,8 @@ export default function Settings() {
                 }
               />
               <span>
-                학습 힌트 표시
-                <small>문제 풀이 중 필요한 개념 힌트를 보여주는 옵션입니다.</small>
+                {t('settings.hints')}
+                <small>{t('settings.hintsHelp')}</small>
               </span>
             </label>
             <label className="settings-toggle">
@@ -134,34 +162,38 @@ export default function Settings() {
                 onChange={(event) => updateSetting('compactMode', event.target.checked)}
               />
               <span>
-                압축 보기
-                <small>목록과 표의 여백을 줄이는 화면 모드입니다.</small>
+                {t('settings.compact')}
+                <small>{t('settings.compactHelp')}</small>
               </span>
             </label>
           </div>
         </section>
 
         <aside className="settings-summary">
-          <div className="settings-summary-title">현재 설정</div>
+          <div className="settings-summary-title">{t('settings.summary')}</div>
           <div className="settings-summary-row">
-            <span>표시 이름</span>
-            <strong>{settings.displayName || '익명'}</strong>
+            <span>{t('settings.displayName')}</span>
+            <strong>{settings.displayName || t('settings.anonymous')}</strong>
           </div>
           <div className="settings-summary-row">
-            <span>DB 종류</span>
+            <span>{t('settings.language')}</span>
+            <strong>{languages.find((lang) => lang.id === language)?.nativeLabel}</strong>
+          </div>
+          <div className="settings-summary-row">
+            <span>{t('settings.dbType')}</span>
             <strong>{selectedDb.name}</strong>
           </div>
           <div className="settings-summary-row">
-            <span>에디터</span>
+            <span>{t('settings.editor')}</span>
             <strong>{settings.editorFontSize}px</strong>
           </div>
           <div className="settings-actions">
-            <button className="btn btn-primary" type="submit">저장</button>
+            <button className="btn btn-primary" type="submit">{t('settings.save')}</button>
             <button className="btn btn-ghost-sm" type="button" onClick={handleReset}>
-              초기화
+              {t('settings.reset')}
             </button>
           </div>
-          {saved && <div className="settings-saved">설정이 저장되었습니다.</div>}
+          {saved && <div className="settings-saved">{t('settings.saved')}</div>}
         </aside>
       </form>
     </div>

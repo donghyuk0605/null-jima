@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from './Icon';
+import ResultChart from './ResultChart';
 
 const PAGE_SIZE = 100;
 
@@ -75,6 +76,7 @@ function ResultGrid({ result, elapsed }) {
   const [page, setPage] = useState(0);
   const [copiedKey, setCopiedKey] = useState(null);
   const [showStats, setShowStats] = useState(false);
+  const [showChart, setShowChart] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef(null);
 
@@ -160,6 +162,13 @@ function ResultGrid({ result, elapsed }) {
           >
             통계
           </button>
+          <button
+            className={`result-action-btn ${showChart ? 'active' : ''}`}
+            onClick={() => setShowChart(s => !s)}
+            title="차트 보기"
+          >
+            차트
+          </button>
           <div className="export-menu-wrap" ref={exportRef}>
             <button className="result-action-btn" onClick={() => setExportOpen(o => !o)}>
               내보내기 ▾
@@ -196,6 +205,8 @@ function ResultGrid({ result, elapsed }) {
           ))}
         </div>
       )}
+
+      {showChart && <ResultChart columns={columns} values={values} />}
 
       <div className="table-scroll">
         <table className="result-table">

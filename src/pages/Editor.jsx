@@ -7,6 +7,7 @@ import SyntaxPicker from '../components/SyntaxPicker';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
+import { getSavedQueries, saveQuery, deleteSavedQuery } from '../lib/savedQueries';
 
 const TABS_KEY = 'sqldojo_tabs';
 const ACTIVE_TAB_KEY = 'sqldojo_active_tab';
@@ -14,7 +15,7 @@ const EDITOR_HISTORY_KEY = 'sqldojo_editor_history';
 const genId = () => `tab_${Date.now()}`;
 
 const DEFAULT_TABS = [
-  { id: 'tab_1', name: '쿼리 1', sql: 'SELECT *\nFROM employees\nLIMIT 10;', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null },
+  { id: 'tab_1', name: '쿼리 1', sql: 'SELECT *\nFROM employees\nLIMIT 10;', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null },
 ];
 
 function loadTabs() {
@@ -33,9 +34,10 @@ function loadTabs() {
         elapsed: null,
         ddlSuccess: false,
         rowsModified: null,
+        multiResults: null,
       }));
     }
-    if (old) return [{ id: 'tab_1', name: '쿼리 1', sql: old, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null }];
+    if (old) return [{ id: 'tab_1', name: '쿼리 1', sql: old, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null }];
     return DEFAULT_TABS;
   } catch { return DEFAULT_TABS; }
 }
@@ -123,7 +125,7 @@ export default function Editor() {
   const addTab = () => {
     const id = genId();
     const n = tabs.length + 1;
-    const newTab = { id, name: `쿼리 ${n}`, sql: '', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null };
+    const newTab = { id, name: `쿼리 ${n}`, sql: '', results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null };
     updateTabs([...tabs, newTab]);
     switchTab(id);
   };
@@ -176,30 +178,56 @@ export default function Editor() {
     const sql = (selection.trim() || query).trim();
     if (!sql) return;
     // Clear current tab result before running
-    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null } : t));
+    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : t));
     const start = performance.now();
     try {
-      const targetSql = explainMode && !sql.toUpperCase().startsWith('EXPLAIN')
-        ? `EXPLAIN QUERY PLAN ${sql}`
-        : sql;
-      const res = runQuery(targetSql);
-      const modified = getRowsModified();
+      const stmts = sql.split(';').map(s => s.trim()).filter(Boolean);
+      const allResults = [];
+      for (const stmt of stmts) {
+        const targetSql = explainMode && !stmt.toUpperCase().startsWith('EXPLAIN')
+          ? `EXPLAIN QUERY PLAN ${stmt}`
+          : stmt;
+        try {
+          const res = runQuery(targetSql);
+          const modified = getRowsModified();
+          const stmtElapsed = Math.round(performance.now() - start);
+          if (res.length === 0) {
+            allResults.push({ sql: stmt, results: null, error: null, elapsed: stmtElapsed, ddlSuccess: true, rowsModified: modified });
+          } else {
+            allResults.push({ sql: stmt, results: res, error: null, elapsed: stmtElapsed, ddlSuccess: false, rowsModified: modified });
+          }
+        } catch (e) {
+          allResults.push({ sql: stmt, results: null, error: translateSqlError(e), elapsed: null, ddlSuccess: false, rowsModified: null });
+          break; // stop on first error
+        }
+      }
       const elapsed = Math.round(performance.now() - start);
-      if (res.length === 0) {
-        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed, ddlSuccess: true, rowsModified: modified } : t));
+      const first = allResults[0] || {};
+      const hasError = allResults.find(r => r.error);
+      if (hasError) {
+        const errEntry = allResults.find(r => r.error);
+        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: errEntry.error, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: allResults } : t));
       } else {
-        setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: res, error: null, elapsed, ddlSuccess: false, rowsModified: modified } : t));
+        setTabs(prev => prev.map(t => t.id === activeTabId ? {
+          ...t,
+          results: first.results,
+          error: null,
+          elapsed,
+          ddlSuccess: first.ddlSuccess,
+          rowsModified: first.rowsModified,
+          multiResults: allResults,
+        } : t));
       }
       refreshSchema();
       addHistory(sql);
     } catch (e) {
-      setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: translateSqlError(e), elapsed: null, ddlSuccess: false, rowsModified: null } : t));
+      setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: translateSqlError(e), elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : t));
     }
   }, [addHistory, query, selection, explainMode, activeTabId]);
 
   const clearEditor = () => {
     updateQuery('');
-    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null } : t));
+    setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : t));
   };
 
   const clearHistory = () => { setHistory([]); localStorage.removeItem(EDITOR_HISTORY_KEY); };
@@ -212,12 +240,29 @@ export default function Editor() {
     return obj;
   }, [schema]);
 
+  // Saved queries state
+  const [savedQueries, setSavedQueries] = useState(() => getSavedQueries());
+
+  const handleSaveQuery = () => {
+    const name = window.prompt('쿼리 이름을 입력하세요:', activeTab?.name || '쿼리');
+    if (!name || !name.trim()) return;
+    const sql = (selection.trim() || query).trim();
+    if (!sql) return;
+    setSavedQueries(saveQuery(name, sql));
+  };
+
+  const handleDeleteSavedQuery = (id, e) => {
+    e.stopPropagation();
+    setSavedQueries(deleteSavedQuery(id));
+  };
+
   // Derived result state from active tab (Feature 2)
   const results = activeTab?.results ?? null;
   const error = activeTab?.error ?? null;
   const elapsed = activeTab?.elapsed ?? null;
   const ddlSuccess = activeTab?.ddlSuccess ?? false;
   const rowsModified = activeTab?.rowsModified ?? null;
+  const multiResults = activeTab?.multiResults ?? null;
 
   return (
     <div className={`page editor-page ${fullscreen ? 'editor-fullscreen' : ''}`}>
@@ -299,6 +344,35 @@ export default function Editor() {
               </div>
             )}
           </section>
+          <section className="editor-panel">
+            <div className="editor-panel-head">
+              <div className="sidebar-label">저장된 쿼리</div>
+            </div>
+            {savedQueries.length === 0 ? (
+              <div className="editor-empty">저장된 쿼리가 없습니다.</div>
+            ) : (
+              <div className="editor-history-list">
+                {savedQueries.map(item => (
+                  <button
+                    key={item.id}
+                    className="editor-history-item"
+                    onClick={() => updateQuery(item.sql)}
+                    type="button"
+                  >
+                    <span>{item.name}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <small>{new Date(item.createdAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}</small>
+                      <span
+                        style={{ cursor: 'pointer', color: 'var(--err, #dc2626)', fontSize: '12px', lineHeight: 1 }}
+                        onClick={e => handleDeleteSavedQuery(item.id, e)}
+                        title="삭제"
+                      >×</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
         </aside>
 
         {/* Feature 4: toggle button when sidebar is closed */}
@@ -336,6 +410,11 @@ export default function Editor() {
                   ) : (
                     <span className="tab-name" onDoubleClick={e => startRename(tab.id, tab.name, e)}>
                       {tab.name}
+                      {tab.error
+                        ? <span className="tab-status-err">✗</span>
+                        : (tab.results || tab.ddlSuccess)
+                          ? <span className="tab-status-ok">✓</span>
+                          : null}
                     </span>
                   )}
                   {tabs.length > 1 && (
@@ -380,6 +459,7 @@ export default function Editor() {
                 포맷
               </button>
               <button className="btn btn-ghost-sm" onClick={clearEditor}>초기화</button>
+              <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title="쿼리 저장">저장</button>
               <button
                 className={`btn btn-ghost-sm ${explainMode ? 'btn-active' : ''}`}
                 onClick={() => setExplainMode(m => !m)}
@@ -421,13 +501,32 @@ export default function Editor() {
           </div>
 
           <div className="result-card">
-            {ddlSuccess && !error && (
-              <div className="ddl-success-msg">
-                <Icon name="success" style={{ width: 16, height: 16 }} />
-                명령이 실행되었습니다.{rowsModified != null && rowsModified > 0 && ` (${rowsModified}행 변경)`}
-              </div>
+            {multiResults && multiResults.length > 1 ? (
+              multiResults.map((entry, idx) => (
+                <div key={idx} className="result-multi-card">
+                  <div className="result-multi-header">
+                    [{idx + 1}] {entry.sql.length > 80 ? entry.sql.slice(0, 80) + '…' : entry.sql}
+                  </div>
+                  {entry.ddlSuccess && !entry.error && (
+                    <div className="ddl-success-msg">
+                      <Icon name="success" style={{ width: 16, height: 16 }} />
+                      명령이 실행되었습니다.{entry.rowsModified != null && entry.rowsModified > 0 && ` (${entry.rowsModified}행 변경)`}
+                    </div>
+                  )}
+                  <ResultTable results={entry.results} error={entry.error} elapsed={entry.elapsed} rowsModified={entry.rowsModified} />
+                </div>
+              ))
+            ) : (
+              <>
+                {ddlSuccess && !error && (
+                  <div className="ddl-success-msg">
+                    <Icon name="success" style={{ width: 16, height: 16 }} />
+                    명령이 실행되었습니다.{rowsModified != null && rowsModified > 0 && ` (${rowsModified}행 변경)`}
+                  </div>
+                )}
+                <ResultTable results={results} error={error} elapsed={elapsed} rowsModified={rowsModified} />
+              </>
             )}
-            <ResultTable results={results} error={error} elapsed={elapsed} rowsModified={rowsModified} />
           </div>
         </main>
       </div>

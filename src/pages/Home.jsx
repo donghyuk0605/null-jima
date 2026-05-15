@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { getAllProgress } from '../lib/progress';
 import { PROBLEMS, LEVEL_ORDER } from '../data/problems';
 import { LEARN_TOPICS } from '../data/learn';
+import { getStreak, getTodayGoal, setTodayGoal } from '../lib/streak';
 
 export default function Home() {
+  const [streakData] = useState(() => getStreak());
+  const [goal, setGoal] = useState(() => getTodayGoal());
+
   const prog = getAllProgress();
   const solved = Object.values(prog).filter((p) => p.solved).length;
   const total = PROBLEMS.length;
@@ -27,6 +32,36 @@ export default function Home() {
           <Link to="/playground" className="btn btn-primary">자유 연습 시작</Link>
           <Link to="/problems" className="btn btn-secondary">문제 풀기</Link>
           <Link to="/learn" className="btn btn-ghost">학습 도우미</Link>
+        </div>
+      </div>
+
+      <div className="streak-widget">
+        <div className="streak-main">
+          <div className="streak-fire">🔥</div>
+          <div className="streak-info">
+            <div className="streak-num">{streakData.streak}일</div>
+            <div className="streak-label">연속 학습</div>
+          </div>
+          <div className="streak-divider" />
+          <div className="streak-info">
+            <div className="streak-num">{streakData.longest}일</div>
+            <div className="streak-label">최장 기록</div>
+          </div>
+          <div className="streak-divider" />
+          <div className="streak-info">
+            <div className="streak-num">{streakData.totalDays}일</div>
+            <div className="streak-label">총 학습일</div>
+          </div>
+        </div>
+        <div className="streak-today">
+          <span className="streak-today-label">오늘 목표</span>
+          <div className="streak-goal-bar">
+            <div className="streak-goal-fill" style={{ width: `${Math.min(100, (streakData.todayCount / goal) * 100)}%` }} />
+          </div>
+          <span className="streak-today-count">{streakData.todayCount} / {goal}</span>
+          <select className="streak-goal-select" value={goal} onChange={e => { const v = Number(e.target.value); setGoal(v); setTodayGoal(v); }}>
+            {[3,5,10,15,20].map(n => <option key={n} value={n}>{n}개</option>)}
+          </select>
         </div>
       </div>
 

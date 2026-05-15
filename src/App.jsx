@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { initDB } from './lib/database';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { syncProgressFromFirestore } from './lib/progress';
 import { syncSettingsFromFirestore } from './lib/userSettings';
 import { seedPostsIfEmpty } from './lib/community';
@@ -18,6 +19,7 @@ import Tables from './pages/Tables';
 import Progress from './pages/Progress';
 import Cert from './pages/Cert';
 import CertDetail from './pages/CertDetail';
+import CertExam from './pages/CertExam';
 import Community from './pages/Community';
 import Settings from './pages/Settings';
 import './App.css';
@@ -26,6 +28,7 @@ const THEME_KEY = 'sqldojo_theme';
 
 function AppInner() {
   const { user, isGuest } = useAuth();
+  const { setLanguage, t } = useLanguage();
   const [ready, setReady] = useState(false);
   const [initError, setInitError] = useState(null);
   const [theme, setTheme] = useState(
@@ -50,8 +53,10 @@ function AppInner() {
   useEffect(() => {
     if (!user) return;
     syncProgressFromFirestore(user.uid).catch(() => {});
-    syncSettingsFromFirestore(user.uid).catch(() => {});
-  }, [user]);
+    syncSettingsFromFirestore(user.uid)
+      .then((settings) => setLanguage(settings.language))
+      .catch(() => {});
+  }, [setLanguage, user]);
 
   // Auth state still loading
   if (user === undefined) {
@@ -71,7 +76,7 @@ function AppInner() {
     return (
       <div className="loading">
         <span style={{ color: 'var(--err)', fontFamily: 'monospace', padding: 24 }}>
-          초기화 실패: {initError}
+          {t('loading.initFailed', { message: initError })}
         </span>
       </div>
     );
@@ -81,7 +86,7 @@ function AppInner() {
     return (
       <div className="loading">
         <div className="spinner" />
-        <span>SQL 엔진 로딩 중...</span>
+        <span>{t('loading.sqlEngine')}</span>
       </div>
     );
   }
@@ -103,6 +108,7 @@ function AppInner() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/cert" element={<Cert />} />
           <Route path="/cert/:certId" element={<CertDetail />} />
+          <Route path="/cert/:certId/exam" element={<CertExam />} />
         </Routes>
       </Layout>
     </BrowserRouter>
@@ -112,7 +118,9 @@ function AppInner() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppInner />
+      <LanguageProvider>
+        <AppInner />
+      </LanguageProvider>
     </AuthProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
 import { runQuery, translateSqlError } from '../lib/database';
@@ -41,6 +41,7 @@ const CORE_SQL_EXAMPLES = [
 
 export default function CertDetail() {
   const { certId } = useParams();
+  const navigate = useNavigate();
   const cert = CERT_LIST.find((c) => c.id === certId);
   const [activeTab, setActiveTab] = useState('overview');
   const [sqlResults, setSqlResults] = useState({});
@@ -144,6 +145,13 @@ export default function CertDetail() {
           <span className="cert-detail-fullname">{cert.fullName}</span>
         </div>
         <p className="cert-detail-desc">{cert.desc}</p>
+        <button
+          className="btn btn-run exam-start-btn"
+          onClick={() => navigate(`/cert/${cert.id}/exam`)}
+          style={{ marginTop: 12 }}
+        >
+          🎯 모의고사 시작 ({quiz.length}문제 · {cert.examTime}분)
+        </button>
       </div>
 
       {/* 탭 */}
