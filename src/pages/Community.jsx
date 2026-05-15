@@ -101,6 +101,8 @@ export default function Community() {
   const [draft, setDraft] = useState({ title: '', category: '질문', author: '', body: '' });
   const [commentDraft, setCommentDraft] = useState({ author: '', body: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     // seed 먼저 실행 (이미 데이터 있으면 no-op)
@@ -132,6 +134,10 @@ export default function Community() {
       return matchesCategory && (!keyword || haystack.includes(keyword));
     });
   }, [category, posts, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pagedPosts = filteredPosts.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
   const selectedPost = posts.find((p) => p.id === selectedId) ?? filteredPosts[0] ?? null;
 
@@ -208,7 +214,7 @@ export default function Community() {
                 <button
                   key={item}
                   className={`community-tab ${category === item ? 'active' : ''}`}
-                  onClick={() => setCategory(item)}
+                  onClick={() => { setCategory(item); setPage(0); }}
                 >
                   {item}
                 </button>
@@ -219,10 +225,10 @@ export default function Community() {
                 className="community-search-input"
                 placeholder="게시글 검색..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={e => { setSearchQuery(e.target.value); setPage(0); }}
               />
               {searchQuery && (
-                <button className="search-clear-btn" onClick={() => setSearchQuery('')}>×</button>
+                <button className="search-clear-btn" onClick={() => { setSearchQuery(''); setPage(0); }}>×</button>
               )}
             </div>
           </div>
@@ -237,7 +243,7 @@ export default function Community() {
             ) : filteredPosts.length === 0 ? (
               <div className="community-empty">조건에 맞는 게시글이 없습니다.</div>
             ) : (
-              filteredPosts.map((post) => (
+              pagedPosts.map((post) => (
                 <button
                   key={post.id}
                   className={`community-row ${selectedPost?.id === post.id ? 'selected' : ''}`}
@@ -255,6 +261,24 @@ export default function Community() {
               ))
             )}
           </div>
+
+          {totalPages > 1 && (
+            <div className="community-pagination">
+              <button className="page-btn" onClick={() => setPage(0)} disabled={currentPage === 0}>«</button>
+              <button className="page-btn" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}>‹</button>
+              {Array.from({ length: totalPages }, (_, i) => i).map(i => (
+                <button
+                  key={i}
+                  className={`page-btn ${i === currentPage ? 'page-btn-active' : ''}`}
+                  onClick={() => setPage(i)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button className="page-btn" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1}>›</button>
+              <button className="page-btn" onClick={() => setPage(totalPages - 1)} disabled={currentPage >= totalPages - 1}>»</button>
+            </div>
+          )}
 
           {selectedPost && (
             <article className="community-detail">
