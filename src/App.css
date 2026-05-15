@@ -41,6 +41,9 @@
   padding: 14px 14px 12px;
   border-bottom: 1px solid var(--border2);
 }
+.nav-top-actions {
+  display: flex; align-items: center; gap: 6px;
+}
 .nav-logo {
   display: flex; align-items: flex-start; gap: 7px;
   font-size: 15px; font-weight: 800;
@@ -58,6 +61,34 @@
   transition: background .12s, color .12s;
 }
 .theme-toggle:hover { background: var(--bg3); color: var(--text); }
+
+.language-switcher {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.language-switcher.compact { padding: 2px; }
+.language-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 28px; padding: 3px 7px;
+  background: transparent; border: 1px solid transparent;
+  border-radius: 6px; color: var(--text3);
+  font-size: 10px; font-weight: 900; letter-spacing: .3px;
+}
+.language-btn:hover { background: var(--bg3); color: var(--text); }
+.language-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.flag-icon {
+  display: block; width: 22px; height: 15px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, .16);
+}
+.mobile-topbar { display: none; }
 
 /* Progress */
 .nav-progress-bar {
@@ -1392,6 +1423,29 @@
     height: auto;
     overflow: visible;
     padding-bottom: calc(98px + env(safe-area-inset-bottom));
+    padding-top: 58px;
+  }
+
+  .mobile-topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 101;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: 58px; padding: 8px 12px;
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .10);
+  }
+
+  .mobile-topbar-brand,
+  .mobile-topbar-actions {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .mobile-topbar-brand {
+    min-width: 0; color: var(--accent);
+    font-size: 14px; font-weight: 900;
+  }
+
+  .mobile-topbar-icon {
+    width: 18px; height: 18px;
   }
 
   .page-content {
@@ -1452,6 +1506,10 @@
   .nav-progress-label,
   .nav-group-label,
   .nav-auth {
+    display: none;
+  }
+
+  .language-switcher.compact .language-btn span {
     display: none;
   }
 
@@ -1875,6 +1933,15 @@
   .home-actions .btn {
     flex-basis: 100%;
   }
+
+  .login-card-top {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .login-card-top .language-switcher {
+    align-self: flex-start;
+  }
 }
 
 /* ── Login Page ─────────────────────────────────────── */
@@ -1926,6 +1993,10 @@
   .login-right { width: 100%; padding: 32px 24px; }
 }
 .login-card { width: 100%; display: flex; flex-direction: column; gap: 16px; }
+
+.login-card-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
 
 .login-logo {
   display: flex; align-items: center; gap: 10px;

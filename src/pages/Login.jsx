@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import Icon from '../components/Icon';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const PREVIEW_LINES = [
   { indent: 0, keyword: 'SELECT', rest: ' e.name, d.name AS 부서,' },
@@ -15,6 +17,7 @@ const PREVIEW_LINES = [
 
 export default function Login() {
   const { login, enterGuestMode } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,7 +28,7 @@ export default function Login() {
       await login();
     } catch (e) {
       if (e.code !== 'auth/popup-closed-by-user') {
-        setError('로그인에 실패했습니다. 다시 시도해주세요.');
+        setError(t('login.failed'));
       }
       setLoading(false);
     }
@@ -53,35 +56,38 @@ export default function Login() {
             ))}
           </div>
         </div>
-        <p className="login-left-caption">브라우저 안에서 바로 실행되는 SQL 연습장</p>
+        <p className="login-left-caption">{t('login.previewCaption')}</p>
       </div>
 
       <div className="login-right">
         <div className="login-card">
-          <div className="login-logo">
-            <Icon name="null" className="login-logo-icon" />
-            <div>
-              <span className="login-logo-title">NULL지마</span>
-              <span className="login-logo-sub">SQL 연습장</span>
+          <div className="login-card-top">
+            <div className="login-logo">
+              <Icon name="null" className="login-logo-icon" />
+              <div>
+                <span className="login-logo-title">NULL지마</span>
+                <span className="login-logo-sub">{t('app.subtitle')}</span>
+              </div>
             </div>
+            <LanguageSwitcher />
           </div>
 
           <div className="login-features">
             <div className="login-feature">
               <span className="login-feature-icon"><Icon name="chart" style={{width:20,height:20}} /></span>
-              <span>18개 실무 SQL 문제</span>
+              <span>{t('login.featureProblems')}</span>
             </div>
             <div className="login-feature">
-              <span className="login-feature-icon">📚</span>
-              <span>단계별 학습 도우미</span>
+              <span className="login-feature-icon"><Icon name="book" style={{width:20,height:20}} /></span>
+              <span>{t('login.featureLearn')}</span>
             </div>
             <div className="login-feature">
               <span className="login-feature-icon"><Icon name="trophy" style={{width:20,height:20}} /></span>
-              <span>SQLD / SQLP 자격증 대비</span>
+              <span>{t('login.featureCert')}</span>
             </div>
           </div>
 
-          <div className="login-divider">로그인</div>
+          <div className="login-divider">{t('login.title')}</div>
 
           <button
             className="login-google-btn"
@@ -89,27 +95,27 @@ export default function Login() {
             disabled={loading}
           >
             <GoogleIcon />
-            {loading ? '로그인 중...' : 'Google로 시작하기'}
+            {loading ? t('login.loading') : t('login.googleStart')}
           </button>
 
           {error && <p className="login-error">{error}</p>}
 
           <p className="login-google-note">
-            진행률, 즐겨찾기가 클라우드에 자동 저장됩니다
+            {t('login.note')}
           </p>
 
           <div className="login-or">
             <span />
-            <span>또는</span>
+            <span>{t('login.or')}</span>
             <span />
           </div>
 
           <button className="login-guest-btn" onClick={enterGuestMode}>
-            게스트로 시작하기
+            {t('login.guestStart')}
           </button>
           <p className="login-guest-note">
-            로그인 없이 바로 연습할 수 있어요<br />
-            진행률은 이 기기에만 저장됩니다
+            {t('login.guestLine1')}<br />
+            {t('login.guestLine2')}
           </p>
         </div>
       </div>

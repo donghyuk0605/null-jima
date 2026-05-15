@@ -4,6 +4,7 @@ import { PROBLEMS } from '../data/problems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Icon from './Icon';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const NAV = [
   {
@@ -47,6 +48,22 @@ export default function Layout({ children, theme, onToggleTheme }) {
 
   return (
     <div className="layout">
+      <div className="mobile-topbar">
+        <div className="mobile-topbar-brand">
+          <Icon name="null" className="mobile-topbar-icon" />
+          <span>NULL지마</span>
+        </div>
+        <div className="mobile-topbar-actions">
+          <LanguageSwitcher className="compact" />
+          <button
+            className="theme-toggle"
+            onClick={onToggleTheme}
+            title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
+          >
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} style={{ width: 15, height: 15 }} />
+          </button>
+        </div>
+      </div>
       <nav className="nav">
         <div className="nav-top">
           <div className="nav-logo">
@@ -56,13 +73,16 @@ export default function Layout({ children, theme, onToggleTheme }) {
               <span className="nav-logo-sub">{t('app.subtitle')}</span>
             </div>
           </div>
-          <button
-            className="theme-toggle"
-            onClick={onToggleTheme}
-            title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
-          >
-            <Icon name={theme === 'dark' ? 'sun' : 'moon'} style={{ width: 15, height: 15 }} />
-          </button>
+          <div className="nav-top-actions">
+            <LanguageSwitcher className="compact" />
+            <button
+              className="theme-toggle"
+              onClick={onToggleTheme}
+              title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
+            >
+              <Icon name={theme === 'dark' ? 'sun' : 'moon'} style={{ width: 15, height: 15 }} />
+            </button>
+          </div>
         </div>
 
         <div className="nav-progress-bar" title={t('nav.progress.title', { solved, total })}>
