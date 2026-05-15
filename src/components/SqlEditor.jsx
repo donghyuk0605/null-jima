@@ -3,7 +3,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { autocompletion } from '@codemirror/autocomplete';
-import { keymap } from '@codemirror/view';
+import { keymap, EditorView } from '@codemirror/view';
 import { useAppTheme } from '../lib/useAppTheme';
 
 const SCHEMA = {
@@ -23,6 +23,8 @@ export default function SqlEditor({
   placeholder,
   schemaOverride,
   mode = 'comfort',
+  onSelectionChange,
+  fontSize,
 }) {
   const theme = useAppTheme();
   const isTerminal = mode === 'terminal';
@@ -36,8 +38,20 @@ export default function SqlEditor({
         { key: 'Mod-Enter', run: () => { onRun(); return true; } },
       ]));
     }
+    if (onSelectionChange) {
+      exts.push(EditorView.updateListener.of(update => {
+        if (update.selectionSet || update.docChanged) {
+          const sel = update.state.selection.main;
+          const text = sel.empty ? '' : update.state.sliceDoc(sel.from, sel.to);
+          onSelectionChange(text);
+        }
+      }));
+    }
+    if (fontSize) {
+      exts.push(EditorView.theme({ '.cm-content': { fontSize: `${fontSize}px` } }));
+    }
     return exts;
-  }, [autocomplete, schemaOverride, onRun]);
+  }, [autocomplete, schemaOverride, onRun, onSelectionChange, fontSize]);
 
   return (
     <CodeMirror

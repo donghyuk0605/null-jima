@@ -318,6 +318,13 @@ export default function Editor() {
               </button>
               <span className="editor-shortcut-hint">Ctrl+Enter로 실행</span>
             </div>
+            <div className="editor-statusbar">
+              <span>{activeTab?.name || '쿼리'}</span>
+              <span>{editorMode === 'terminal' ? '터미널' : editorMode === 'beginner' ? '도우미' : '편의성'}</span>
+              <span>{schema.length} tables</span>
+              <span>{results?.[0]?.values?.length ?? 0} rows</span>
+              {elapsed != null && <span>{elapsed}ms</span>}
+            </div>
           </div>
 
           <div className="result-card">

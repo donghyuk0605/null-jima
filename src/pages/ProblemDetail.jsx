@@ -45,6 +45,7 @@ function ProblemDetailContent({ problem }) {
   const [hintsOpen, setHintsOpen] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [editorMode, setEditorMode] = useState(() => getStoredEditorMode());
+  const [mobilePanel, setMobilePanel] = useState('write');
   const [autocomplete, setAutocomplete] = useState(() => {
     const stored = localStorage.getItem(AC_KEY);
     return stored === null ? true : stored === 'true';
@@ -128,6 +129,9 @@ function ProblemDetailContent({ problem }) {
   const nextP = PROBLEMS[PROBLEMS.indexOf(problem) + 1];
   const hintSteps = buildHintSteps(problem);
   const effectiveAutocomplete = editorMode !== 'terminal' && autocomplete;
+  const attemptCount = progress?.attempts || 0;
+  const openedHintCount = Math.min(hintsOpen, hintSteps.length);
+  const resultRowCount = results?.[0]?.values?.length ?? 0;
 
   return (
     <div className="page problem-detail-page">
@@ -140,9 +144,30 @@ function ProblemDetailContent({ problem }) {
         </div>
       </div>
 
+      <div className="problem-mobile-tabs">
+        {[
+          ['info', '문제'],
+          ['write', '작성'],
+          ['result', '결과'],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            className={`problem-mobile-tab ${mobilePanel === key ? 'active' : ''}`}
+            onClick={() => setMobilePanel(key)}
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="problem-layout">
         {/* 왼쪽: 문제 정보 */}
-        <div className="problem-info">
+        <div className={`problem-info problem-panel ${mobilePanel === 'info' ? 'mobile-active' : ''}`}>
+          <div className="problem-panel-head">
+            <span>문제</span>
+            <strong>{problem.id}</strong>
+          </div>
           <div className="problem-meta">
             <span className={`badge level-${problem.level}`}>{problem.level}</span>
             {problem.tags.map((t) => (
@@ -217,7 +242,11 @@ function ProblemDetailContent({ problem }) {
         </div>
 
         {/* 오른쪽: 에디터 */}
-        <div className="problem-editor-area">
+        <div className={`problem-editor-area problem-panel ${mobilePanel === 'write' ? 'mobile-active' : ''}`}>
+          <div className="problem-panel-head">
+            <span>SQL 작성</span>
+            <strong>{editorMode === 'terminal' ? '고급' : editorMode === 'beginner' ? '초급' : '중급'}</strong>
+          </div>
           <div className={`editor-workbench ${editorMode === 'beginner' ? 'with-helper' : ''}`}>
             {editorMode === 'beginner' && (
               <SyntaxPicker onPick={pickSyntax} compact />
@@ -238,6 +267,7 @@ function ProblemDetailContent({ problem }) {
               <SqlEditor
                 value={userSql}
                 onChange={updateSql}
+                onRun={execute}
                 height={editorMode === 'terminal' ? '260px' : '200px'}
                 autocomplete={effectiveAutocomplete}
                 mode={editorMode}
@@ -267,8 +297,29 @@ function ProblemDetailContent({ problem }) {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* 채점 결과 */}
+        <aside className={`problem-feedback-panel problem-panel ${mobilePanel === 'result' ? 'mobile-active' : ''}`}>
+          <div className="problem-panel-head">
+            <span>결과와 피드백</span>
+            <strong>{gradeResult ? (gradeResult.correct ? '정답' : '확인 필요') : '대기'}</strong>
+          </div>
+
+          <div className="problem-quick-stats">
+            <div>
+              <span>시도</span>
+              <strong>{attemptCount}</strong>
+            </div>
+            <div>
+              <span>힌트</span>
+              <strong>{openedHintCount}</strong>
+            </div>
+            <div>
+              <span>결과</span>
+              <strong>{resultRowCount}행</strong>
+            </div>
+          </div>
+
           {gradeResult && (
             <div className={`grade-result ${gradeResult.correct ? 'correct' : 'wrong'}`}>
               {gradeResult.correct ? (
@@ -292,11 +343,10 @@ function ProblemDetailContent({ problem }) {
             </div>
           )}
 
-          {/* 실행 결과 */}
           <div className="result-card">
             <ResultTable results={results} error={error} elapsed={elapsed} />
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );
