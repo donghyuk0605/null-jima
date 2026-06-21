@@ -9,6 +9,7 @@ import SyntaxPicker from '../components/SyntaxPicker';
 import CsvImport from '../components/CsvImport';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
 import { useLanguage } from '../contexts/LanguageContext';
+import { localizeExampleGroups, sanitizeJapaneseText } from '../lib/localizedContent';
 
 const AC_KEY = 'sqldojo_ac';
 
@@ -337,7 +338,7 @@ const EXAMPLE_GROUPS = [
 ];
 
 export default function Playground() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [query, setQuery] = useState('SELECT * FROM employees;');
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
@@ -414,10 +415,11 @@ export default function Playground() {
   };
 
   const pickSyntax = (sql) => {
-    setQuery(sql);
+    setQuery(language === 'ja' ? sanitizeJapaneseText(sql) : sql);
   };
 
   const effectiveAutocomplete = editorMode !== 'terminal' && autocomplete;
+  const exampleGroups = useMemo(() => localizeExampleGroups(EXAMPLE_GROUPS, language), [language]);
 
   return (
     <div className="page playground-page">
@@ -441,7 +443,7 @@ export default function Playground() {
           ) : (
             <div className="sidebar-section">
               <div className="sidebar-label">{t('playground.query')}</div>
-              {EXAMPLE_GROUPS.map((grp) => (
+              {exampleGroups.map((grp) => (
                 <div key={grp.group} className="ex-group">
                   <button
                     className="ex-group-header"

@@ -87,3 +87,8 @@ docs/images/    README 이미지
 ## 레포지터리
 
 [donghyuk0605/null-jima](https://github.com/donghyuk0605/null-jima)
+
+## 소셜 링크
+
+- **Instagram**: [donghyuk65](https://www.instagram.com/donghyuk65)
+- **Velog**: [@donghyuk65](https://velog.io/@donghyuk65)

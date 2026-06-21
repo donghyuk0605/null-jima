@@ -1,5 +1,6 @@
 export const translations = {
   ko: {
+    'app.name': 'NULL지마',
     'app.subtitle': 'SQL 연습장',
     'loading.initFailed': '초기화 실패: {message}',
     'loading.sqlEngine': 'SQL 엔진 로딩 중...',
@@ -691,6 +692,7 @@ export const translations = {
   },
 
   ja: {
+    'app.name': 'nullジマ',
     'app.subtitle': 'SQL練習帳',
     'loading.initFailed': '初期化に失敗しました: {message}',
     'loading.sqlEngine': 'SQLエンジンを読み込み中...',
@@ -716,7 +718,7 @@ export const translations = {
     'nav.logout': 'ログアウト',
     'nav.guest': 'ゲストモード',
     'nav.login': 'ログイン',
-    'login.title': 'NULL禁止',
+    'login.title': 'nullジマ',
     'login.subtitle': 'SQLを書きながら学ぶ練習帳',
     'login.google': 'Googleでログイン',
     'login.googleStart': 'Googleで始める',

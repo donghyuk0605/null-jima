@@ -305,7 +305,7 @@ function ProblemDetailContent({ problem }) {
             {showAnswer ? (
               <div className="answer-box">
                 <div className="answer-label">{t('problem.answer.label')}</div>
-                <pre className="answer-sql">{problem.answer};</pre>
+                <pre className="answer-sql">{problem.displayAnswer || problem.answer};</pre>
               </div>
             ) : (
               <button className="btn btn-ghost-sm" onClick={() => setShowAnswer(true)}>

@@ -6,6 +6,51 @@ const TAG_KEY = {
   '상관서브쿼리': 'tag.correlatedSubquery',
 };
 
+const TEXT_REPLACEMENTS = [
+  ['NULL지마', 'nullジマ'],
+  ['쿼리', 'クエリ'],
+  ['직원수', 'employee_count'], ['평균급여', 'avg_salary'], ['최고급여', 'max_salary'], ['최저급여', 'min_salary'],
+  ['총급여', 'total_salary'], ['부서총급여', 'dept_total_salary'], ['총금액', 'total_amount'], ['주문금액', 'order_amount'],
+  ['누적금액', 'running_amount'], ['총주문금액', 'total_order_amount'], ['직원이름', 'employee_name'],
+  ['직원명', 'employee_name'], ['부서명', 'department_name'], ['상품명', 'product_name'], ['직원', 'employee'],
+  ['부서', 'department'], ['상품', 'product'], ['이름', 'name'], ['급여', 'salary'], ['연봉', 'annual_salary'],
+  ['급여등급', 'salary_grade'], ['부서내순위', 'dept_rank'], ['누적급여합', 'running_salary'],
+  ['이전급여', 'prev_salary'], ['다음급여', 'next_salary'], ['이동평균', 'moving_avg'], ['비율', 'ratio'],
+  ['입사연도', 'hire_year'], ['입사월', 'hire_month'], ['입사일', 'hire_date'], ['이름길이', 'name_length'],
+  ['전체직원수', 'employee_count'], ['전체평균', 'overall_avg'], ['고급여', 'high_salary'], ['일반급여', 'normal_salary'],
+  ['미배정', 'unassigned'], ['개발팀', 'Development'], ['마케팅팀', 'Marketing'], ['영업팀', 'Sales'], ['인사팀', 'HR'],
+  ['전자제품', 'Electronics'], ['가구', 'Furniture'], ['사무용품', 'OfficeSupplies'],
+  ['노트북', 'Laptop'], ['마우스', 'Mouse'], ['키보드', 'Keyboard'], ['모니터', 'Monitor'], ['책상', 'Desk'],
+  ['의자', 'Chair'], ['화이트보드', 'Whiteboard'], ['볼펜세트', 'PenSet'],
+  ['대기', 'pending'], ['처리', 'processing'], ['완료', 'done'], ['취소', 'cancelled'],
+  ['홍길동', 'Taro'], ['김철수', 'Jiro'], ['이영희', 'Hanako'], ['박민수', 'Minato'],
+  ['부모', 'parent'], ['자녀', 'child'], ['테스트', 'test'], ['삭제예정', 'to_delete'],
+  ['구조', 'schema'], ['데이터', 'data'], ['복사', 'copy'], ['없음', 'none'], ['확인', 'check'],
+  ['오류', 'error'], ['발견', 'found'], ['취소됨', 'rolled_back'], ['유지', 'kept'], ['중복', 'duplicate'],
+  ['무시', 'ignore'], ['삭제', 'delete'], ['재삽입', 'reinsert'], ['업데이트됨', 'updated'],
+  ['정수', 'integer'], ['부동소수점', 'real'], ['문자열', 'text'], ['바이너리', 'binary'], ['불리언', 'boolean'],
+  ['날짜', 'date'], ['테이블', 'table'], ['컬럼', 'column'], ['정보', 'info'], ['목록', 'list'],
+  ['외래키', 'foreign_key'], ['활성화', 'enabled'], ['상태', 'status'], ['오브젝트', 'object'],
+  ['뷰', 'view'], ['인덱스', 'index'], ['생성', 'create'], ['추가', 'add'], ['변경', 'change'],
+  ['조회', 'query'], ['성능', 'performance'], ['향상', 'improve'], ['조건', 'condition'], ['방지', 'prevent'],
+  ['복합', 'composite'], ['단일', 'single'], ['기준', 'base'], ['같은', 'same'], ['유저', 'user'], ['타입', 'type'],
+];
+
+export const sanitizeJapaneseText = (value) => {
+  if (value == null) return value;
+  if (Array.isArray(value)) return value.map(sanitizeJapaneseText);
+  if (typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeJapaneseText(item)]));
+  }
+  if (typeof value !== 'string') return value;
+  return TEXT_REPLACEMENTS.reduce(
+    (text, [from, to]) => text.replaceAll(from, to),
+    value
+  ).replace(/[가-힣]+/g, 'jp');
+};
+
+const jaSafe = (value, language) => (language === 'ja' ? sanitizeJapaneseText(value) : value);
+
 const JA_PROBLEMS = {
   1: ['全社員を表示', 'employeesテーブルからすべての社員情報を取得してください。', ['SELECT * を使うと全カラムを取得できます。', 'FROM句に取得するテーブル名を書きます。', 'SELECT * FROM employees;']],
   2: ['社員名と給与を表示', 'employeesテーブルから社員の名前(name)と給与(salary)だけを取得してください。', ['SELECT句に必要なカラム名を並べます。', 'SELECT name, salary の形で書いてみましょう。', 'SELECT name, salary FROM employees;']],
@@ -61,9 +106,10 @@ const localizeProblem = (problem, language) => {
   if (!entry) return problem;
   return {
     ...problem,
-    title: entry[0],
-    description: entry[1],
-    hints: entry[2] || problem.hints,
+    title: sanitizeJapaneseText(entry[0]),
+    description: sanitizeJapaneseText(entry[1]),
+    hints: sanitizeJapaneseText(entry[2] || problem.hints),
+    displayAnswer: sanitizeJapaneseText(problem.answer),
   };
 };
 
@@ -78,6 +124,9 @@ export const localizeLearnTopic = (topic, language) => {
     title: entry[0],
     subtitle: entry[1],
     description: entry[2],
+    syntax: sanitizeJapaneseText(topic.syntax),
+    examples: sanitizeJapaneseText(topic.examples),
+    tips: sanitizeJapaneseText(topic.tips),
   };
 };
 
@@ -86,3 +135,49 @@ export const localizeLearnTopics = (topics, language) => topics.map((topic) => l
 export const translateLevel = (level, t) => t(LEVEL_KEY[level] || level);
 
 export const translateTag = (tag, t) => t(TAG_KEY[tag] || tag);
+
+export const localizeCert = (cert, language) => {
+  if (!cert) return cert;
+  if (language !== 'ja') return cert;
+  return {
+    ...sanitizeJapaneseText(cert),
+    level: cert.level,
+    name: cert.name,
+    fullName: cert.fullName,
+    color: cert.color,
+    examTime: cert.examTime,
+    totalQ: cert.totalQ,
+    totalScore: cert.totalScore,
+  };
+};
+
+export const localizeCerts = (certs, language) => certs.map((cert) => localizeCert(cert, language));
+
+export const localizeQuiz = (quiz, language) => {
+  if (language !== 'ja') return quiz;
+  return quiz.map((q) => ({
+    ...sanitizeJapaneseText(q),
+    id: q.id,
+    answer: q.answer,
+    sql: q.sql ? sanitizeJapaneseText(q.sql) : q.sql,
+  }));
+};
+
+export const localizePosts = (posts, language) => posts.map((post) => {
+  if (language !== 'ja') return post;
+  const localized = sanitizeJapaneseText(post);
+  return {
+    ...localized,
+    id: post.id,
+    category: post.category,
+    likes: post.likes,
+    createdAt: post.createdAt,
+    comments: post.comments?.map((comment) => ({
+      ...sanitizeJapaneseText(comment),
+      id: comment.id,
+      createdAt: comment.createdAt,
+    })) ?? [],
+  };
+});
+
+export const localizeExampleGroups = (groups, language) => groups.map((group) => jaSafe(group, language));

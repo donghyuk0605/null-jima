@@ -36,7 +36,7 @@ export default function Home() {
       <div className="home-hero">
         <div className="home-hero-copy">
           <span className="home-kicker">SQL PRACTICE WORKBENCH</span>
-          <h1 className="home-title">NULL지마</h1>
+          <h1 className="home-title">{t('app.name')}</h1>
           <p className="home-subtitle">{t('home.hero.subtitle')}</p>
           <div className="home-actions">
             <Link to="/editor" className="btn btn-primary">{t('home.cta.editor')}</Link>

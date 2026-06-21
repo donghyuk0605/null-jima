@@ -40,6 +40,10 @@ function AppInner() {
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
+  useEffect(() => {
+    document.title = `${t('app.name')} — ${t('app.subtitle')}`;
+  }, [t]);
+
   const toggleTheme = () =>
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 

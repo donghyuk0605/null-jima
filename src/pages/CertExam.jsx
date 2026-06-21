@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
+import { localizeCert, localizeQuiz } from '../lib/localizedContent';
 
 const EXAM_RESULTS_KEY = 'sqldojo_exam_results';
 
@@ -27,11 +28,11 @@ function formatTime(secs) {
 export default function CertExam() {
   const { certId } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const cert = CERT_LIST.find(c => c.id === certId);
+  const { language, t } = useLanguage();
+  const cert = localizeCert(CERT_LIST.find(c => c.id === certId), language);
   const quiz = useMemo(
-    () => (certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : []),
-    [certId]
+    () => localizeQuiz(certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [], language),
+    [certId, language]
   );
   const totalTime = cert ? cert.examTime * 60 : 90 * 60;
 

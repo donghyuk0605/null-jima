@@ -6,6 +6,7 @@ import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
 import { useLanguage } from '../contexts/LanguageContext';
+import { localizeCert, localizeQuiz, sanitizeJapaneseText, translateLevel } from '../lib/localizedContent';
 
 const CORE_SQL_EXAMPLES = [
   {
@@ -43,8 +44,8 @@ const CORE_SQL_EXAMPLES = [
 export default function CertDetail() {
   const { certId } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const cert = CERT_LIST.find((c) => c.id === certId);
+  const { language, t } = useLanguage();
+  const cert = localizeCert(CERT_LIST.find((c) => c.id === certId), language);
   const [activeTab, setActiveTab] = useState('overview');
   const [sqlResults, setSqlResults] = useState({});
   const [sqlErrors, setSqlErrors] = useState({});
@@ -67,7 +68,8 @@ export default function CertDetail() {
     );
   }
 
-  const quiz = certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [];
+  const quiz = localizeQuiz(certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [], language);
+  const coreSqlExamples = language === 'ja' ? sanitizeJapaneseText(CORE_SQL_EXAMPLES) : CORE_SQL_EXAMPLES;
 
   const runCoreSql = (idx, sqlStr) => {
     try {
@@ -143,7 +145,7 @@ export default function CertDetail() {
         <div className="cert-detail-title-row">
           <Icon name="trophy" style={{ width: 28, height: 28, color: cert.color }} />
           <h2 className="cert-detail-title" style={{ color: cert.color }}>{cert.name}</h2>
-          <span className={`badge level-${cert.level}`}>{cert.level}</span>
+          <span className={`badge level-${cert.level}`}>{translateLevel(cert.level, t)}</span>
           <span className="cert-detail-fullname">{cert.fullName}</span>
         </div>
         <p className="cert-detail-desc">{cert.desc}</p>
@@ -248,7 +250,7 @@ export default function CertDetail() {
       {activeTab === 'sql' && (
         <div className="cert-tab-content">
           <p className="cert-sql-intro">{t('cert.sql.intro')}</p>
-          {CORE_SQL_EXAMPLES.map((ex, i) => (
+          {coreSqlExamples.map((ex, i) => (
             <div key={i} className="cert-sql-example">
               <div className="cert-sql-example-header">
                 <span className="cert-sql-num">{i + 1}</span>

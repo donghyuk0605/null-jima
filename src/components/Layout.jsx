@@ -51,7 +51,7 @@ export default function Layout({ children, theme, onToggleTheme }) {
       <div className="mobile-topbar">
         <div className="mobile-topbar-brand">
           <Icon name="null" className="mobile-topbar-icon" />
-          <span>NULL지마</span>
+          <span>{t('app.name')}</span>
         </div>
         <div className="mobile-topbar-actions">
           <LanguageSwitcher className="compact" />
@@ -69,7 +69,7 @@ export default function Layout({ children, theme, onToggleTheme }) {
           <div className="nav-logo">
             <Icon name="null" className="nav-logo-icon" />
             <div>
-              <span>NULL지마</span>
+              <span>{t('app.name')}</span>
               <span className="nav-logo-sub">{t('app.subtitle')}</span>
             </div>
           </div>
@@ -130,6 +130,17 @@ export default function Layout({ children, theme, onToggleTheme }) {
               </button>
             </div>
           ) : null}
+        </div>
+
+        <div className="nav-social" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-color, #eaeaea)', marginTop: '10px' }}>
+          <a href="https://www.instagram.com/donghyuk65" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text2, #666)', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            Instagram
+          </a>
+          <a href="https://velog.io/@donghyuk65" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text2, #666)', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z" /></svg>
+            Velog
+          </a>
         </div>
       </nav>
 

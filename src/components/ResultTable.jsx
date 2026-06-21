@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from './Icon';
 import ResultChart from './ResultChart';
 import { useLanguage } from '../contexts/LanguageContext';
+import { sanitizeJapaneseText } from '../lib/localizedContent';
 
 const PAGE_SIZE = 100;
 
@@ -73,7 +74,7 @@ export default function ResultTable({ results, error, elapsed, rowsModified }) {
 }
 
 function ResultGrid({ result, elapsed }) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [filter, setFilter] = useState('');
@@ -97,6 +98,8 @@ function ResultGrid({ result, elapsed }) {
   }, []);
 
   const { columns, values } = result;
+  const displayColumns = language === 'ja' ? sanitizeJapaneseText(columns) : columns;
+  const displayValues = language === 'ja' ? sanitizeJapaneseText(values) : values;
 
   const filtered = useMemo(() => {
     if (!filter.trim()) return values;
@@ -191,7 +194,7 @@ function ResultGrid({ result, elapsed }) {
 
       {showStats && (
         <div className="col-stats-bar">
-          {columns.map((col, i) => (
+          {displayColumns.map((col, i) => (
             <div key={col} className="col-stat-item">
               <div className="col-stat-name">{col}</div>
               <div className="col-stat-vals">
@@ -210,14 +213,14 @@ function ResultGrid({ result, elapsed }) {
         </div>
       )}
 
-      {showChart && <ResultChart columns={columns} values={values} />}
+      {showChart && <ResultChart columns={displayColumns} values={displayValues} />}
 
       <div className="table-scroll">
         <table className="result-table">
           <thead>
             <tr>
               <th className="row-num-th">#</th>
-              {columns.map((col, i) => (
+              {displayColumns.map((col, i) => (
                 <th
                   key={col}
                   className={`col-th sortable ${sortCol === i ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : ''}`}
@@ -233,10 +236,12 @@ function ResultGrid({ result, elapsed }) {
             </tr>
           </thead>
           <tbody>
-            {pageData.map((row, ri) => (
+            {pageData.map((row, ri) => {
+              const displayRow = language === 'ja' ? sanitizeJapaneseText(row) : row;
+              return (
               <tr key={ri}>
                 <td className="row-num-td">{page * PAGE_SIZE + ri + 1}</td>
-                {row.map((cell, ci) => {
+                {displayRow.map((cell, ci) => {
                   const key = `${ri}-${ci}`;
                   return (
                     <td
@@ -252,7 +257,8 @@ function ResultGrid({ result, elapsed }) {
                   );
                 })}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

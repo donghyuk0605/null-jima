@@ -9,6 +9,7 @@ import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
 import { getSavedQueries, saveQuery, deleteSavedQuery } from '../lib/savedQueries';
 import { useLanguage } from '../contexts/LanguageContext';
+import { sanitizeJapaneseText } from '../lib/localizedContent';
 
 const TABS_KEY = 'sqldojo_tabs';
 const ACTIVE_TAB_KEY = 'sqldojo_active_tab';
@@ -53,7 +54,9 @@ const loadHistory = () => {
 const saveHistory = (items) => localStorage.setItem(EDITOR_HISTORY_KEY, JSON.stringify(items.slice(0, 12)));
 
 export default function Editor() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const safeText = (value) => (language === 'ja' ? sanitizeJapaneseText(value) : value);
+  const locale = language === 'ja' ? 'ja-JP' : 'ko-KR';
   const [tabs, setTabs] = useState(() => loadTabs(t('editor.newTab', { n: 1 })));
   const [activeTabId, setActiveTabId] = useState(() => {
     const saved = localStorage.getItem(ACTIVE_TAB_KEY);
@@ -337,8 +340,8 @@ export default function Editor() {
                     onClick={() => updateQuery(item.sql)}
                     type="button"
                   >
-                    <span>{item.sql.split('\n')[0]}</span>
-                    <small>{new Date(item.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</small>
+                    <span>{safeText(item.sql.split('\n')[0])}</span>
+                    <small>{new Date(item.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</small>
                   </button>
                 ))}
               </div>
@@ -359,9 +362,9 @@ export default function Editor() {
                     onClick={() => updateQuery(item.sql)}
                     type="button"
                   >
-                    <span>{item.name}</span>
+                    <span>{safeText(item.name)}</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <small>{new Date(item.createdAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}</small>
+                      <small>{new Date(item.createdAt).toLocaleDateString(locale, { month: '2-digit', day: '2-digit' })}</small>
                       <span
                         style={{ cursor: 'pointer', color: 'var(--err, #dc2626)', fontSize: '12px', lineHeight: 1 }}
                         onClick={e => handleDeleteSavedQuery(item.id, e)}
@@ -409,7 +412,7 @@ export default function Editor() {
                     />
                   ) : (
                     <span className="tab-name" onDoubleClick={e => startRename(tab.id, tab.name, e)}>
-                      {tab.name}
+                      {safeText(tab.name)}
                       {tab.error
                         ? <span className="tab-status-err">✗</span>
                         : (tab.results || tab.ddlSuccess)
@@ -492,7 +495,7 @@ export default function Editor() {
               )}
             </div>
             <div className="editor-statusbar">
-              <span>{activeTab?.name}</span>
+              <span>{safeText(activeTab?.name)}</span>
               <span>{t(`editor.mode.${editorMode}`)}</span>
               <span>{t('editor.status.tables', { n: schema.length })}</span>
               <span>{t('editor.status.rows', { n: results?.[0]?.values?.length ?? 0 })}</span>

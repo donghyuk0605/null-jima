@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { SQL_SNIPPET_GROUPS } from '../lib/editorModes';
 import Icon from './Icon';
 import { useLanguage } from '../contexts/LanguageContext';
+import { sanitizeJapaneseText } from '../lib/localizedContent';
 
 export default function SyntaxPicker({ onPick, compact = false }) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [openGroup, setOpenGroup] = useState(SQL_SNIPPET_GROUPS[0]?.group ?? null);
 
   return (
@@ -26,7 +27,7 @@ export default function SyntaxPicker({ onPick, compact = false }) {
                 <button
                   key={item.id}
                   className="syntax-item"
-                  onClick={() => onPick(item.sql)}
+                  onClick={() => onPick(language === 'ja' ? sanitizeJapaneseText(item.sql) : item.sql)}
                   type="button"
                 >
                   {t(item.labelKey)}

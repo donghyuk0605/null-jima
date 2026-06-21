@@ -65,7 +65,7 @@ export default function Login() {
             <div className="login-logo">
               <Icon name="null" className="login-logo-icon" />
               <div>
-                <span className="login-logo-title">NULL지마</span>
+                <span className="login-logo-title">{t('app.name')}</span>
                 <span className="login-logo-sub">{t('app.subtitle')}</span>
               </div>
             </div>

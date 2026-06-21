@@ -6,6 +6,7 @@ import {
 } from '../lib/community';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { localizePosts } from '../lib/localizedContent';
 
 const CATEGORIES = [
   { value: '전체', key: 'category.all' },
@@ -148,12 +149,14 @@ export default function Community() {
       return matchesCategory && (!keyword || haystack.includes(keyword));
     });
   }, [category, posts, searchQuery]);
+  const localizedPosts = useMemo(() => localizePosts(posts, language), [language, posts]);
+  const localizedFilteredPosts = useMemo(() => localizePosts(filteredPosts, language), [filteredPosts, language]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(localizedFilteredPosts.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages - 1);
-  const pagedPosts = filteredPosts.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const pagedPosts = localizedFilteredPosts.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
-  const selectedPost = posts.find((p) => p.id === selectedId) ?? filteredPosts[0] ?? null;
+  const selectedPost = localizedPosts.find((p) => p.id === selectedId) ?? localizedFilteredPosts[0] ?? null;
 
   const handleCreatePost = async (event) => {
     event.preventDefault();

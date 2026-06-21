@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { CERT_LIST } from '../data/cert';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
+import { localizeCerts, translateLevel } from '../lib/localizedContent';
 
 export default function Cert() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const certs = localizeCerts(CERT_LIST, language);
   return (
     <div className="page cert-page">
       <div className="page-header">
@@ -13,13 +15,13 @@ export default function Cert() {
       </div>
 
       <div className="cert-grid">
-        {CERT_LIST.map((cert) => (
+        {certs.map((cert) => (
           <Link key={cert.id} to={`/cert/${cert.id}`} className="cert-card">
             <div className="cert-card-top">
               <div className="cert-name-row">
                 <Icon name="trophy" className="cert-trophy-icon" style={{ color: cert.color }} />
                 <span className="cert-name" style={{ color: cert.color }}>{cert.name}</span>
-                <span className={`badge level-${cert.level}`}>{cert.level}</span>
+                <span className={`badge level-${cert.level}`}>{translateLevel(cert.level, t)}</span>
               </div>
               <div className="cert-fullname">{cert.fullName}</div>
               <div className="cert-org">{cert.org}</div>
