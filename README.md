@@ -2,6 +2,8 @@
 
 실무형 샘플 데이터로 SQL을 배우고, 직접 실행하고, 문제를 풀어볼 수 있는 SQL 학습 웹앱입니다.
 
+![NULL지마 대표 이미지](docs/images/null-jima-main.png)
+
 ![NULL지마 SQL 에디터 화면](docs/images/null-jima-editor.png)
 
 ## 주요 기능
