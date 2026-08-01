@@ -356,22 +356,21 @@ export default function Editor() {
             ) : (
               <div className="editor-history-list">
                 {savedQueries.map(item => (
-                  <button
-                    key={item.id}
-                    className="editor-history-item"
-                    onClick={() => updateQuery(item.sql)}
-                    type="button"
-                  >
-                    <span>{safeText(item.name)}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div key={item.id} className="editor-history-item editor-saved-item">
+                    <button className="editor-saved-load" onClick={() => updateQuery(item.sql)} type="button">
+                      <span>{safeText(item.name)}</span>
                       <small>{new Date(item.createdAt).toLocaleDateString(locale, { month: '2-digit', day: '2-digit' })}</small>
-                      <span
-                        style={{ cursor: 'pointer', color: 'var(--err, #dc2626)', fontSize: '12px', lineHeight: 1 }}
-                        onClick={e => handleDeleteSavedQuery(item.id, e)}
-                        title={t('common.delete')}
-                      >×</span>
-                    </span>
-                  </button>
+                    </button>
+                    <button
+                      className="editor-saved-delete"
+                      onClick={e => handleDeleteSavedQuery(item.id, e)}
+                      title={t('common.delete')}
+                      aria-label={t('common.delete')}
+                      type="button"
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -414,9 +413,9 @@ export default function Editor() {
                     <span className="tab-name" onDoubleClick={e => startRename(tab.id, tab.name, e)}>
                       {safeText(tab.name)}
                       {tab.error
-                        ? <span className="tab-status-err">✗</span>
+                        ? <Icon name="error" className="tab-status-err" />
                         : (tab.results || tab.ddlSuccess)
-                          ? <span className="tab-status-ok">✓</span>
+                          ? <Icon name="success" className="tab-status-ok" />
                           : null}
                     </span>
                   )}
@@ -425,7 +424,9 @@ export default function Editor() {
                   )}
                 </div>
               ))}
-              <button className="tab-add-btn" onClick={addTab} type="button" title={t('editor.tab.new')}>+</button>
+              <button className="tab-add-btn" onClick={addTab} type="button" title={t('editor.tab.new')} aria-label={t('editor.tab.new')}>
+                <Icon name="plus" />
+              </button>
             </div>
 
             <EditorModeBar mode={editorMode} onModeChange={changeEditorMode} />
@@ -462,20 +463,20 @@ export default function Editor() {
                 {t('editor.format')}
               </button>
               <button className="btn btn-ghost-sm" onClick={clearEditor}>{t('editor.clear')}</button>
-              <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title={t('editor.save')}>{t('editor.save')}</button>
+              <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title={t('editor.save')}><Icon name="save" className="status-icon" />{t('editor.save')}</button>
               <button
                 className={`btn btn-ghost-sm ${explainMode ? 'btn-active' : ''}`}
                 onClick={() => setExplainMode(m => !m)}
                 title={t('editor.explain.toggle')}
               >
-                EXPLAIN {explainMode ? '✓' : ''}
+                EXPLAIN {explainMode && <Icon name="success" className="status-icon" />}
               </button>
 
               {/* Feature 3: font size controls */}
               <div className="font-size-ctrl">
-                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.max(11, s - 1))}>A-</button>
+                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.max(11, s - 1))} aria-label="Decrease editor font size"><span>A</span><Icon name="minus" /></button>
                 <span className="font-sz-val">{fontSize}px</span>
-                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.min(22, s + 1))}>A+</button>
+                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.min(22, s + 1))} aria-label="Increase editor font size"><span>A</span><Icon name="plus" /></button>
               </div>
 
               {/* Feature 5: shortcut help button */}
@@ -484,7 +485,7 @@ export default function Editor() {
                 onClick={() => setShowShortcuts(o => !o)}
                 title={t('editor.shortcut.title')}
               >
-                ?
+                <Icon name="help" className="status-icon" />
               </button>
 
               {/* Feature 1: selection hint */}

@@ -20,6 +20,8 @@ export const translations = {
     'nav.community': '커뮤니티',
     'nav.progress': '내 진행률',
     'nav.settings': '사용자 설정',
+    'nav.menu': '전체 메뉴',
+    'nav.menu.close': '메뉴 닫기',
     'nav.progress.title': '{solved} / {total} 완료',
     'nav.progress.label': '{solved} / {total} 문제 완료',
     'nav.profileAlt': '프로필',
@@ -81,7 +83,7 @@ export const translations = {
     'problems.status.fav': '즐겨찾기',
     'problems.status.attempts': '{n}회 시도',
     'problems.status.new': '미시작',
-    'problem.nav.list': '← 목록',
+    'problem.nav.list': '목록',
     'problem.nav.prev': '이전',
     'problem.nav.next': '다음',
     'problem.tab.info': '문제',
@@ -363,7 +365,7 @@ export const translations = {
     'tables.col.type': '타입',
 
     'problem.stat.rows.count': '{n}행',
-    'problem.autocomplete.on': '자동완성 ✓',
+    'problem.autocomplete.on': '자동완성 켜짐',
     'problem.autocomplete.off': '자동완성 —',
 
     'editor.helper.comfort': '왼쪽 문법 메뉴에서 골격을 고르고, 테이블/컬럼 이름을 바꿔 실행해보세요.',
@@ -712,6 +714,8 @@ export const translations = {
     'nav.community': 'コミュニティ',
     'nav.progress': '進捗',
     'nav.settings': 'ユーザー設定',
+    'nav.menu': 'すべてのメニュー',
+    'nav.menu.close': 'メニューを閉じる',
     'nav.progress.title': '{solved} / {total} 完了',
     'nav.progress.label': '{solved} / {total} 問完了',
     'nav.profileAlt': 'プロフィール',
@@ -773,7 +777,7 @@ export const translations = {
     'problems.status.fav': 'お気に入り',
     'problems.status.attempts': '{n}回挑戦',
     'problems.status.new': '未着手',
-    'problem.nav.list': '← 一覧',
+    'problem.nav.list': '一覧',
     'problem.nav.prev': '前へ',
     'problem.nav.next': '次へ',
     'problem.tab.info': '問題',
@@ -1055,7 +1059,7 @@ export const translations = {
     'tables.col.type': '型',
 
     'problem.stat.rows.count': '{n}行',
-    'problem.autocomplete.on': '自動補完 ✓',
+    'problem.autocomplete.on': '自動補完オン',
     'problem.autocomplete.off': '自動補完 —',
 
     'editor.helper.comfort': '左の文法メニューから骨格を選んで、テーブル/カラム名を変えて実行してみましょう。',

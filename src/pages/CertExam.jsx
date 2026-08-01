@@ -219,8 +219,8 @@ export default function CertExam() {
             ))}
           </div>
           <div className="exam-q-nav">
-            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0}>← {t('exam.prev')}</button>
-            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.min(quiz.length - 1, c + 1))} disabled={current === quiz.length - 1}>{t('exam.next')} →</button>
+            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0}><Icon name="prev" />{t('exam.prev')}</button>
+            <button className="btn btn-ghost-sm" onClick={() => setCurrent(c => Math.min(quiz.length - 1, c + 1))} disabled={current === quiz.length - 1}>{t('exam.next')}<Icon name="next" /></button>
           </div>
         </div>
       </div>

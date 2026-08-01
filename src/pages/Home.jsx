@@ -38,10 +38,19 @@ export default function Home() {
           <span className="home-kicker">SQL PRACTICE WORKBENCH</span>
           <h1 className="home-title">{t('app.name')}</h1>
           <p className="home-subtitle">{t('home.hero.subtitle')}</p>
+          <div className="home-hero-progress" aria-label={t('problems.complete', { solved, total })}>
+            <div className="home-hero-progress-copy">
+              <span>{t('home.stat.current')}</span>
+              <strong>{t('problems.complete', { solved, total })}</strong>
+            </div>
+            <div className="home-hero-progress-track">
+              <span style={{ width: `${total > 0 ? (solved / total) * 100 : 0}%` }} />
+            </div>
+          </div>
           <div className="home-actions">
-            <Link to="/editor" className="btn btn-primary">{t('home.cta.editor')}</Link>
-            <Link to="/problems" className="btn btn-secondary">{t('home.cta.problems')}</Link>
-            <Link to="/learn" className="btn btn-ghost">{t('home.cta.learn')}</Link>
+            <Link to="/editor" className="btn btn-primary"><Icon name="keyboard" className="btn-icon" />{t('home.cta.editor')}</Link>
+            <Link to="/problems" className="btn btn-secondary"><Icon name="pencil" className="btn-icon" />{t('home.cta.problems')}</Link>
+            <Link to="/learn" className="btn btn-ghost"><Icon name="book" className="btn-icon" />{t('home.cta.learn')}</Link>
           </div>
         </div>
         <div className="home-hero-console" aria-hidden="true">
@@ -92,8 +101,8 @@ ORDER BY solved DESC;`}</pre>
 
       <div className="home-grid">
         {/* 내 현황 */}
-        <div className="home-card">
-          <h3 className="card-title">{t('home.stat.current')}</h3>
+        <section className="home-card">
+          <h2 className="card-title"><Icon name="chart" />{t('home.stat.current')}</h2>
           <div className="stat-grid">
             <div className="stat">
               <span className="stat-value">{solved}</span>
@@ -119,11 +128,11 @@ ORDER BY solved DESC;`}</pre>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* 오늘의 문제 */}
-        <div className="home-card">
-          <h3 className="card-title">{t('home.next.title')}</h3>
+        <section className="home-card home-card-next">
+          <h2 className="card-title"><Icon name="target" />{t('home.next.title')}</h2>
           <div className="today-problem">
             <div className="today-meta">
               <span className={`badge level-${todayProblem.level}`}>{tl(todayProblem.level)}</span>
@@ -137,11 +146,11 @@ ORDER BY solved DESC;`}</pre>
               {t('home.next.go')}
             </Link>
           </div>
-        </div>
+        </section>
 
         {/* 학습 도우미 바로가기 */}
-        <div className="home-card">
-          <h3 className="card-title">{t('home.learn.title')}</h3>
+        <section className="home-card">
+          <h2 className="card-title"><Icon name="book" />{t('home.learn.title')}</h2>
           <div className="learn-list">
             {learnTopics.map((topic) => (
               <Link key={topic.id} to={`/learn/${topic.id}`} className="learn-item">
@@ -150,7 +159,7 @@ ORDER BY solved DESC;`}</pre>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

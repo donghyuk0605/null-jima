@@ -180,10 +180,10 @@ function ProblemDetailContent({ problem }) {
     <div className="page problem-detail-page">
       {/* 상단 네비 */}
       <div className="problem-nav">
-        <Link to="/problems" className="btn btn-ghost-sm">{t('problem.nav.list')}</Link>
+        <Link to="/problems" className="btn btn-ghost-sm"><Icon name="chevron-left" />{t('problem.nav.list')}</Link>
         <div className="problem-nav-pages">
-          {prevP && <Link to={`/problems/${prevP.id}`} className="btn btn-ghost-sm">{t('problem.nav.prev')}</Link>}
-          {nextP && <Link to={`/problems/${nextP.id}`} className="btn btn-ghost-sm">{t('problem.nav.next')}</Link>}
+          {prevP && <Link to={`/problems/${prevP.id}`} className="btn btn-ghost-sm"><Icon name="chevron-left" />{t('problem.nav.prev')}</Link>}
+          {nextP && <Link to={`/problems/${nextP.id}`} className="btn btn-ghost-sm">{t('problem.nav.next')}<Icon name="chevron-right" /></Link>}
         </div>
       </div>
 

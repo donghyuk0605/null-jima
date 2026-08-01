@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { getAllProgress } from '../lib/progress';
 import { PROBLEMS } from '../data/problems';
@@ -39,8 +40,17 @@ const NAV = [
   },
 ];
 
+const MOBILE_NAV = [
+  { to: '/', labelKey: 'nav.home', icon: 'home' },
+  { to: '/problems', labelKey: 'nav.problems', icon: 'pencil' },
+  { to: '/editor', labelKey: 'nav.editor', icon: 'keyboard', featured: true },
+  { to: '/community', labelKey: 'nav.community', icon: 'community' },
+  { to: '/progress', labelKey: 'nav.progress', icon: 'chart' },
+];
+
 export default function Layout({ children, theme, onToggleTheme }) {
   const { t } = useLanguage();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const prog = getAllProgress();
   const solved = Object.values(prog).filter((p) => p.solved).length;
   const total = PROBLEMS.length;
@@ -49,10 +59,10 @@ export default function Layout({ children, theme, onToggleTheme }) {
   return (
     <div className="layout">
       <div className="mobile-topbar">
-        <div className="mobile-topbar-brand">
+        <NavLink to="/" className="mobile-topbar-brand" aria-label={t('app.name')}>
           <Icon name="null" className="mobile-topbar-icon" />
           <span>{t('app.name')}</span>
-        </div>
+        </NavLink>
         <div className="mobile-topbar-actions">
           <LanguageSwitcher className="compact" />
           <button
@@ -62,9 +72,20 @@ export default function Layout({ children, theme, onToggleTheme }) {
           >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} style={{ width: 15, height: 15 }} />
           </button>
+          <button
+            type="button"
+            className="mobile-menu-trigger"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-app-menu"
+            aria-label={mobileMenuOpen ? t('nav.menu.close') : t('nav.menu')}
+            title={mobileMenuOpen ? t('nav.menu.close') : t('nav.menu')}
+          >
+            <Icon name={mobileMenuOpen ? 'close' : 'menu'} />
+          </button>
         </div>
       </div>
-      <nav className="nav">
+      <nav className="nav desktop-nav" aria-label={t('nav.menu')}>
         <div className="nav-top">
           <div className="nav-logo">
             <Icon name="null" className="nav-logo-icon" />
@@ -132,19 +153,81 @@ export default function Layout({ children, theme, onToggleTheme }) {
           ) : null}
         </div>
 
-        <div className="nav-social" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-color, #eaeaea)', marginTop: '10px' }}>
-          <a href="https://www.instagram.com/donghyuk65" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text2, #666)', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+        <div className="nav-social">
+          <a href="https://www.instagram.com/donghyuk65" target="_blank" rel="noopener noreferrer">
+            <Icon name="instagram" />
             Instagram
           </a>
-          <a href="https://velog.io/@donghyuk65" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text2, #666)', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z" /></svg>
+          <a href="https://velog.io/@donghyuk65" target="_blank" rel="noopener noreferrer">
+            <Icon name="article" />
             Velog
           </a>
         </div>
       </nav>
 
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          className="mobile-menu-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-label={t('nav.menu.close')}
+        />
+      )}
+
+      <aside
+        id="mobile-app-menu"
+        className={`mobile-menu-sheet${mobileMenuOpen ? ' open' : ''}`}
+        aria-hidden={!mobileMenuOpen}
+        inert={!mobileMenuOpen}
+      >
+        <div className="mobile-menu-head">
+          <div>
+            <strong>{t('nav.menu')}</strong>
+            <span>{t('nav.progress.label', { solved, total })}</span>
+          </div>
+          <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label={t('nav.menu.close')}>
+            <Icon name="close" />
+          </button>
+        </div>
+        <div className="mobile-menu-scroll">
+          {NAV.map((section) => (
+            <section key={section.groupKey} className="mobile-menu-section">
+              <h2>{t(section.groupKey)}</h2>
+              <div className="mobile-menu-grid">
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon name={item.icon} />
+                    <span>{t(item.labelKey)}</span>
+                    <Icon name="chevron-right" className="mobile-menu-chevron" />
+                  </NavLink>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </aside>
+
       <main className="page-content">{children}</main>
+
+      <nav className="mobile-bottom-nav" aria-label={t('nav.menu')}>
+        {MOBILE_NAV.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
+            className={({ isActive }) => `mobile-bottom-item${item.featured ? ' featured' : ''}${isActive ? ' active' : ''}`}
+          >
+            <span className="mobile-bottom-icon"><Icon name={item.icon} /></span>
+            <span>{t(item.labelKey)}</span>
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 }

@@ -5,6 +5,69 @@ const ICON_PATHS = {
       <path d="M7 9h10M8.5 12h7M9.5 15h5" />
     </>
   ),
+  menu: (
+    <>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </>
+  ),
+  plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.8 9a2.4 2.4 0 1 1 3.7 2c-1 .6-1.5 1.1-1.5 2.2" />
+      <path d="M12 17h.01" />
+    </>
+  ),
+  save: (
+    <>
+      <path d="M5 3h12l2 2v16H5V3Z" />
+      <path d="M8 3v6h8V3M8 21v-7h8v7" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13" />
+      <path d="M10 11v5M14 11v5" />
+    </>
+  ),
+  instagram: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M17.5 6.5h.01" />
+    </>
+  ),
+  article: (
+    <>
+      <path d="M6 3h9l4 4v14H6V3Z" />
+      <path d="M15 3v5h4M9 12h6M9 16h6" />
+    </>
+  ),
+  'bar-chart': (
+    <>
+      <path d="M4 20V4M4 20h16" />
+      <rect x="7" y="12" width="3" height="5" rx=".5" />
+      <rect x="12" y="8" width="3" height="9" rx=".5" />
+      <rect x="17" y="5" width="3" height="12" rx=".5" />
+    </>
+  ),
+  'line-chart': (
+    <>
+      <path d="M4 20V4M4 20h16" />
+      <path d="m7 15 4-4 3 2 5-7" />
+      <circle cx="7" cy="15" r="1" />
+      <circle cx="11" cy="11" r="1" />
+      <circle cx="14" cy="13" r="1" />
+      <circle cx="19" cy="6" r="1" />
+    </>
+  ),
+  'pie-chart': (
+    <>
+      <path d="M11 3a9 9 0 1 0 9 9h-9V3Z" />
+      <path d="M14 3.5A7.5 7.5 0 0 1 20.5 10H14V3.5Z" />
+    </>
+  ),
   bolt: (
     <path d="M13 2 4.8 13h5.1L8 22l8.2-11h-5.1L13 2Z" />
   ),

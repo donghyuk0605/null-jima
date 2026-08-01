@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import Icon from './Icon';
 
 const COLORS = ['#388bfd','#3fb950','#f78166','#e3b341','#bc8cff','#39d353','#ff7b72','#79c0ff'];
 
@@ -152,9 +153,15 @@ export default function ResultChart({ columns, values }) {
       <div className="chart-toolbar">
         <span className="chart-col-info">{columns[0]} × {columns[1]}</span>
         <div className="chart-type-btns">
-          {['bar','line','pie'].map(t => (
-            <button key={t} className={`chart-type-btn ${chartType === t ? 'active' : ''}`} onClick={() => setChartType(t)}>
-              {t === 'bar' ? '▌▌' : t === 'line' ? '📈' : '●'}
+          {['bar','line','pie'].map(type => (
+            <button
+              key={type}
+              className={`chart-type-btn ${chartType === type ? 'active' : ''}`}
+              onClick={() => setChartType(type)}
+              title={type}
+              aria-label={type}
+            >
+              <Icon name={`${type}-chart`} />
             </button>
           ))}
         </div>

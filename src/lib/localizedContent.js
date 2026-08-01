@@ -10,6 +10,7 @@ const TEXT_REPLACEMENTS = [
   ['NULL지마', 'nullジマ'],
   ['쿼리', 'クエリ'],
   ['직원수', 'employee_count'], ['평균급여', 'avg_salary'], ['최고급여', 'max_salary'], ['최저급여', 'min_salary'],
+  ['최고가격', 'max_price'],
   ['총급여', 'total_salary'], ['부서총급여', 'dept_total_salary'], ['총금액', 'total_amount'], ['주문금액', 'order_amount'],
   ['누적금액', 'running_amount'], ['총주문금액', 'total_order_amount'], ['직원이름', 'employee_name'],
   ['직원명', 'employee_name'], ['부서명', 'department_name'], ['상품명', 'product_name'], ['직원', 'employee'],
@@ -36,6 +37,9 @@ const TEXT_REPLACEMENTS = [
   ['복합', 'composite'], ['단일', 'single'], ['기준', 'base'], ['같은', 'same'], ['유저', 'user'], ['타입', 'type'],
 ];
 
+const ORDERED_TEXT_REPLACEMENTS = [...TEXT_REPLACEMENTS]
+  .sort(([left], [right]) => right.length - left.length);
+
 export const sanitizeJapaneseText = (value) => {
   if (value == null) return value;
   if (Array.isArray(value)) return value.map(sanitizeJapaneseText);
@@ -43,10 +47,10 @@ export const sanitizeJapaneseText = (value) => {
     return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeJapaneseText(item)]));
   }
   if (typeof value !== 'string') return value;
-  return TEXT_REPLACEMENTS.reduce(
+  return ORDERED_TEXT_REPLACEMENTS.reduce(
     (text, [from, to]) => text.replaceAll(from, to),
     value
-  ).replace(/[가-힣]+/g, 'jp');
+  );
 };
 
 const jaSafe = (value, language) => (language === 'ja' ? sanitizeJapaneseText(value) : value);
