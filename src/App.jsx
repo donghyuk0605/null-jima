@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { initDB } from './lib/database';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { setProgressOwner, setProgressSyncUser, syncProgressFromFirestore } from './lib/progress';
@@ -28,13 +27,54 @@ const Settings = lazy(() => import('./pages/Settings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 const THEME_KEY = 'sqldojo_theme';
+let databaseModulePromise = null;
+
+const loadDatabase = () => {
+  if (!databaseModulePromise) databaseModulePromise = import('./lib/database');
+  return databaseModulePromise;
+};
+
+function DatabaseGate({ children }) {
+  const { t } = useLanguage();
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (ready) return undefined;
+    let active = true;
+    loadDatabase()
+      .then(({ initDB }) => initDB())
+      .then(() => { if (active) setReady(true); })
+      .catch((e) => { if (active) setError(e.message); });
+    return () => { active = false; };
+  }, [ready]);
+
+  if (error) {
+    return (
+      <div className="loading">
+        <span style={{ color: 'var(--err)', fontFamily: 'monospace', padding: 24 }}>
+          {t('loading.initFailed', { message: error })}
+        </span>
+      </div>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <div className="loading">
+        <div className="spinner" />
+        <span>{t('loading.sqlEngine')}</span>
+      </div>
+    );
+  }
+
+  return children;
+}
 
 function AppInner() {
   const { user, isGuest } = useAuth();
   const { setLanguage, t } = useLanguage();
   const settings = useUserSettings();
-  const [ready, setReady] = useState(false);
-  const [initError, setInitError] = useState(null);
   const [theme, setTheme] = useState(
     () => localStorage.getItem(THEME_KEY) || 'light'
   );
@@ -54,12 +94,6 @@ function AppInner() {
 
   const toggleTheme = () =>
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
-
-  useEffect(() => {
-    initDB()
-      .then(() => setReady(true))
-      .catch((e) => setInitError(e.message));
-  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -99,43 +133,24 @@ function AppInner() {
     return <Login />;
   }
 
-  if (initError) {
-    return (
-      <div className="loading">
-        <span style={{ color: 'var(--err)', fontFamily: 'monospace', padding: 24 }}>
-          {t('loading.initFailed', { message: initError })}
-        </span>
-      </div>
-    );
-  }
-
-  if (!ready) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-        <span>{t('loading.sqlEngine')}</span>
-      </div>
-    );
-  }
-
   return (
     <BrowserRouter>
       <Layout theme={theme} onToggleTheme={toggleTheme}>
         <Suspense fallback={<div className="route-loading"><div className="spinner" /><span>{t('loading.page')}</span></div>}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/playground" element={<Playground />} />
+          <Route path="/editor" element={<DatabaseGate><Editor /></DatabaseGate>} />
+          <Route path="/playground" element={<DatabaseGate><Playground /></DatabaseGate>} />
           <Route path="/learn" element={<Learn />} />
-          <Route path="/learn/:topicId" element={<LearnTopic />} />
+          <Route path="/learn/:topicId" element={<DatabaseGate><LearnTopic /></DatabaseGate>} />
           <Route path="/problems" element={<Problems />} />
-          <Route path="/problems/:id" element={<ProblemDetail />} />
-          <Route path="/tables" element={<Tables />} />
+          <Route path="/problems/:id" element={<DatabaseGate><ProblemDetail /></DatabaseGate>} />
+          <Route path="/tables" element={<DatabaseGate><Tables /></DatabaseGate>} />
           <Route path="/community" element={<Community />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/cert" element={<Cert />} />
-          <Route path="/cert/:certId" element={<CertDetail />} />
+          <Route path="/cert/:certId" element={<DatabaseGate><CertDetail /></DatabaseGate>} />
           <Route path="/cert/:certId/exam" element={<CertExam />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

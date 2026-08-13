@@ -2,6 +2,8 @@ let db = null;
 let SQLRuntime = null;
 let pristineBytes = null;
 let persistTimer = null;
+let initPromise = null;
+let sqlLoaderPromise = null;
 
 const WORKSPACE_DB = 'nulljima-workspace';
 const WORKSPACE_STORE = 'databases';
@@ -63,10 +65,42 @@ const scheduleWorkspacePersist = () => {
 
 const mutatesDatabase = (sql) => /\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|REPLACE|VACUUM|REINDEX|BEGIN|COMMIT|ROLLBACK|PRAGMA)\b/i.test(sql);
 
-export async function initDB() {
-  if (db) return db;
+const loadSqlLoader = () => {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('SQL engine is only available in a browser.'));
+  }
+  if (typeof window.initSqlJs === 'function') return Promise.resolve(window.initSqlJs);
+  if (sqlLoaderPromise) return sqlLoaderPromise;
 
-  const SQL = await window.initSqlJs({ locateFile: () => '/sql-wasm.wasm' });
+  sqlLoaderPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/sql-wasm-browser.js';
+    script.async = true;
+    script.dataset.sqlLoader = 'true';
+    script.onload = () => {
+      if (typeof window.initSqlJs === 'function') {
+        resolve(window.initSqlJs);
+      } else {
+        reject(new Error('SQL engine loader did not initialize.'));
+      }
+    };
+    script.onerror = () => reject(new Error('SQL engine loader failed to load.'));
+    document.head.appendChild(script);
+  }).catch((error) => {
+    sqlLoaderPromise = null;
+    throw error;
+  });
+
+  return sqlLoaderPromise;
+};
+
+export function initDB() {
+  if (db) return Promise.resolve(db);
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    const initSqlJs = await loadSqlLoader();
+    const SQL = await initSqlJs({ locateFile: () => '/sql-wasm.wasm' });
   SQLRuntime = SQL;
   db = new SQL.Database();
 
@@ -229,7 +263,13 @@ export async function initDB() {
     // A broken or unavailable browser store should never block the SQL engine.
   }
 
-  return db;
+    return db;
+  })().catch((error) => {
+    initPromise = null;
+    throw error;
+  });
+
+  return initPromise;
 }
 
 export function runQuery(sql) {
