@@ -1,9 +1,73 @@
 let db = null;
+let SQLRuntime = null;
+let pristineBytes = null;
+let persistTimer = null;
+
+const WORKSPACE_DB = 'nulljima-workspace';
+const WORKSPACE_STORE = 'databases';
+const WORKSPACE_KEY = 'active';
+
+const openWorkspaceStore = () => new Promise((resolve, reject) => {
+  if (typeof indexedDB === 'undefined') {
+    resolve(null);
+    return;
+  }
+  const request = indexedDB.open(WORKSPACE_DB, 1);
+  request.onupgradeneeded = () => request.result.createObjectStore(WORKSPACE_STORE);
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+const readWorkspace = async () => {
+  const storeDb = await openWorkspaceStore();
+  if (!storeDb) return null;
+  return new Promise((resolve, reject) => {
+    const tx = storeDb.transaction(WORKSPACE_STORE, 'readonly');
+    const request = tx.objectStore(WORKSPACE_STORE).get(WORKSPACE_KEY);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+    tx.oncomplete = () => storeDb.close();
+  });
+};
+
+const writeWorkspace = async (bytes) => {
+  const storeDb = await openWorkspaceStore();
+  if (!storeDb) return;
+  await new Promise((resolve, reject) => {
+    const tx = storeDb.transaction(WORKSPACE_STORE, 'readwrite');
+    tx.objectStore(WORKSPACE_STORE).put(bytes, WORKSPACE_KEY);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+  storeDb.close();
+};
+
+const clearWorkspace = async () => {
+  const storeDb = await openWorkspaceStore();
+  if (!storeDb) return;
+  await new Promise((resolve, reject) => {
+    const tx = storeDb.transaction(WORKSPACE_STORE, 'readwrite');
+    tx.objectStore(WORKSPACE_STORE).delete(WORKSPACE_KEY);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+  storeDb.close();
+};
+
+const scheduleWorkspacePersist = () => {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    if (db) writeWorkspace(db.export()).catch(() => {});
+  }, 250);
+};
+
+const mutatesDatabase = (sql) => /\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|REPLACE|VACUUM|REINDEX|BEGIN|COMMIT|ROLLBACK|PRAGMA)\b/i.test(sql);
 
 export async function initDB() {
   if (db) return db;
 
   const SQL = await window.initSqlJs({ locateFile: () => '/sql-wasm.wasm' });
+  SQLRuntime = SQL;
   db = new SQL.Database();
 
   db.run(`
@@ -154,12 +218,40 @@ export async function initDB() {
     `);
   }
 
+  pristineBytes = db.export();
+  try {
+    const savedWorkspace = await readWorkspace();
+    if (savedWorkspace) db = new SQL.Database(new Uint8Array(savedWorkspace));
+  } catch {
+    // A broken or unavailable browser store should never block the SQL engine.
+  }
+
   return db;
 }
 
 export function runQuery(sql) {
   if (!db) throw new Error('DB not initialized');
-  return db.exec(sql);
+  const result = db.exec(sql);
+  if (mutatesDatabase(sql)) scheduleWorkspacePersist();
+  return result;
+}
+
+export function runProblemQuery(sql) {
+  if (!SQLRuntime || !pristineBytes) throw new Error('DB not initialized');
+  const sandbox = new SQLRuntime.Database(pristineBytes);
+  try {
+    return sandbox.exec(sql);
+  } finally {
+    sandbox.close();
+  }
+}
+
+export async function resetWorkspaceDatabase() {
+  if (!SQLRuntime || !pristineBytes) throw new Error('DB not initialized');
+  if (db) db.close();
+  db = new SQLRuntime.Database(pristineBytes);
+  await clearWorkspace();
+  return db;
 }
 
 export function translateSqlError(error, t) {
@@ -299,9 +391,12 @@ export function getRelationships() {
 
 export function gradeQuery(userSql, answerSql, checkOrder = false, options = {}, t) {
   const tr = (key, vars) => t ? t(key, vars) : key;
+  if (!SQLRuntime || !pristineBytes) return { correct: false, msg: tr('db.error.generic', { message: 'DB not initialized' }) };
+  const userDb = new SQLRuntime.Database(pristineBytes);
+  const answerDb = new SQLRuntime.Database(pristineBytes);
   try {
-    const userRes = db.exec(userSql.trim());
-    const ansRes = db.exec(answerSql.trim());
+    const userRes = userDb.exec(userSql.trim());
+    const ansRes = answerDb.exec(answerSql.trim());
 
     if (!userRes.length && !ansRes.length) return { correct: true, checks: [tr('grade.empty.check')] };
     if (!userRes.length) return { correct: false, msg: tr('grade.empty.msg'), checks: [tr('grade.empty.emptyCheck')] };
@@ -376,5 +471,8 @@ export function gradeQuery(userSql, answerSql, checkOrder = false, options = {},
     return { correct: true, checks };
   } catch (e) {
     return { correct: false, msg: translateSqlError(e, t), checks: [tr('grade.execFail.check')] };
+  } finally {
+    userDb.close();
+    answerDb.close();
   }
 }

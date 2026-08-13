@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
-import { getAllProgress, getFavorites, toggleFavoriteById } from '../lib/progress';
+import { getAllProgress, toggleFavorite } from '../lib/progress';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
@@ -11,12 +11,11 @@ export default function Problems() {
   const { language, t } = useLanguage();
   const tl = (level) => translateLevel(level, t);
   const tt = (tag) => translateTag(tag, t);
-  const prog = getAllProgress();
+  const [prog, setProg] = useState(() => getAllProgress());
   const localizedProblems = localizeProblems(PROBLEMS, language);
   const [levelFilter, setLevelFilter] = useState('전체');
   const [tagFilter, setTagFilter] = useState('전체');
   const [statusFilter, setStatusFilter] = useState('전체');
-  const [favorites, setFavorites] = useState(() => getFavorites());
   const [showFavsOnly, setShowFavsOnly] = useState(false);
   const tags = [...new Set(PROBLEMS.flatMap((problem) => problem.tags))];
 
@@ -29,7 +28,7 @@ export default function Problems() {
       (statusFilter === '즐겨찾기' && status?.favorite) ||
       (statusFilter === '다시 풀기' && status?.review) ||
       (statusFilter === '미완료' && !status?.solved);
-    const matchesFavs = !showFavsOnly || favorites.includes(problem.id);
+    const matchesFavs = !showFavsOnly || status?.favorite;
     return matchesLevel && matchesTag && matchesStatus && matchesFavs;
   });
 
@@ -91,9 +90,10 @@ export default function Problems() {
                 return (
                   <Link key={problem.id} to={`/problems/${problem.id}`} className={`problem-row ${isSolved ? 'solved' : ''}`}>
                     <button
-                      className={`fav-btn${favorites.includes(problem.id) ? ' fav-active' : ''}`}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavoriteById(problem.id)); }}
+                      className={`fav-btn${prog[problem.id]?.favorite ? ' fav-active' : ''}`}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(problem.id); setProg(getAllProgress()); }}
                       title={t('problem.action.fav')}
+                      aria-pressed={Boolean(prog[problem.id]?.favorite)}
                     >
                       <Icon name="star" className="fav-icon" />
                     </button>

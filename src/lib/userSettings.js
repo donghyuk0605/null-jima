@@ -1,4 +1,5 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useSyncExternalStore } from 'react';
 import { db } from './firebase';
 
 const KEY = 'sqldojo_user_settings';
@@ -14,16 +15,16 @@ export const DB_TYPES = [
   {
     id: 'mysql',
     name: 'MySQL',
-    status: '문법 참고',
-    description: 'LIMIT, 문자열 함수 등 MySQL 문법 차이를 확인하는 학습 모드입니다.',
-    available: true,
+    status: '준비중',
+    description: 'MySQL 전용 실행 환경은 준비중입니다.',
+    available: false,
   },
   {
     id: 'postgresql',
     name: 'PostgreSQL',
-    status: '문법 참고',
-    description: 'PostgreSQL 스타일 쿼리 작성 습관을 비교해볼 수 있습니다.',
-    available: true,
+    status: '준비중',
+    description: 'PostgreSQL 전용 실행 환경은 준비중입니다.',
+    available: false,
   },
   {
     id: 'oracle',
@@ -44,7 +45,10 @@ export const DEFAULT_SETTINGS = {
   compactMode: false,
 };
 
-export function getUserSettings() {
+const listeners = new Set();
+
+const readSettings = () => {
+  if (typeof localStorage === 'undefined') return DEFAULT_SETTINGS;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT_SETTINGS;
@@ -52,16 +56,38 @@ export function getUserSettings() {
   } catch {
     return DEFAULT_SETTINGS;
   }
+};
+
+let settingsSnapshot = readSettings();
+
+const publish = (next) => {
+  settingsSnapshot = next;
+  listeners.forEach((listener) => listener());
+};
+
+const subscribe = (listener) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+
+export function getUserSettings() {
+  return settingsSnapshot;
+}
+
+export function useUserSettings() {
+  return useSyncExternalStore(subscribe, () => settingsSnapshot, () => DEFAULT_SETTINGS);
 }
 
 export function saveUserSettings(settings) {
   const next = { ...DEFAULT_SETTINGS, ...settings };
   localStorage.setItem(KEY, JSON.stringify(next));
+  publish(next);
   return next;
 }
 
 export function resetUserSettings() {
   localStorage.removeItem(KEY);
+  publish(DEFAULT_SETTINGS);
   return DEFAULT_SETTINGS;
 }
 
@@ -83,6 +109,7 @@ export async function syncSettingsFromFirestore(uid) {
       await setDoc(settingsRef(uid), merged);
     }
     localStorage.setItem(KEY, JSON.stringify(merged));
+    publish(merged);
     return merged;
   } else {
     await setDoc(settingsRef(uid), local);

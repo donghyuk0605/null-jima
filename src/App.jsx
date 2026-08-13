@@ -1,34 +1,37 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { initDB } from './lib/database';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
-import { syncProgressFromFirestore } from './lib/progress';
-import { syncSettingsFromFirestore } from './lib/userSettings';
-import { seedPostsIfEmpty } from './lib/community';
+import { setProgressSyncUser, syncProgressFromFirestore } from './lib/progress';
+import { syncSettingsFromFirestore, useUserSettings } from './lib/userSettings';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Home from './pages/Home';
-import Editor from './pages/Editor';
-import Playground from './pages/Playground';
-import Learn from './pages/Learn';
-import LearnTopic from './pages/LearnTopic';
-import Problems from './pages/Problems';
-import ProblemDetail from './pages/ProblemDetail';
-import Tables from './pages/Tables';
-import Progress from './pages/Progress';
-import Cert from './pages/Cert';
-import CertDetail from './pages/CertDetail';
-import CertExam from './pages/CertExam';
-import Community from './pages/Community';
-import Settings from './pages/Settings';
+import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
+
+const Home = lazy(() => import('./pages/Home'));
+const Editor = lazy(() => import('./pages/Editor'));
+const Playground = lazy(() => import('./pages/Playground'));
+const Learn = lazy(() => import('./pages/Learn'));
+const LearnTopic = lazy(() => import('./pages/LearnTopic'));
+const Problems = lazy(() => import('./pages/Problems'));
+const ProblemDetail = lazy(() => import('./pages/ProblemDetail'));
+const Tables = lazy(() => import('./pages/Tables'));
+const Progress = lazy(() => import('./pages/Progress'));
+const Cert = lazy(() => import('./pages/Cert'));
+const CertDetail = lazy(() => import('./pages/CertDetail'));
+const CertExam = lazy(() => import('./pages/CertExam'));
+const Community = lazy(() => import('./pages/Community'));
+const Settings = lazy(() => import('./pages/Settings'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 const THEME_KEY = 'sqldojo_theme';
 
 function AppInner() {
   const { user, isGuest } = useAuth();
   const { setLanguage, t } = useLanguage();
+  const settings = useUserSettings();
   const [ready, setReady] = useState(false);
   const [initError, setInitError] = useState(null);
   const [theme, setTheme] = useState(
@@ -41,6 +44,10 @@ function AppInner() {
   }, [theme]);
 
   useEffect(() => {
+    document.documentElement.toggleAttribute('data-compact', settings.compactMode);
+  }, [settings.compactMode]);
+
+  useEffect(() => {
     document.title = `${t('app.name')} — ${t('app.subtitle')}`;
   }, [t]);
 
@@ -51,15 +58,20 @@ function AppInner() {
     initDB()
       .then(() => setReady(true))
       .catch((e) => setInitError(e.message));
-    seedPostsIfEmpty().catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!user) return;
-    syncProgressFromFirestore(user.uid).catch(() => {});
+    if (!user) {
+      setProgressSyncUser(null);
+      return;
+    }
+    syncProgressFromFirestore(user.uid)
+      .then(() => setProgressSyncUser(user.uid))
+      .catch(() => setProgressSyncUser(user.uid));
     syncSettingsFromFirestore(user.uid)
       .then((settings) => setLanguage(settings.language))
       .catch(() => {});
+    return () => setProgressSyncUser(null);
   }, [setLanguage, user]);
 
   // Auth state still loading
@@ -98,6 +110,7 @@ function AppInner() {
   return (
     <BrowserRouter>
       <Layout theme={theme} onToggleTheme={toggleTheme}>
+        <Suspense fallback={<div className="route-loading"><div className="spinner" /><span>{t('loading.page')}</span></div>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/editor" element={<Editor />} />
@@ -113,7 +126,9 @@ function AppInner() {
           <Route path="/cert" element={<Cert />} />
           <Route path="/cert/:certId" element={<CertDetail />} />
           <Route path="/cert/:certId/exam" element={<CertExam />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </Layout>
     </BrowserRouter>
   );
@@ -123,7 +138,9 @@ export default function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <AppInner />
+        <ErrorBoundary>
+          <AppInner />
+        </ErrorBoundary>
       </LanguageProvider>
     </AuthProvider>
   );

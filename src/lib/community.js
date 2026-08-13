@@ -1,7 +1,7 @@
 import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, serverTimestamp,
-  getDocs, limit, writeBatch, Timestamp,
+  Timestamp,
   increment, arrayUnion,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -30,7 +30,7 @@ const normalizePost = (id, data) => ({
   comments: (data.comments || []).map((c) => ({ ...c, createdAt: toIso(c.createdAt) })),
 });
 
-// ── seed data ────────────────────────────────────────────
+// ── read-only fallback data ──────────────────────────────
 
 export const SEED_POSTS = [
   {
@@ -76,22 +76,8 @@ export function subscribeToPosts(callback, onError) {
   );
 }
 
-export async function seedPostsIfEmpty() {
-  const col = collection(db, POSTS_COL);
-  const snap = await getDocs(query(col, limit(1)));
-  if (!snap.empty) return;
-
-  const batch = writeBatch(db);
-  for (const post of SEED_POSTS) {
-    batch.set(doc(col), {
-      ...post,
-      createdAt: new Date(post.createdAt),
-    });
-  }
-  await batch.commit();
-}
-
 export async function addPost({ title, category, author, body, uid, displayName, language = 'ko' }) {
+  if (!uid) throw new Error('로그인이 필요합니다.');
   return addDoc(collection(db, POSTS_COL), {
     title: title.trim(),
     category,
@@ -106,8 +92,12 @@ export async function addPost({ title, category, author, body, uid, displayName,
   });
 }
 
-export async function likePost(postId) {
-  await updateDoc(doc(db, POSTS_COL, postId), { likes: increment(1) });
+export async function likePostAsUser(postId, uid) {
+  if (!uid) throw new Error('로그인이 필요합니다.');
+  await updateDoc(doc(db, POSTS_COL, postId), {
+    likes: increment(1),
+    likedBy: arrayUnion(uid),
+  });
 }
 
 export async function deletePost(postId) {
@@ -123,6 +113,7 @@ export async function editPost(postId, { title, category, body }) {
 }
 
 export async function addComment(postId, { author, body, uid, displayName }) {
+  if (!uid) throw new Error('로그인이 필요합니다.');
   const comment = {
     id: makeId(),
     author: (displayName || author || '익명').trim(),

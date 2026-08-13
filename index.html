@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>nullジマ — SQL Practice</title>
+    <title>NULL지마 — SQL 연습장</title>
     <script>
       (function () {
         var t = localStorage.getItem('sqldojo_theme') || 'light';
@@ -13,11 +13,6 @@
     <script src="/sql-wasm-browser.js"></script>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#3b82f6" />
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js').catch(function(){}); });
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>

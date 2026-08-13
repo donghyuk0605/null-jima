@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { runQuery, getSchema, translateSqlError } from '../lib/database';
+import { runQuery, getSchema, translateSqlError, resetWorkspaceDatabase } from '../lib/database';
 import { formatSql } from '../lib/sqlFormatter';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
@@ -9,6 +9,7 @@ import SyntaxPicker from '../components/SyntaxPicker';
 import CsvImport from '../components/CsvImport';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useUserSettings } from '../lib/userSettings';
 import { localizeExampleGroups, sanitizeJapaneseText } from '../lib/localizedContent';
 
 const AC_KEY = 'sqldojo_ac';
@@ -339,7 +340,8 @@ const EXAMPLE_GROUPS = [
 
 export default function Playground() {
   const { language, t } = useLanguage();
-  const [query, setQuery] = useState('SELECT * FROM employees;');
+  const settings = useUserSettings();
+  const [query, setQuery] = useState(() => settings.autoSaveSql ? (localStorage.getItem('sqldojo_playground_draft') || 'SELECT * FROM employees;') : 'SELECT * FROM employees;');
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [elapsed, setElapsed] = useState(null);
@@ -353,6 +355,10 @@ export default function Playground() {
     return stored === null ? true : stored === 'true';
   });
   const [showCsvImport, setShowCsvImport] = useState(false);
+
+  useEffect(() => {
+    if (settings.autoSaveSql) localStorage.setItem('sqldojo_playground_draft', query);
+  }, [query, settings.autoSaveSql]);
 
   const schemaForEditor = useMemo(() => {
     const obj = {};
@@ -407,6 +413,15 @@ export default function Playground() {
 
   const handleFormat = () => {
     setQuery((value) => formatSql(value));
+  };
+
+  const resetWorkspace = async () => {
+    if (!window.confirm(t('editor.database.resetConfirm'))) return;
+    await resetWorkspaceDatabase();
+    setSchema(getSchema());
+    setResults(null);
+    setError(null);
+    setDdlSuccess(false);
   };
 
   const changeEditorMode = (mode) => {
@@ -523,6 +538,7 @@ export default function Playground() {
               autocomplete={effectiveAutocomplete}
               schemaOverride={schemaForEditor}
               mode={editorMode}
+              fontSize={settings.editorFontSize}
               placeholder={editorMode === 'terminal' ? 'SELECT * FROM employees;' : undefined}
             />
             <div className="editor-toolbar">
@@ -535,6 +551,7 @@ export default function Playground() {
                 {t('playground.format')}
               </button>
               <button className="btn btn-ghost-sm" onClick={() => { setQuery(''); setResults(null); setError(null); }}>{t('playground.clear')}</button>
+              <button className="btn btn-ghost-sm" onClick={resetWorkspace}>{t('editor.database.reset')}</button>
               <button className="btn btn-ghost-sm" onClick={() => setShowCsvImport(v => !v)}>
                 {t('playground.csv')}
               </button>

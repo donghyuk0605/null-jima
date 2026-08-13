@@ -3,11 +3,50 @@ import { db } from './firebase';
 
 const KEY = 'sqldojo_progress';
 const FAVORITES_KEY = 'sqldojo_favorites';
-const PROGRESS_KEY = KEY;
+let syncUid = null;
+let syncTimer = null;
+
+export function mergeProgress(local, remote) {
+  const merged = { ...remote };
+  for (const [id, lp] of Object.entries(local)) {
+    const rp = remote[id] || { solved: false, attempts: 0, hintsUsed: 0 };
+    merged[id] = {
+      ...lp,
+      ...rp,
+      solved: Boolean(lp.solved || rp.solved),
+      favorite: Boolean(lp.favorite || rp.favorite),
+      review: Boolean(lp.review || rp.review),
+      attempted: Boolean(lp.attempted || rp.attempted),
+      draftSql: lp.draftSql || rp.draftSql || '',
+      attempts: Math.max(lp.attempts || 0, rp.attempts || 0),
+      hintsUsed: Math.max(lp.hintsUsed || 0, rp.hintsUsed || 0),
+    };
+  }
+  return merged;
+}
+
+const scheduleSync = () => {
+  if (!syncUid) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    setDoc(progressRef(syncUid), load()).catch(() => {});
+  }, 350);
+};
+
+export function setProgressSyncUser(uid) {
+  syncUid = uid || null;
+  clearTimeout(syncTimer);
+  syncTimer = null;
+}
 
 function load() {
   try {
-    return JSON.parse(localStorage.getItem(KEY)) || {};
+    const data = JSON.parse(localStorage.getItem(KEY)) || {};
+    const legacyFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    for (const id of legacyFavorites) {
+      data[id] = { ...(data[id] || {}), favorite: true };
+    }
+    return data;
   } catch {
     return {};
   }
@@ -15,6 +54,8 @@ function load() {
 
 function save(data) {
   localStorage.setItem(KEY, JSON.stringify(data));
+  localStorage.removeItem(FAVORITES_KEY);
+  scheduleSync();
 }
 
 export function getProblemProgress(id) {
@@ -65,24 +106,12 @@ export function getAllProgress() {
 
 export function resetProgress() {
   localStorage.removeItem(KEY);
+  localStorage.removeItem(FAVORITES_KEY);
+  scheduleSync();
 }
-
-// ── Favorites (standalone localStorage) ─────────────────
 
 export function getFavorites() {
-  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || []; } catch { return []; }
-}
-
-export function toggleFavoriteById(problemId) {
-  const favs = getFavorites();
-  const id = Number(problemId);
-  const next = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
-  return next;
-}
-
-export function isFavorite(problemId) {
-  return getFavorites().includes(Number(problemId));
+  return Object.entries(load()).filter(([, value]) => value.favorite).map(([id]) => Number(id));
 }
 
 // ── Wrong answers / attempted tracking ──────────────────
@@ -94,7 +123,7 @@ export function markAttempted(problemId) {
   if (!prog[key].solved) {
     prog[key].attempted = true;
   }
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(prog));
+  save(prog);
 }
 
 export function getWrongProblems() {
@@ -116,17 +145,7 @@ export async function syncProgressFromFirestore(uid) {
 
   if (snap.exists()) {
     const remote = snap.data();
-    const merged = { ...remote };
-    for (const [id, lp] of Object.entries(local)) {
-      const rp = remote[id] || { solved: false, attempts: 0, hintsUsed: 0 };
-      merged[id] = {
-        ...lp,
-        ...rp,
-        solved: lp.solved || rp.solved,
-        attempts: Math.max(lp.attempts || 0, rp.attempts || 0),
-        hintsUsed: Math.max(lp.hintsUsed || 0, rp.hintsUsed || 0),
-      };
-    }
+    const merged = mergeProgress(local, remote);
     save(merged);
     await setDoc(progressRef(uid), merged);
   } else if (Object.keys(local).length > 0) {
@@ -140,5 +159,6 @@ export async function pushProgressToFirestore(uid) {
 
 export async function resetProgressWithSync(uid) {
   localStorage.removeItem(KEY);
+  localStorage.removeItem(FAVORITES_KEY);
   if (uid) await setDoc(progressRef(uid), {});
 }

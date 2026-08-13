@@ -1,7 +1,14 @@
 const ACTIVITY_KEY = 'sqldojo_activity';
 
+export function toLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getTodayKey() {
-  return new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+  return toLocalDateKey();
 }
 
 function getActivity() {
@@ -36,19 +43,19 @@ export function getStreak() {
     streak = 1;
     d.setDate(d.getDate() - 1);
     while (true) {
-      const k = d.toISOString().split('T')[0];
+      const k = toLocalDateKey(d);
       if (data[k]) { streak++; d.setDate(d.getDate() - 1); }
       else break;
     }
   } else {
     // Check if yesterday was active (streak not broken yet today)
     d.setDate(d.getDate() - 1);
-    const yKey = d.toISOString().split('T')[0];
+    const yKey = toLocalDateKey(d);
     if (data[yKey]) {
       streak = 1;
       d.setDate(d.getDate() - 1);
       while (true) {
-        const k = d.toISOString().split('T')[0];
+        const k = toLocalDateKey(d);
         if (data[k]) { streak++; d.setDate(d.getDate() - 1); }
         else break;
       }
@@ -85,7 +92,7 @@ export function getHeatmapData(weeks = 17) {
 
   let d = new Date(start);
   while (d <= today) {
-    const key = d.toISOString().split('T')[0];
+    const key = toLocalDateKey(d);
     const count = data[key] ? (data[key].queries + data[key].problems) : 0;
     result.push({ date: key, count, day: d.getDay() });
     d.setDate(d.getDate() + 1);

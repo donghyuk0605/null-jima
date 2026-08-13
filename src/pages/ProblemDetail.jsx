@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { PROBLEMS, TAG_COLORS } from '../data/problems';
-import { runQuery, gradeQuery, translateSqlError } from '../lib/database';
+import { runProblemQuery, gradeQuery, translateSqlError } from '../lib/database';
 import { recordActivity } from '../lib/streak';
 import {
   getProblemProgress,
@@ -9,8 +9,6 @@ import {
   saveProblemDraft,
   toggleFavorite,
   toggleReview,
-  toggleFavoriteById,
-  isFavorite,
   markAttempted,
 } from '../lib/progress';
 import { formatSql } from '../lib/sqlFormatter';
@@ -22,6 +20,7 @@ import SyntaxPicker from '../components/SyntaxPicker';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
+import { useUserSettings } from '../lib/userSettings';
 
 const AC_KEY = 'sqldojo_ac';
 
@@ -45,6 +44,7 @@ export default function ProblemDetail() {
 
 function ProblemDetailContent({ problem }) {
   const { t } = useLanguage();
+  const settings = useUserSettings();
   const tl = (level) => translateLevel(level, t);
   const tt = (tag) => translateTag(tag, t);
   const [progress, setProgress] = useState(() => getProblemProgress(problem.id));
@@ -54,11 +54,9 @@ function ProblemDetailContent({ problem }) {
   const [elapsed, setElapsed] = useState(null);
   const [gradeResult, setGradeResult] = useState(null);
   const [hintsOpen, setHintsOpen] = useState(0);
-  const [hintsShown, setHintsShown] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [favorited, setFavorited] = useState(() => isFavorite(problem.id));
   const [editorMode, setEditorMode] = useState(() => getStoredEditorMode());
-  const [mobilePanel, setMobilePanel] = useState('write');
+  const [mobilePanel, setMobilePanel] = useState('info');
   const [timerActive, setTimerActive] = useState(false);
   const [timerSecs, setTimerSecs] = useState(0);
   const timerRef = useRef(null);
@@ -73,7 +71,7 @@ function ProblemDetailContent({ problem }) {
     setGradeResult(null);
     const start = performance.now();
     try {
-      const res = runQuery(userSql.trim());
+      const res = runProblemQuery(userSql.trim());
       setElapsed(Math.round(performance.now() - start));
       setResults(res);
     } catch (e) {
@@ -98,6 +96,7 @@ function ProblemDetailContent({ problem }) {
     } else {
       markAttempted(problem.id);
     }
+    setMobilePanel('result');
   }, [userSql, problem, hintsOpen, execute, t]);
 
   const toggleTimer = () => {
@@ -139,8 +138,10 @@ function ProblemDetailContent({ problem }) {
   const updateSql = (value) => {
     setUserSql(value);
     if (problem) {
-      const updated = saveProblemDraft(problem.id, value);
-      setProgress(updated);
+      if (settings.autoSaveSql) {
+        const updated = saveProblemDraft(problem.id, value);
+        setProgress(updated);
+      }
     }
   };
 
@@ -229,36 +230,15 @@ function ProblemDetailContent({ problem }) {
           <div className="problem-title-row">
             <h2 className="problem-title">{problem.title}</h2>
             <button
-              className={`fav-btn ${favorited ? 'fav-active' : ''}`}
-              onClick={() => { const next = toggleFavoriteById(problem.id); setFavorited(next.includes(Number(problem.id))); }}
-              title={t('problem.favorite.title')}
+                className={`fav-btn ${progress?.favorite ? 'fav-active' : ''}`}
+                onClick={handleFavorite}
+                title={t('problem.favorite.title')}
+                aria-pressed={Boolean(progress?.favorite)}
             >
               <Icon name="star" className="fav-icon" />
             </button>
           </div>
           <p className="problem-desc">{problem.description}</p>
-
-          {problem.hints && problem.hints.length > 0 && (
-            <div className="hint-section">
-              <div className="hint-header">
-                <span className="hint-title">{t('problem.hint.title')}</span>
-                {hintsShown < problem.hints.length && (
-                  <button className="hint-btn" onClick={() => setHintsShown(h => h + 1)}>
-                    {t('problem.hint.show', { shown: hintsShown, total: problem.hints.length })}
-                  </button>
-                )}
-                {hintsShown > 0 && (
-                  <button className="hint-reset" onClick={() => setHintsShown(0)}>{t('problem.hint.reset')}</button>
-                )}
-              </div>
-              {problem.hints.slice(0, hintsShown).map((hint, i) => (
-                <div key={i} className="hint-item">
-                  <span className="hint-num">{t('problem.hint.title')} {i + 1}</span>
-                  <span className="hint-text">{hint}</span>
-                </div>
-              ))}
-            </div>
-          )}
 
           <div className="problem-tables">
             <div className="ptables-label">{t('problem.tables.label')}</div>
@@ -268,17 +248,13 @@ function ProblemDetailContent({ problem }) {
           </div>
 
           <div className="problem-side-actions">
-            <button className="btn btn-ghost-sm" onClick={handleFavorite}>
-              <Icon name="star" className="status-icon" />
-              {progress?.favorite ? t('problem.action.unfav') : t('problem.action.fav')}
-            </button>
             <button className="btn btn-ghost-sm" onClick={handleReview}>
               {progress?.review ? t('problem.action.unreview') : t('problem.action.review')}
             </button>
           </div>
 
           {/* 힌트 */}
-          <div className="hints-section">
+          {settings.showLearningHints && <div className="hints-section">
             <div className="hints-label">{t('problem.hints.label')}</div>
             {hintSteps.map((hint, i) => {
               const labels = [t('problem.hint.step.1'), t('problem.hint.step.2'), t('problem.hint.step.3'), t('problem.hint.step.4')];
@@ -298,7 +274,7 @@ function ProblemDetailContent({ problem }) {
                 </div>
               );
             })}
-          </div>
+          </div>}
 
           {/* 정답 보기 */}
           <div className="answer-section">
@@ -345,6 +321,7 @@ function ProblemDetailContent({ problem }) {
                 height={editorMode === 'terminal' ? '360px' : '320px'}
                 autocomplete={effectiveAutocomplete}
                 mode={editorMode}
+                fontSize={settings.editorFontSize}
               />
               <div className="editor-toolbar">
                 <button className="btn btn-run" onClick={execute}>

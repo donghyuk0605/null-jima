@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getSchema, runQuery, translateSqlError, getRowsModified, getTableStats } from '../lib/database';
+import { getSchema, runQuery, translateSqlError, getRowsModified, getTableStats, resetWorkspaceDatabase } from '../lib/database';
 import { formatSql } from '../lib/sqlFormatter';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
 import EditorModeBar from '../components/EditorModeBar';
@@ -10,6 +10,8 @@ import SqlEditor from '../components/SqlEditor';
 import { getSavedQueries, saveQuery, deleteSavedQuery } from '../lib/savedQueries';
 import { useLanguage } from '../contexts/LanguageContext';
 import { sanitizeJapaneseText } from '../lib/localizedContent';
+import { saveUserSettings, useUserSettings } from '../lib/userSettings';
+import { splitSqlStatements } from '../lib/sqlStatements';
 
 const TABS_KEY = 'sqldojo_tabs';
 const ACTIVE_TAB_KEY = 'sqldojo_active_tab';
@@ -55,6 +57,7 @@ const saveHistory = (items) => localStorage.setItem(EDITOR_HISTORY_KEY, JSON.str
 
 export default function Editor() {
   const { language, t } = useLanguage();
+  const settings = useUserSettings();
   const safeText = (value) => (language === 'ja' ? sanitizeJapaneseText(value) : value);
   const locale = language === 'ja' ? 'ja-JP' : 'ko-KR';
   const [tabs, setTabs] = useState(() => loadTabs(t('editor.newTab', { n: 1 })));
@@ -77,7 +80,7 @@ export default function Editor() {
   const [selection, setSelection] = useState('');
 
   // Feature 3: font size
-  const [fontSize, setFontSize] = useState(() => Number(localStorage.getItem('sqldojo_fontsize')) || 14);
+  const [fontSize, setFontSize] = useState(() => settings.editorFontSize || 13);
 
   // Feature 4: sidebar collapse
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -88,7 +91,10 @@ export default function Editor() {
   // Persist font size
   useEffect(() => {
     localStorage.setItem('sqldojo_fontsize', String(fontSize));
-  }, [fontSize]);
+    if (settings.editorFontSize !== fontSize) {
+      saveUserSettings({ ...settings, editorFontSize: fontSize });
+    }
+  }, [fontSize, settings]);
 
   // Feature 5: keyboard listener for ? and Escape
   useEffect(() => {
@@ -112,10 +118,10 @@ export default function Editor() {
   const updateQuery = useCallback((val) => {
     setTabs(prev => {
       const next = prev.map(t => t.id === activeTabId ? { ...t, sql: val } : t);
-      saveTabs(next);
+      if (settings.autoSaveSql) saveTabs(next);
       return next;
     });
-  }, [activeTabId]);
+  }, [activeTabId, settings.autoSaveSql]);
 
   const updateTabs = (next) => { setTabs(next); saveTabs(next); };
 
@@ -184,7 +190,7 @@ export default function Editor() {
     setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : t));
     const start = performance.now();
     try {
-      const stmts = sql.split(';').map(s => s.trim()).filter(Boolean);
+      const stmts = splitSqlStatements(sql);
       const allResults = [];
       for (const stmt of stmts) {
         const targetSql = explainMode && !stmt.toUpperCase().startsWith('EXPLAIN')
@@ -231,6 +237,13 @@ export default function Editor() {
   const clearEditor = () => {
     updateQuery('');
     setTabs(prev => prev.map(t => t.id === activeTabId ? { ...t, results: null, error: null, elapsed: null, ddlSuccess: false, rowsModified: null, multiResults: null } : t));
+  };
+
+  const resetWorkspace = async () => {
+    if (!window.confirm(t('editor.database.resetConfirm'))) return;
+    await resetWorkspaceDatabase();
+    refreshSchema();
+    setTabs(prev => prev.map(tab => ({ ...tab, results: null, error: null, multiResults: null })));
   };
 
   const clearHistory = () => { setHistory([]); localStorage.removeItem(EDITOR_HISTORY_KEY); };
@@ -463,6 +476,7 @@ export default function Editor() {
                 {t('editor.format')}
               </button>
               <button className="btn btn-ghost-sm" onClick={clearEditor}>{t('editor.clear')}</button>
+              <button className="btn btn-ghost-sm" onClick={resetWorkspace}>{t('editor.database.reset')}</button>
               <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title={t('editor.save')}><Icon name="save" className="status-icon" />{t('editor.save')}</button>
               <button
                 className={`btn btn-ghost-sm ${explainMode ? 'btn-active' : ''}`}
@@ -538,9 +552,9 @@ export default function Editor() {
       {/* Feature 5: shortcut modal */}
       {showShortcuts && (
         <div className="shortcut-overlay" onClick={() => setShowShortcuts(false)}>
-          <div className="shortcut-modal" onClick={e => e.stopPropagation()}>
+          <div className="shortcut-modal" role="dialog" aria-modal="true" aria-labelledby="shortcut-dialog-title" onClick={e => e.stopPropagation()}>
             <div className="shortcut-modal-header">
-              <h3>{t('editor.shortcut.title')}</h3>
+              <h3 id="shortcut-dialog-title">{t('editor.shortcut.title')}</h3>
               <button onClick={() => setShowShortcuts(false)}><Icon name="close" style={{width:14,height:14}} /></button>
             </div>
             <div className="shortcut-list">

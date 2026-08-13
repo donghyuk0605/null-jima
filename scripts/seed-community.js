@@ -1,17 +1,8 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, limit, addDoc } from 'firebase/firestore';
+import { applicationDefault, initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyD0VxqRkFczHPXrUbHX5tQh817u6HpkVnk',
-  authDomain: 'null-jima.firebaseapp.com',
-  projectId: 'null-jima',
-  storageBucket: 'null-jima.firebasestorage.app',
-  messagingSenderId: '538909356664',
-  appId: '1:538909356664:web:215f1146dedc0853b4f38d',
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+initializeApp({ credential: applicationDefault(), projectId: 'null-jima' });
+const db = getFirestore();
 
 const POSTS = [
   {
@@ -166,21 +157,20 @@ LEFT JOIN employees e ON d.id = e.department_id AND e.salary >= 6000000`,
 ];
 
 async function seed() {
-  const col = collection(db, 'community');
-
-  // 이미 데이터가 있으면 추가만 함
-  const existing = await getDocs(query(col, limit(1)));
-  if (!existing.empty) {
-    console.log('기존 데이터 있음 — 새 글만 추가합니다.');
-  }
-
-  for (const post of POSTS) {
-    const ref = await addDoc(col, post);
-    console.log(`✓ 추가: [${post.category}] ${post.title} (${ref.id})`);
-  }
+  const batch = db.batch();
+  POSTS.forEach((post, index) => {
+    const ref = db.collection('community').doc(`official-${String(index + 1).padStart(2, '0')}`);
+    batch.set(ref, {
+      ...post,
+      authorUid: 'system',
+      language: 'ko',
+      likedBy: [],
+      comments: post.comments.map((comment) => ({ ...comment, authorUid: 'system' })),
+    }, { merge: true });
+  });
+  await batch.commit();
 
   console.log(`\n완료: ${POSTS.length}개 게시글 추가됨`);
-  process.exit(0);
 }
 
 seed().catch((e) => {

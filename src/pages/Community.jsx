@@ -1,12 +1,13 @@
 import { useMemo, useState, useEffect } from 'react';
 import Icon from '../components/Icon';
 import {
-  subscribeToPosts, addPost, likePost, deletePost, addComment, editPost,
-  seedPostsIfEmpty, SEED_POSTS,
+  subscribeToPosts, addPost, likePostAsUser, deletePost, addComment, editPost,
+  SEED_POSTS,
 } from '../lib/community';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizePosts } from '../lib/localizedContent';
+import { useUserSettings } from '../lib/userSettings';
 
 const CATEGORIES = [
   { value: '전체', key: 'category.all' },
@@ -104,6 +105,7 @@ const formatDate = (value, language) => {
 
 export default function Community() {
   const { user } = useAuth();
+  const settings = useUserSettings();
   const { language, t } = useLanguage();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,9 +122,6 @@ export default function Community() {
   const PAGE_SIZE = 10;
 
   useEffect(() => {
-    // seed 먼저 실행 (이미 데이터 있으면 no-op)
-    seedPostsIfEmpty().catch((e) => console.warn('[community] seed failed:', e));
-
     const unsub = subscribeToPosts(
       (nextPosts) => {
         setPosts(nextPosts);
@@ -160,14 +159,14 @@ export default function Community() {
 
   const handleCreatePost = async (event) => {
     event.preventDefault();
-    if (!draft.title.trim() || !draft.body.trim() || submitting) return;
+    if (!user || !draft.title.trim() || !draft.body.trim() || submitting) return;
     setSubmitting(true);
     try {
       const ref = await addPost({
         ...draft,
         language,
         uid: user?.uid,
-        displayName: user?.displayName,
+        displayName: settings.displayName || user?.displayName,
       });
       setSelectedId(ref.id);
       setDraft({ title: '', category: '질문', author: '', body: '' });
@@ -179,7 +178,8 @@ export default function Community() {
   };
 
   const handleLike = (postId) => {
-    likePost(postId).catch((e) => console.error('like failed:', e));
+    if (!user) return;
+    likePostAsUser(postId, user.uid).catch((e) => console.error('like failed:', e));
   };
 
   const handleDelete = async (postId) => {
@@ -214,7 +214,7 @@ export default function Community() {
       await addComment(selectedPost.id, {
         ...commentDraft,
         uid: user?.uid,
-        displayName: user?.displayName,
+        displayName: settings.displayName || user?.displayName,
       });
       setCommentDraft({ author: '', body: '' });
     } catch (e) {
@@ -323,15 +323,23 @@ export default function Community() {
                   </p>
                 </div>
                 <div className="community-detail-actions">
-                  <button className="btn btn-ghost-sm" onClick={() => handleLike(selectedPost.id)}>
+                  <button
+                    className="btn btn-ghost-sm"
+                    onClick={() => handleLike(selectedPost.id)}
+                    disabled={!user || selectedPost.likedBy?.includes(user.uid)}
+                  >
                     {t('community.like', { count: selectedPost.likes })}
                   </button>
-                  <button className="btn btn-ghost-sm" onClick={() => { setEditingPost(selectedPost.id); setEditDraft({ title: selectedPost.title, category: selectedPost.category, body: selectedPost.body }); }}>
-                    {t('community.edit')}
-                  </button>
-                  <button className="btn btn-ghost-sm" onClick={() => handleDelete(selectedPost.id)}>
-                    {t('community.delete')}
-                  </button>
+                  {user?.uid === selectedPost.authorUid && (
+                    <>
+                      <button className="btn btn-ghost-sm" onClick={() => { setEditingPost(selectedPost.id); setEditDraft({ title: selectedPost.title, category: selectedPost.category, body: selectedPost.body }); }}>
+                        {t('community.edit')}
+                      </button>
+                      <button className="btn btn-ghost-sm" onClick={() => handleDelete(selectedPost.id)}>
+                        {t('community.delete')}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -367,14 +375,7 @@ export default function Community() {
                   </div>
                 ))}
 
-                <form className="community-comment-form" onSubmit={handleAddComment}>
-                  {!user && (
-                    <input
-                      value={commentDraft.author}
-                      onChange={(e) => setCommentDraft((v) => ({ ...v, author: e.target.value }))}
-                      placeholder={t('community.commentAuthorPlaceholder')}
-                    />
-                  )}
+                {user ? <form className="community-comment-form" onSubmit={handleAddComment}>
                   <textarea
                     value={commentDraft.body}
                     onChange={(e) => setCommentDraft((v) => ({ ...v, body: e.target.value }))}
@@ -384,7 +385,7 @@ export default function Community() {
                   <button className="btn btn-secondary" type="submit" disabled={submitting}>
                     {t('community.commentSubmit')}
                   </button>
-                </form>
+                </form> : <p className="community-auth-note">{t('community.authRequired')}</p>}
               </div>
             </article>
           )}
@@ -392,7 +393,7 @@ export default function Community() {
 
         <aside className="community-compose">
           <div className="community-compose-title">{t('community.composeTitle')}</div>
-          <form onSubmit={handleCreatePost}>
+          {user ? <form onSubmit={handleCreatePost}>
             <label>
               {t('community.postTitle')}
               <input
@@ -412,16 +413,6 @@ export default function Community() {
                 ))}
               </select>
             </label>
-            {!user && (
-              <label>
-                {t('community.author')}
-                <input
-                  value={draft.author}
-                  onChange={(e) => setDraft((v) => ({ ...v, author: e.target.value }))}
-                  placeholder={t('community.authorPlaceholder')}
-                />
-              </label>
-            )}
             <label>
               {t('community.body')}
               <textarea
@@ -439,7 +430,7 @@ export default function Community() {
                 {t('community.writeDisabled')}
               </p>
             )}
-          </form>
+          </form> : <p className="community-auth-note">{t('community.authRequired')}</p>}
         </aside>
       </div>
     </div>

@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
-import { getAllProgress, resetProgress, getWrongProblems } from '../lib/progress';
+import { getAllProgress, resetProgressWithSync, getWrongProblems } from '../lib/progress';
 import { useState } from 'react';
 import Icon from '../components/Icon';
 import { getHeatmapData, getStreak } from '../lib/streak';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
+import { useAuth } from '../contexts/AuthContext';
 
 function HeatmapChart({ data, t }) {
   const weeks = [];
@@ -61,6 +62,7 @@ function HeatmapChart({ data, t }) {
 }
 
 export default function Progress() {
+  const { user } = useAuth();
   const { language, t } = useLanguage();
   const [, forceUpdate] = useState(0);
   const localizedProblems = localizeProblems(PROBLEMS, language);
@@ -92,9 +94,9 @@ export default function Progress() {
     });
   });
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (window.confirm(t('progress.reset.confirm'))) {
-      resetProgress();
+      await resetProgressWithSync(user?.uid);
       forceUpdate((n) => n + 1);
     }
   };
