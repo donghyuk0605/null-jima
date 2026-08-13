@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { LEARN_TOPICS } from '../data/learn';
 import { PROBLEMS } from '../data/problems';
-import { runQuery, translateSqlError } from '../lib/database';
+import { runProblemQuery, translateSqlError } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
@@ -27,7 +27,7 @@ export default function LearnTopic() {
 
   const runExample = (i, sqlStr) => {
     try {
-      const res = runQuery(sqlStr.trim());
+      const res = runProblemQuery(sqlStr.trim());
       setRunResults((prev) => ({ ...prev, [i]: res }));
       setRunErrors((prev) => ({ ...prev, [i]: null }));
     } catch (e) {

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { getAllProgress } from '../lib/progress';
+import { useProgress } from '../lib/progress';
 import { PROBLEMS, LEVEL_ORDER } from '../data/problems';
 import { LEARN_TOPICS } from '../data/learn';
-import { getStreak, getTodayGoal, setTodayGoal } from '../lib/streak';
+import { getTodayGoal, setTodayGoal, useStreak } from '../lib/streak';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeLearnTopics, localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
@@ -12,16 +12,19 @@ export default function Home() {
   const { language, t } = useLanguage();
   const tl = (level) => translateLevel(level, t);
   const tt = (tag) => translateTag(tag, t);
-  const [streakData] = useState(() => getStreak());
+  const streakData = useStreak();
   const [goal, setGoal] = useState(() => getTodayGoal());
   const localizedProblems = localizeProblems(PROBLEMS, language);
   const learnTopics = localizeLearnTopics(LEARN_TOPICS, language);
 
-  const prog = getAllProgress();
-  const solved = Object.values(prog).filter((p) => p.solved).length;
+  const prog = useProgress();
+  const solved = PROBLEMS.filter((problem) => prog[problem.id]?.solved).length;
   const total = PROBLEMS.length;
-  const accuracy = Object.values(prog).length === 0 ? null
-    : Math.round((solved / Object.values(prog).length) * 100);
+  const attempted = PROBLEMS.filter((problem) => {
+    const entry = prog[problem.id];
+    return entry?.attempted || Number(entry?.attempts) > 0;
+  }).length;
+  const accuracy = attempted === 0 ? null : Math.round((solved / attempted) * 100);
 
   const todayProblem = localizedProblems.find((p) => !prog[p.id]?.solved) || localizedProblems[0];
 

@@ -1,8 +1,12 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useSyncExternalStore } from 'react';
 import { db } from './firebase';
 
 const KEY = 'sqldojo_progress';
 const FAVORITES_KEY = 'sqldojo_favorites';
+const OWNER_KEY = 'sqldojo_progress_owner';
+const EMPTY_PROGRESS = Object.freeze({});
+const listeners = new Set();
 let syncUid = null;
 let syncTimer = null;
 
@@ -33,13 +37,49 @@ const scheduleSync = () => {
   }, 350);
 };
 
+function readOwner() {
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setOwner(uid) {
+  try {
+    if (uid) localStorage.setItem(OWNER_KEY, uid);
+    else localStorage.removeItem(OWNER_KEY);
+  } catch {
+    // Local persistence is optional.
+  }
+}
+
+function clearStoredProgress() {
+  try {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(FAVORITES_KEY);
+  } catch {
+    // Local persistence is optional.
+  }
+}
+
 export function setProgressSyncUser(uid) {
   syncUid = uid || null;
   clearTimeout(syncTimer);
   syncTimer = null;
 }
 
+export function setProgressOwner(owner) {
+  if (!owner) return;
+  if (readOwner() && readOwner() !== owner) {
+    clearStoredProgress();
+    publishProgress();
+  }
+  setOwner(owner);
+}
+
 function load() {
+  if (typeof localStorage === 'undefined') return {};
   try {
     const data = JSON.parse(localStorage.getItem(KEY)) || {};
     const legacyFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
@@ -52,25 +92,66 @@ function load() {
   }
 }
 
+let progressSnapshot = load();
+
+function publishProgress() {
+  progressSnapshot = load();
+  listeners.forEach((listener) => listener());
+}
+
+function subscribeProgress(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export function useProgress() {
+  return useSyncExternalStore(subscribeProgress, () => progressSnapshot, () => EMPTY_PROGRESS);
+}
+
 function save(data) {
-  localStorage.setItem(KEY, JSON.stringify(data));
-  localStorage.removeItem(FAVORITES_KEY);
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data));
+    localStorage.removeItem(FAVORITES_KEY);
+  } catch {
+    // Local persistence is optional.
+  }
+  if (syncUid) setOwner(syncUid);
+  publishProgress();
   scheduleSync();
 }
 
+const normalizeEntry = (value = {}) => {
+  const entry = {
+    solved: false,
+    attempts: 0,
+    hintsUsed: 0,
+    favorite: false,
+    review: false,
+    attempted: false,
+    draftSql: '',
+    ...value,
+  };
+  return {
+    ...entry,
+    attempts: Number(entry.attempts) || 0,
+    hintsUsed: Number(entry.hintsUsed) || 0,
+  };
+};
+
 export function getProblemProgress(id) {
-  return load()[id] || { solved: false, attempts: 0, hintsUsed: 0, favorite: false, review: false, draftSql: '' };
+  return normalizeEntry(load()[id]);
 }
 
 export function recordAttempt(id, solved, hintsUsed = 0) {
   const data = load();
-  const prev = data[id] || { solved: false, attempts: 0, hintsUsed: 0 };
+  const prev = normalizeEntry(data[id]);
   data[id] = {
     ...prev,
-    solved: prev.solved || solved,
+    solved: prev.solved || Boolean(solved),
     attempts: prev.attempts + 1,
-    hintsUsed: Math.max(prev.hintsUsed, hintsUsed),
+    hintsUsed: Math.max(prev.hintsUsed, Number(hintsUsed) || 0),
     review: prev.review || !solved,
+    attempted: true,
   };
   save(data);
   return data[id];
@@ -78,7 +159,7 @@ export function recordAttempt(id, solved, hintsUsed = 0) {
 
 export function saveProblemDraft(id, draftSql) {
   const data = load();
-  const prev = data[id] || { solved: false, attempts: 0, hintsUsed: 0 };
+  const prev = normalizeEntry(data[id]);
   data[id] = { ...prev, draftSql };
   save(data);
   return data[id];
@@ -86,7 +167,7 @@ export function saveProblemDraft(id, draftSql) {
 
 export function toggleFavorite(id) {
   const data = load();
-  const prev = data[id] || { solved: false, attempts: 0, hintsUsed: 0 };
+  const prev = normalizeEntry(data[id]);
   data[id] = { ...prev, favorite: !prev.favorite };
   save(data);
   return data[id];
@@ -94,19 +175,19 @@ export function toggleFavorite(id) {
 
 export function toggleReview(id) {
   const data = load();
-  const prev = data[id] || { solved: false, attempts: 0, hintsUsed: 0 };
+  const prev = normalizeEntry(data[id]);
   data[id] = { ...prev, review: !prev.review };
   save(data);
   return data[id];
 }
 
 export function getAllProgress() {
-  return load();
+  return progressSnapshot;
 }
 
 export function resetProgress() {
-  localStorage.removeItem(KEY);
-  localStorage.removeItem(FAVORITES_KEY);
+  clearStoredProgress();
+  publishProgress();
   scheduleSync();
 }
 
@@ -119,7 +200,7 @@ export function getFavorites() {
 export function markAttempted(problemId) {
   const prog = load();
   const key = String(problemId);
-  if (!prog[key]) prog[key] = {};
+  prog[key] = normalizeEntry(prog[key]);
   if (!prog[key].solved) {
     prog[key].attempted = true;
   }
@@ -140,7 +221,14 @@ function progressRef(uid) {
 }
 
 export async function syncProgressFromFirestore(uid) {
+  const owner = readOwner();
+  if (owner && owner !== uid) {
+    clearStoredProgress();
+    publishProgress();
+  }
+  setOwner(uid);
   const snap = await getDoc(progressRef(uid));
+  if (syncUid !== uid) return;
   const local = load();
 
   if (snap.exists()) {
@@ -158,7 +246,14 @@ export async function pushProgressToFirestore(uid) {
 }
 
 export async function resetProgressWithSync(uid) {
-  localStorage.removeItem(KEY);
-  localStorage.removeItem(FAVORITES_KEY);
+  clearStoredProgress();
+  setOwner(uid);
+  publishProgress();
   if (uid) await setDoc(progressRef(uid), {});
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if ([KEY, FAVORITES_KEY, OWNER_KEY].includes(event.key)) publishProgress();
+  });
 }

@@ -221,7 +221,10 @@ export async function initDB() {
   pristineBytes = db.export();
   try {
     const savedWorkspace = await readWorkspace();
-    if (savedWorkspace) db = new SQL.Database(new Uint8Array(savedWorkspace));
+    if (savedWorkspace) {
+      db.close();
+      db = new SQL.Database(new Uint8Array(savedWorkspace));
+    }
   } catch {
     // A broken or unavailable browser store should never block the SQL engine.
   }
@@ -248,6 +251,8 @@ export function runProblemQuery(sql) {
 
 export async function resetWorkspaceDatabase() {
   if (!SQLRuntime || !pristineBytes) throw new Error('DB not initialized');
+  clearTimeout(persistTimer);
+  persistTimer = null;
   if (db) db.close();
   db = new SQLRuntime.Database(pristineBytes);
   await clearWorkspace();

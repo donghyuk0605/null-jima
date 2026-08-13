@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { getAllProgress } from '../lib/progress';
+import { useProgress } from '../lib/progress';
 import { PROBLEMS } from '../data/problems';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -51,10 +51,10 @@ const MOBILE_NAV = [
 export default function Layout({ children, theme, onToggleTheme }) {
   const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const prog = getAllProgress();
-  const solved = Object.values(prog).filter((p) => p.solved).length;
+  const prog = useProgress();
+  const solved = PROBLEMS.filter((problem) => prog[problem.id]?.solved).length;
   const total = PROBLEMS.length;
-  const { user, isGuest, login, logout, exitGuestMode } = useAuth();
+  const { user, isGuest, login, logout } = useAuth();
 
   return (
     <div className="layout">
@@ -144,7 +144,7 @@ export default function Layout({ children, theme, onToggleTheme }) {
               <span className="nav-guest-label">{t('nav.guest')}</span>
               <button
                 className="nav-login-btn"
-                onClick={() => { exitGuestMode(); login().catch(() => {}); }}
+                onClick={() => { login().catch(() => {}); }}
               >
                 <GoogleIcon />
                 {t('nav.login')}

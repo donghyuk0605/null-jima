@@ -195,7 +195,7 @@ function ResultGrid({ result, elapsed }) {
       {showStats && (
         <div className="col-stats-bar">
           {displayColumns.map((col, i) => (
-            <div key={col} className="col-stat-item">
+            <div key={`${col}-${i}`} className="col-stat-item">
               <div className="col-stat-name">{col}</div>
               <div className="col-stat-vals">
                 <span title={t('result.stat.null')}>{t('result.stat.null.label', { n: colStats[i].nulls })}</span>
@@ -222,9 +222,17 @@ function ResultGrid({ result, elapsed }) {
               <th className="row-num-th">#</th>
               {displayColumns.map((col, i) => (
                 <th
-                  key={col}
+                  key={`${col}-${i}`}
                   className={`col-th sortable ${sortCol === i ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : ''}`}
                   onClick={() => handleSort(i)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleSort(i);
+                    }
+                  }}
+                  tabIndex={0}
+                  aria-sort={sortCol === i ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
                   title={t('result.sort')}
                 >
                   <span className="col-th-text">{col}</span>
@@ -248,6 +256,15 @@ function ResultGrid({ result, elapsed }) {
                       key={ci}
                       className={`${cell === null ? 'null-cell' : 'data-cell'} ${copiedKey === key ? 'cell-copied' : ''}`}
                       onClick={() => cell !== null && copyCell(cell, key)}
+                      onKeyDown={(event) => {
+                        if (cell !== null && (event.key === 'Enter' || event.key === ' ')) {
+                          event.preventDefault();
+                          copyCell(cell, key);
+                        }
+                      }}
+                      tabIndex={cell !== null ? 0 : undefined}
+                      role={cell !== null ? 'button' : undefined}
+                      aria-label={cell !== null ? `${t('result.copy.cell')}: ${String(cell)}` : undefined}
                       title={cell !== null ? t('result.copy.cell') : 'NULL'}
                     >
                       {cell === null

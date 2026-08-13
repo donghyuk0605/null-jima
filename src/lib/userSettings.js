@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { db } from './firebase';
 
 const KEY = 'sqldojo_user_settings';
+const OWNER_KEY = 'sqldojo_settings_owner';
 
 export const DB_TYPES = [
   {
@@ -46,6 +47,8 @@ export const DEFAULT_SETTINGS = {
 };
 
 const listeners = new Set();
+let syncUid = null;
+let syncTimer = null;
 
 const readSettings = () => {
   if (typeof localStorage === 'undefined') return DEFAULT_SETTINGS;
@@ -70,6 +73,39 @@ const subscribe = (listener) => {
   return () => listeners.delete(listener);
 };
 
+function readOwner() {
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setOwner(uid) {
+  try {
+    if (uid) localStorage.setItem(OWNER_KEY, uid);
+    else localStorage.removeItem(OWNER_KEY);
+  } catch {
+    // Local persistence is optional.
+  }
+}
+
+function clearStoredSettings() {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // Local persistence is optional.
+  }
+}
+
+const scheduleSync = () => {
+  if (!syncUid) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    setDoc(settingsRef(syncUid), settingsSnapshot).catch(() => {});
+  }, 350);
+};
+
 export function getUserSettings() {
   return settingsSnapshot;
 }
@@ -80,15 +116,38 @@ export function useUserSettings() {
 
 export function saveUserSettings(settings) {
   const next = { ...DEFAULT_SETTINGS, ...settings };
-  localStorage.setItem(KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    // Local persistence is optional.
+  }
+  if (syncUid) setOwner(syncUid);
   publish(next);
+  scheduleSync();
   return next;
 }
 
 export function resetUserSettings() {
-  localStorage.removeItem(KEY);
+  clearStoredSettings();
   publish(DEFAULT_SETTINGS);
+  scheduleSync();
   return DEFAULT_SETTINGS;
+}
+
+export function setSettingsSyncUser(uid) {
+  syncUid = uid || null;
+  clearTimeout(syncTimer);
+  syncTimer = null;
+  if (uid) setOwner(uid);
+}
+
+export function setSettingsOwner(owner) {
+  if (!owner) return;
+  if (readOwner() && readOwner() !== owner) {
+    clearStoredSettings();
+    publish(DEFAULT_SETTINGS);
+  }
+  setOwner(owner);
 }
 
 // ── Firestore sync ───────────────────────────────────────
@@ -98,8 +157,15 @@ function settingsRef(uid) {
 }
 
 export async function syncSettingsFromFirestore(uid) {
+  const owner = readOwner();
+  if (owner && owner !== uid) {
+    clearStoredSettings();
+    publish(DEFAULT_SETTINGS);
+  }
+  setOwner(uid);
   const local = getUserSettings();
   const snap = await getDoc(settingsRef(uid));
+  if (syncUid !== uid) return null;
   if (snap.exists()) {
     const remote = snap.data();
     // Local wins for language: if local differs from remote default, keep local and push to Firestore
@@ -108,8 +174,7 @@ export async function syncSettingsFromFirestore(uid) {
       merged.language = local.language;
       await setDoc(settingsRef(uid), merged);
     }
-    localStorage.setItem(KEY, JSON.stringify(merged));
-    publish(merged);
+    saveUserSettings(merged);
     return merged;
   } else {
     await setDoc(settingsRef(uid), local);
@@ -118,7 +183,16 @@ export async function syncSettingsFromFirestore(uid) {
 }
 
 export async function saveUserSettingsWithSync(settings, uid) {
+  setSettingsSyncUser(uid);
   const saved = saveUserSettings(settings);
   if (uid) await setDoc(settingsRef(uid), saved);
   return saved;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (![KEY, OWNER_KEY].includes(event.key)) return;
+    settingsSnapshot = readSettings();
+    listeners.forEach((listener) => listener());
+  });
 }

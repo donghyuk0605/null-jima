@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
-import { getAllProgress, resetProgressWithSync, getWrongProblems } from '../lib/progress';
-import { useState } from 'react';
+import { useProgress, resetProgressWithSync, getWrongProblems } from '../lib/progress';
 import Icon from '../components/Icon';
-import { getHeatmapData, getStreak } from '../lib/streak';
+import { getHeatmapData, useStreak } from '../lib/streak';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,7 +28,7 @@ function HeatmapChart({ data, t }) {
   weeks.forEach((week, wi) => {
     const firstDay = week.find(d => d);
     if (firstDay) {
-      const m = new Date(firstDay.date).getMonth();
+      const m = Number(firstDay.date.slice(5, 7)) - 1;
       if (m !== lastMonth) { months.push({ wi, label: t('progress.month.label', { n: m + 1 }) }); lastMonth = m; }
     }
   });
@@ -64,19 +63,21 @@ function HeatmapChart({ data, t }) {
 export default function Progress() {
   const { user } = useAuth();
   const { language, t } = useLanguage();
-  const [, forceUpdate] = useState(0);
   const localizedProblems = localizeProblems(PROBLEMS, language);
   const heatmap = getHeatmapData(17);
-  const streak = getStreak();
-  const prog = getAllProgress();
+  const streak = useStreak();
+  const prog = useProgress();
   const wrongIds = getWrongProblems();
   const wrongProblems = localizedProblems.filter(p => wrongIds.includes(p.id));
 
-  const solved = Object.values(prog).filter((p) => p.solved).length;
+  const solved = PROBLEMS.filter((problem) => prog[problem.id]?.solved).length;
   const total = PROBLEMS.length;
-  const tried = Object.keys(prog).length;
+  const tried = PROBLEMS.filter((problem) => {
+    const entry = prog[problem.id];
+    return entry?.attempted || Number(entry?.attempts) > 0;
+  }).length;
   const accuracy = tried === 0 ? null : Math.round((solved / tried) * 100);
-  const noHintSolved = Object.entries(prog).filter(([, v]) => v.solved && v.hintsUsed === 0).length;
+  const noHintSolved = PROBLEMS.filter((problem) => prog[problem.id]?.solved && prog[problem.id]?.hintsUsed === 0).length;
 
   const byLevel = LEVEL_ORDER.map((level) => {
     const lp = PROBLEMS.filter((p) => p.level === level);
@@ -97,7 +98,6 @@ export default function Progress() {
   const handleReset = async () => {
     if (window.confirm(t('progress.reset.confirm'))) {
       await resetProgressWithSync(user?.uid);
-      forceUpdate((n) => n + 1);
     }
   };
 

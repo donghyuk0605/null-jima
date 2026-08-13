@@ -43,26 +43,46 @@ export default function CertExam() {
   const [timeLeft, setTimeLeft] = useState(totalTime);
   const [result, setResult] = useState(null);
   const timerRef = useRef(null);
+  const answersRef = useRef(answers);
+  const timeLeftRef = useRef(totalTime);
+  const submittedRef = useRef(false);
+
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
 
   const startExam = () => {
+    clearInterval(timerRef.current);
+    submittedRef.current = false;
     setPhase('exam');
     setTimeLeft(totalTime);
+    timeLeftRef.current = totalTime;
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) { clearInterval(timerRef.current); submitExam(); return 0; }
-        return prev - 1;
-      });
+      const next = Math.max(0, timeLeftRef.current - 1);
+      timeLeftRef.current = next;
+      setTimeLeft(next);
+      if (next === 0) {
+        clearInterval(timerRef.current);
+        submitExam();
+      }
     }, 1000);
   };
 
   const submitExam = () => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     clearInterval(timerRef.current);
-    const correct = quiz.filter(q => answers[q.id] === q.answer).length;
-    const wrong = quiz.filter(q => answers[q.id] !== undefined && answers[q.id] !== q.answer);
-    const unanswered = quiz.filter(q => answers[q.id] === undefined).length;
+    const finalAnswers = answersRef.current;
+    const correct = quiz.filter(q => finalAnswers[q.id] === q.answer).length;
+    const wrong = quiz.filter(q => finalAnswers[q.id] !== undefined && finalAnswers[q.id] !== q.answer);
+    const unanswered = quiz.filter(q => finalAnswers[q.id] === undefined).length;
     const score = Math.round((correct / quiz.length) * 100);
     const passed = score >= 60;
-    const res = { correct, wrong: wrong.length, unanswered, score, passed, timeUsed: totalTime - timeLeft, answers: { ...answers } };
+    const res = { correct, wrong: wrong.length, unanswered, score, passed, timeUsed: totalTime - timeLeftRef.current, answers: { ...finalAnswers } };
     saveExamResult(certId, res);
     setResult(res);
     setPhase('result');
@@ -146,7 +166,7 @@ export default function CertExam() {
           </div>
           <div className="exam-result-actions">
             <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>{t('exam.cert.back')}</button>
-            <button className="btn btn-run" onClick={() => { setAnswers({}); setFlagged(new Set()); setCurrent(0); setPhase('ready'); }}>{t('exam.retry')}</button>
+            <button className="btn btn-run" onClick={() => { setAnswers({}); answersRef.current = {}; setFlagged(new Set()); setCurrent(0); setResult(null); timeLeftRef.current = totalTime; setPhase('ready'); }}>{t('exam.retry')}</button>
           </div>
         </div>
       </div>

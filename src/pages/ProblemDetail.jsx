@@ -19,6 +19,7 @@ import EditorModeBar from '../components/EditorModeBar';
 import SyntaxPicker from '../components/SyntaxPicker';
 import { getStoredEditorMode, saveStoredEditorMode } from '../lib/editorModes';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
 import { useUserSettings } from '../lib/userSettings';
 
@@ -34,12 +35,14 @@ const buildHintSteps = (problem, t) => [
 export default function ProblemDetail() {
   const { id } = useParams();
   const { language, t } = useLanguage();
+  const { user, isGuest } = useAuth();
   const localizedProblems = localizeProblems(PROBLEMS, language);
   const problem = localizedProblems.find((p) => p.id === Number(id));
 
   if (!problem) return <div className="page"><p>{t('problem.notFound')}</p></div>;
 
-  return <ProblemDetailContent key={problem.id} problem={problem} />;
+  const accountKey = user?.uid || (isGuest ? 'guest' : 'anonymous');
+  return <ProblemDetailContent key={`${accountKey}-${problem.id}`} problem={problem} />;
 }
 
 function ProblemDetailContent({ problem }) {

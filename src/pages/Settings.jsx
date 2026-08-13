@@ -11,7 +11,12 @@ import {
 } from '../lib/userSettings';
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
+  const accountKey = user?.uid || (isGuest ? 'guest' : 'anonymous');
+  return <SettingsForm key={accountKey} user={user} />;
+}
+
+function SettingsForm({ user }) {
   const { language, languages, setLanguage, t } = useLanguage();
   const [settings, setSettings] = useState(() => getUserSettings());
   const [saved, setSaved] = useState(false);
@@ -131,7 +136,7 @@ export default function Settings() {
               <input
                 type="number"
                 min="11"
-                max="18"
+                max="22"
                 value={settings.editorFontSize}
                 onChange={(event) =>
                   updateSetting('editorFontSize', Number(event.target.value))

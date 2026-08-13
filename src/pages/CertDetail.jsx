@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
-import { runQuery, translateSqlError } from '../lib/database';
+import { runProblemQuery, translateSqlError } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
@@ -73,7 +73,7 @@ export default function CertDetail() {
 
   const runCoreSql = (idx, sqlStr) => {
     try {
-      const res = runQuery(sqlStr.trim());
+      const res = runProblemQuery(sqlStr.trim());
       setSqlResults((prev) => ({ ...prev, [idx]: res }));
       setSqlErrors((prev) => ({ ...prev, [idx]: null }));
     } catch (e) {
@@ -86,9 +86,8 @@ export default function CertDetail() {
     if (selected === null) return;
     const q = quiz[currentQ];
     const isCorrect = selected === q.answer;
-    if (isCorrect) {
-      setScore((s) => s + 1);
-    }
+    const wasCorrect = answeredCorrect[currentQ] === true;
+    setScore((s) => s + (isCorrect ? 1 : 0) - (wasCorrect ? 1 : 0));
     setAnsweredCorrect((prev) => {
       const updated = [...prev];
       updated[currentQ] = isCorrect;
@@ -127,7 +126,7 @@ export default function CertDetail() {
 
   const runQuizSql = (sqlStr) => {
     try {
-      const res = runQuery(sqlStr.trim());
+      const res = runProblemQuery(sqlStr.trim());
       setQuizSqlResults(res);
       setQuizSqlError(null);
     } catch (e) {

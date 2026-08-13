@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
-import { getAllProgress, toggleFavorite } from '../lib/progress';
+import { useProgress, toggleFavorite } from '../lib/progress';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
@@ -11,7 +11,7 @@ export default function Problems() {
   const { language, t } = useLanguage();
   const tl = (level) => translateLevel(level, t);
   const tt = (tag) => translateTag(tag, t);
-  const [prog, setProg] = useState(() => getAllProgress());
+  const prog = useProgress();
   const localizedProblems = localizeProblems(PROBLEMS, language);
   const [levelFilter, setLevelFilter] = useState('전체');
   const [tagFilter, setTagFilter] = useState('전체');
@@ -91,7 +91,7 @@ export default function Problems() {
                   <Link key={problem.id} to={`/problems/${problem.id}`} className={`problem-row ${isSolved ? 'solved' : ''}`}>
                     <button
                       className={`fav-btn${prog[problem.id]?.favorite ? ' fav-active' : ''}`}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(problem.id); setProg(getAllProgress()); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(problem.id); }}
                       title={t('problem.action.fav')}
                       aria-pressed={Boolean(prog[problem.id]?.favorite)}
                     >
