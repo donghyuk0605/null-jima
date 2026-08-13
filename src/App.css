@@ -3403,6 +3403,7 @@ html[data-compact] .community-row { padding-block: 7px; }
   }
 
   .home-hero {
+    grid-template-columns: minmax(0, 1fr);
     gap: 20px;
     padding: 20px 0 24px;
   }

@@ -1,4 +1,4 @@
-const CACHE = 'nulljima-v2';
+const CACHE = 'nulljima-v3';
 const PRECACHE = ['/', '/index.html'];
 
 self.addEventListener('install', (e) => {
@@ -22,7 +22,14 @@ self.addEventListener('fetch', (e) => {
   // Don't cache Firestore or external API calls
   if (url.hostname.includes('firestore') || url.hostname.includes('firebase')) return;
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).catch(() => caches.match('/index.html')));
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        if (res.ok) {
+          e.waitUntil(caches.open(CACHE).then((cache) => cache.put('/index.html', res.clone())));
+        }
+        return res;
+      }).catch(() => caches.match('/index.html'))
+    );
     return;
   }
   e.respondWith(caches.match(e.request).then((cached) => cached || fetch(e.request).then((res) => {
