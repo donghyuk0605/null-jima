@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { splitSqlStatements } from '../src/lib/sqlStatements.js';
 import { toLocalDateKey } from '../src/lib/streak.js';
 import { getMissingQueryRequirements } from '../src/lib/queryRequirements.js';
+import { getRecommendedProblem, getRecommendedTopic } from '../src/lib/recommendations.js';
 
 test('SQL statements ignore semicolons inside strings and comments', () => {
   const sql = `SELECT 'a;b' AS value;\n-- keep ; inside comment\nSELECT 2;\n/* block ; comment */ SELECT "x;y";`;
@@ -45,4 +46,29 @@ test('query requirements reject data-changing statements', () => {
   assert.equal(result.readOnly, false);
   assert.deepEqual(result.missingTags, []);
   assert.deepEqual(result.missingTables, []);
+});
+
+test('recommendations prioritize unfinished review problems', () => {
+  const problems = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  const recommendation = getRecommendedProblem(problems, {
+    1: { attempted: true, attempts: 1 },
+    2: { attempted: true, attempts: 2, review: true },
+    3: { solved: true },
+  });
+
+  assert.equal(recommendation.problem.id, 2);
+  assert.equal(recommendation.reason, 'review');
+});
+
+test('topic recommendations follow the learner\'s unresolved practice', () => {
+  const topics = [
+    { id: 'select', relatedProblems: [1, 2] },
+    { id: 'where', relatedProblems: [3] },
+  ];
+  const recommendation = getRecommendedTopic(topics, {
+    1: { solved: true },
+    2: { attempted: true, review: true },
+  }, { topics: {} });
+
+  assert.equal(recommendation.id, 'select');
 });

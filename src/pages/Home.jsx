@@ -4,6 +4,8 @@ import { useProgress } from '../lib/progress';
 import { PROBLEMS, LEVEL_ORDER } from '../data/problems';
 import { LEARN_TOPICS } from '../data/learn';
 import { getTodayGoal, setTodayGoal, useStreak } from '../lib/streak';
+import { useLearningProgress } from '../lib/learningProgress';
+import { getRecommendedProblem, getRecommendedTopic } from '../lib/recommendations';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeLearnTopics, localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
@@ -18,6 +20,7 @@ export default function Home() {
   const learnTopics = localizeLearnTopics(LEARN_TOPICS, language);
 
   const prog = useProgress();
+  const learningProgress = useLearningProgress();
   const solved = PROBLEMS.filter((problem) => prog[problem.id]?.solved).length;
   const total = PROBLEMS.length;
   const attempted = PROBLEMS.filter((problem) => {
@@ -26,7 +29,10 @@ export default function Home() {
   }).length;
   const accuracy = attempted === 0 ? null : Math.round((solved / attempted) * 100);
 
-  const todayProblem = localizedProblems.find((p) => !prog[p.id]?.solved) || localizedProblems[0];
+  const recommendedProblem = getRecommendedProblem(PROBLEMS, prog);
+  const todayProblem = localizedProblems.find((p) => p.id === recommendedProblem?.problem.id) || localizedProblems[0];
+  const recommendedTopic = getRecommendedTopic(LEARN_TOPICS, prog, learningProgress);
+  const todayTopic = learnTopics.find((topic) => topic.id === recommendedTopic?.id);
 
   const byLevel = LEVEL_ORDER.map((level) => {
     const levelProblems = PROBLEMS.filter((p) => p.level === level);
@@ -137,6 +143,7 @@ ORDER BY solved DESC;`}</pre>
         <section className="home-card home-card-next">
           <h2 className="card-title"><Icon name="target" />{t('home.next.title')}</h2>
           <div className="today-problem">
+            <span className="home-recommendation-reason">{t(`home.next.reason.${recommendedProblem?.reason || 'new'}`)}</span>
             <div className="today-meta">
               <span className={`badge level-${todayProblem.level}`}>{tl(todayProblem.level)}</span>
               {todayProblem.tags.map((tag) => (
@@ -154,6 +161,14 @@ ORDER BY solved DESC;`}</pre>
         {/* 학습 도우미 바로가기 */}
         <section className="home-card">
           <h2 className="card-title"><Icon name="book" />{t('home.learn.title')}</h2>
+          {todayTopic && (
+            <Link to={`/learn/${todayTopic.id}`} className="home-learning-next">
+              <span className="home-learning-next-label">{t('home.learn.next')}</span>
+              <strong>{todayTopic.title}</strong>
+              <small>{todayTopic.subtitle}</small>
+              <span className="home-learning-next-arrow">→</span>
+            </Link>
+          )}
           <div className="learn-list">
             {learnTopics.map((topic) => (
               <Link key={topic.id} to={`/learn/${topic.id}`} className="learn-item">

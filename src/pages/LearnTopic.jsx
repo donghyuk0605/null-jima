@@ -9,12 +9,14 @@ import SqlEditor from '../components/SqlEditor';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeLearnTopic, localizeProblems, translateLevel } from '../lib/localizedContent';
 import { markTopicComplete, useLearningProgress } from '../lib/learningProgress';
+import { useProgress } from '../lib/progress';
 
 export default function LearnTopic() {
   const { topicId } = useParams();
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const learningProgress = useLearningProgress();
+  const problemProgress = useProgress();
   const rawTopic = LEARN_TOPICS.find((tp) => tp.id === topicId);
   const topic = rawTopic ? localizeLearnTopic(rawTopic, language) : null;
 
@@ -117,9 +119,12 @@ export default function LearnTopic() {
           <h3 className="section-title">{t('learn.practice.title')}</h3>
           <div className="related-problems">
             {relatedProblems.map((p) => (
-              <Link key={p.id} to={`/problems/${p.id}`} className="related-problem-card">
+              <Link key={p.id} to={`/problems/${p.id}`} className={`related-problem-card${problemProgress[p.id]?.solved ? ' solved' : ''}`}>
                 <span className={`badge level-${p.level}`}>{translateLevel(p.level, t)}</span>
                 <span className="rp-title">{p.title}</span>
+                <span className="rp-status">
+                  {problemProgress[p.id]?.solved ? <><Icon name="success" />{t('learn.problem.done')}</> : t('learn.problem.open')}
+                </span>
                 <span className="rp-arrow">→</span>
               </Link>
             ))}

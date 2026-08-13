@@ -49,7 +49,7 @@ function ProblemDetailContent({ problem }) {
   const { t } = useLanguage();
   const settings = useUserSettings();
   const tl = (level) => translateLevel(level, t);
-  const tt = (tag) => translateTag(tag, t);
+  const tt = useCallback((tag) => translateTag(tag, t), [t]);
   const [progress, setProgress] = useState(() => getProblemProgress(problem.id));
   const [userSql, setUserSql] = useState(() => progress.draftSql || `${t('problem.editor.placeholder')}\n`);
   const [results, setResults] = useState(null);
@@ -103,7 +103,7 @@ function ProblemDetailContent({ problem }) {
       markAttempted(problem.id);
     }
     setMobilePanel('result');
-  }, [userSql, problem, hintsOpen, execute, t]);
+  }, [userSql, problem, hintsOpen, execute, t, tt]);
 
   const toggleTimer = () => {
     if (timerActive) {

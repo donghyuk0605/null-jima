@@ -398,9 +398,26 @@ html[data-compact] .community-row { padding-block: 7px; }
 .level-count { font-size: 11px; color: var(--text3); width: 28px; text-align: right; }
 
 .today-problem { display: flex; flex-direction: column; gap: 6px; }
+.home-recommendation-reason {
+  display: inline-flex; align-self: flex-start; padding: 3px 7px; border-radius: 999px;
+  background: var(--accent-bg); color: var(--accent); font-size: 10px; font-weight: 800;
+}
 .today-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .today-title { font-size: 15px; font-weight: 600; color: var(--text-head); margin-top: 4px; }
 .today-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.home-learning-next {
+  position: relative; display: flex; flex-direction: column; gap: 2px;
+  margin-bottom: 8px; padding: 10px 34px 10px 11px; border: 1px solid var(--accent);
+  border-radius: 7px; background: var(--accent-bg); transition: background .12s;
+}
+.home-learning-next:hover { background: var(--bg3); }
+.home-learning-next-label { color: var(--accent); font-size: 10px; font-weight: 800; }
+.home-learning-next strong { color: var(--text-head); font-size: 13px; }
+.home-learning-next small { color: var(--text2); font-size: 11px; }
+.home-learning-next-arrow {
+  position: absolute; top: 50%; right: 11px; color: var(--accent); font-size: 18px;
+  transform: translateY(-50%);
+}
 
 .learn-list { display: flex; flex-direction: column; gap: 4px; }
 .learn-item { display: flex; flex-direction: column; padding: 8px 10px; border-radius: 6px; transition: background .12s; }
@@ -700,6 +717,10 @@ html[data-compact] .community-row { padding-block: 7px; }
 .learn-card-sub { font-size: 12px; font-weight: 600; color: var(--text2); }
 .learn-card-desc { font-size: 13px; color: var(--text); line-height: 1.6; flex: 1; }
 .learn-card-footer { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.learn-card-progress {
+  align-self: flex-end; padding: 3px 7px; border-radius: 999px;
+  background: var(--bg3); color: var(--text3); font-size: 10px; font-weight: 700;
+}
 .learn-progress-summary {
   margin-left: auto; padding: 4px 9px; border-radius: 999px;
   background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 700;
@@ -762,7 +783,14 @@ html[data-compact] .community-row { padding-block: 7px; }
   padding: 10px 14px; transition: border-color .12s;
 }
 .related-problem-card:hover { border-color: var(--accent); }
+.related-problem-card.solved { border-left: 3px solid var(--success); }
 .rp-title { flex: 1; font-size: 13px; color: var(--text); }
+.rp-status {
+  display: inline-flex; align-items: center; gap: 4px; color: var(--text3);
+  font-size: 11px; white-space: nowrap;
+}
+.related-problem-card.solved .rp-status { color: var(--success-t); font-weight: 700; }
+.rp-status .icon { width: 13px; height: 13px; }
 .rp-arrow { color: var(--accent); }
 .roadmap-section { margin-bottom: 22px; }
 .roadmap-track {
@@ -795,6 +823,15 @@ html[data-compact] .community-row { padding-block: 7px; }
   border: 1px solid var(--border); border-radius: 6px;
   padding: 7px 10px; font: inherit; font-size: 12px;
 }
+.problem-empty-state {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  margin-bottom: 24px; padding: 34px 20px; border: 1px dashed var(--border);
+  border-radius: 9px; background: var(--bg2); color: var(--text3); text-align: center;
+}
+.problem-empty-state .icon { width: 24px; height: 24px; color: var(--accent); }
+.problem-empty-state strong { color: var(--text-head); font-size: 14px; }
+.problem-empty-state span { font-size: 12px; }
+.problem-empty-state .btn { margin-top: 6px; }
 .problem-level-group { margin-bottom: 24px; }
 .level-group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .level-group-count { font-size: 12px; color: var(--text3); }
@@ -1776,6 +1813,10 @@ html[data-compact] .community-row { padding-block: 7px; }
   .problem-tags,
   .problem-status,
   .progress-problem-stat {
+    margin-left: 40px;
+  }
+
+  .related-problem-card .rp-status {
     margin-left: 40px;
   }
 

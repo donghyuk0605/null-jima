@@ -4,6 +4,7 @@ import { PROBLEMS } from '../data/problems';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeLearnTopics, translateTag } from '../lib/localizedContent';
 import { useLearningProgress } from '../lib/learningProgress';
+import { useProgress } from '../lib/progress';
 
 const ROADMAP = [
   { titleKey: 'roadmap.basic', tags: ['SELECT', 'DISTINCT', 'LIMIT'] },
@@ -18,6 +19,7 @@ export default function Learn() {
   const tt = (tag) => translateTag(tag, t);
   const learnTopics = localizeLearnTopics(LEARN_TOPICS, language);
   const learningProgress = useLearningProgress();
+  const problemProgress = useProgress();
   const completedTopics = LEARN_TOPICS.filter((topic) => learningProgress.topics[topic.id]?.completed).length;
 
   return (
@@ -50,17 +52,23 @@ export default function Learn() {
       </section>
 
       <div className="learn-grid">
-        {learnTopics.map((topic) => (
-          <Link key={topic.id} to={`/learn/${topic.id}`} className={`learn-card${learningProgress.topics[topic.id]?.completed ? ' completed' : ''}`}>
-            <div className="learn-card-title">{topic.title}</div>
-            <div className="learn-card-sub">{topic.subtitle}</div>
-            <div className="learn-card-desc">{topic.description}</div>
-            <div className="learn-card-footer">
-              {learningProgress.topics[topic.id]?.completed && <span className="learn-complete-badge">{t('learn.completed')}</span>}
-              {t('learn.card.footer', { examples: topic.examples.length, problems: topic.relatedProblems.length })}
-            </div>
-          </Link>
-        ))}
+        {learnTopics.map((topic) => {
+          const solvedRelated = topic.relatedProblems.filter((problemId) => problemProgress[problemId]?.solved).length;
+          return (
+            <Link key={topic.id} to={`/learn/${topic.id}`} className={`learn-card${learningProgress.topics[topic.id]?.completed ? ' completed' : ''}`}>
+              {topic.relatedProblems.length > 0 && (
+                <span className="learn-card-progress">{t('learn.card.progress', { solved: solvedRelated, total: topic.relatedProblems.length })}</span>
+              )}
+              <div className="learn-card-title">{topic.title}</div>
+              <div className="learn-card-sub">{topic.subtitle}</div>
+              <div className="learn-card-desc">{topic.description}</div>
+              <div className="learn-card-footer">
+                {learningProgress.topics[topic.id]?.completed && <span className="learn-complete-badge">{t('learn.completed')}</span>}
+                {t('learn.card.footer', { examples: topic.examples.length, problems: topic.relatedProblems.length })}
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

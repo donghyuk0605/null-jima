@@ -5,6 +5,7 @@ import { useProgress, toggleFavorite } from '../lib/progress';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
+import { getRecommendedProblem } from '../lib/recommendations';
 
 export default function Problems() {
   const navigate = useNavigate();
@@ -34,8 +35,8 @@ export default function Problems() {
 
   const goRandomProblem = () => {
     const pool = filteredProblems.length > 0 ? filteredProblems : localizedProblems;
-    const next = pool[Math.floor(Math.random() * pool.length)];
-    navigate(`/problems/${next.id}`);
+    const recommendation = getRecommendedProblem(pool, prog);
+    navigate(`/problems/${recommendation.problem.id}`);
   };
 
   return (
@@ -72,6 +73,26 @@ export default function Problems() {
           {t('problems.random')}
         </button>
       </div>
+
+      {filteredProblems.length === 0 && (
+        <div className="problem-empty-state">
+          <Icon name="help" />
+          <strong>{t('problems.empty.title')}</strong>
+          <span>{t('problems.empty.desc')}</span>
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={() => {
+              setLevelFilter('전체');
+              setTagFilter('전체');
+              setStatusFilter('전체');
+              setShowFavsOnly(false);
+            }}
+          >
+            {t('problems.empty.reset')}
+          </button>
+        </div>
+      )}
 
       {LEVEL_ORDER.map((level) => {
         const levelProblems = filteredProblems.filter((p) => p.level === level);
