@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
 import { LEARN_TOPICS } from '../data/learn';
-import { useProgress, resetProgressWithSync, getWrongProblems } from '../lib/progress';
+import { useProgress, resetProgressWithSync, getWrongProblems, getReviewProblems } from '../lib/progress';
 import Icon from '../components/Icon';
 import { getHeatmapData, useStreak } from '../lib/streak';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -73,6 +73,8 @@ export default function Progress() {
   const localizedLearnTopics = localizeLearnTopics(LEARN_TOPICS, language);
   const wrongIds = getWrongProblems();
   const wrongProblems = localizedProblems.filter(p => wrongIds.includes(p.id));
+  const reviewIds = getReviewProblems();
+  const reviewProblems = localizedProblems.filter(p => reviewIds.includes(p.id) && prog[p.id]?.solved);
 
   const solved = PROBLEMS.filter((problem) => prog[problem.id]?.solved).length;
   const total = PROBLEMS.length;
@@ -246,6 +248,23 @@ export default function Progress() {
                 <span className="wrong-id">#{p.id}</span>
                 <span className="wrong-title">{p.title}</span>
                 <span className={`diff-badge diff-${p.level}`}>{translateLevel(p.level, t)}</span>
+                <span className="wrong-link">{t('progress.wrong.link')}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {reviewProblems.length > 0 && (
+        <section className="review-section">
+          <h3 className="section-title">{t('progress.review.title')} <span className="review-count">{t('progress.review.count', { n: reviewProblems.length })}</span></h3>
+          <p className="progress-learning-desc">{t('progress.review.desc')}</p>
+          <div className="wrong-list">
+            {reviewProblems.map((p) => (
+              <Link key={p.id} to={`/problems/${p.id}`} className="wrong-item review-item">
+                <span className="wrong-id">#{p.id.toString().padStart(2, '0')}</span>
+                <span className="wrong-title">{p.title}</span>
+                <span className="review-status"><Icon name="success" />{t('progress.review.done')}</span>
                 <span className="wrong-link">{t('progress.wrong.link')}</span>
               </Link>
             ))}

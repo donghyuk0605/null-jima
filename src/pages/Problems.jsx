@@ -127,11 +127,11 @@ export default function Problems() {
                         </span>
                       ))}
                     </div>
-                    <span className={`problem-status ${isSolved ? 'status-solved' : status ? 'status-tried' : ''}`}>
+                    <span className={`problem-status ${isSolved ? 'status-solved' : status ? 'status-tried' : ''}${status?.review ? ' status-review' : ''}`}>
                       {isSolved ? (
                         <>
                           <Icon name="success" className="status-icon" />
-                          {t('problems.status.solved')}
+                          {status?.review ? t('problems.status.solvedReview') : t('problems.status.solved')}
                         </>
                       ) : status?.review ? t('problems.status.review') : status?.favorite ? t('problems.status.fav') : status ? t('problems.status.attempts', { n: status.attempts }) : t('problems.status.new')}
                     </span>

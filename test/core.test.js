@@ -60,6 +60,16 @@ test('recommendations prioritize unfinished review problems', () => {
   assert.equal(recommendation.reason, 'review');
 });
 
+test('recommendations keep solved review problems in the practice queue', () => {
+  const recommendation = getRecommendedProblem([{ id: 1 }, { id: 2 }], {
+    1: { solved: true, review: true, attempts: 2 },
+    2: { solved: false },
+  });
+
+  assert.equal(recommendation.problem.id, 1);
+  assert.equal(recommendation.reason, 'review');
+});
+
 test('topic recommendations follow the learner\'s unresolved practice', () => {
   const topics = [
     { id: 'select', relatedProblems: [1, 2] },

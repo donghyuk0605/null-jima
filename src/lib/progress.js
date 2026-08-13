@@ -214,6 +214,13 @@ export function getWrongProblems() {
     .map(([id]) => Number(id));
 }
 
+export function getReviewProblems() {
+  const prog = load();
+  return Object.entries(prog)
+    .filter(([, value]) => value.review)
+    .map(([id]) => Number(id));
+}
+
 // ── Firestore sync ───────────────────────────────────────
 
 function progressRef(uid) {
