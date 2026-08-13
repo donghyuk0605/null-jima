@@ -89,6 +89,9 @@ function ProblemDetailContent({ problem }) {
     execute();
     const result = gradeQuery(userSql.trim(), problem.answer, problem.checkOrder, {
       strictColumns: problem.strictColumns,
+      requiredTags: problem.tags,
+      requiredTables: problem.tables,
+      featureLabels: Object.fromEntries(problem.tags.map((tag) => [tag, tt(tag)])),
     }, t);
     setGradeResult(result);
     const updated = recordAttempt(problem.id, result.correct, hintsOpen);

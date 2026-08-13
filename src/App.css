@@ -700,11 +700,25 @@ html[data-compact] .community-row { padding-block: 7px; }
 .learn-card-sub { font-size: 12px; font-weight: 600; color: var(--text2); }
 .learn-card-desc { font-size: 13px; color: var(--text); line-height: 1.6; flex: 1; }
 .learn-card-footer { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.learn-progress-summary {
+  margin-left: auto; padding: 4px 9px; border-radius: 999px;
+  background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 700;
+  white-space: nowrap;
+}
+.learn-card.completed { border-color: var(--success); }
+.learn-card.completed .learn-card-title { color: var(--success-t); }
+.learn-complete-badge {
+  display: inline-flex; margin-right: 6px; padding: 2px 6px; border-radius: 999px;
+  background: var(--success-bg); color: var(--success-t); font-weight: 700;
+}
 
 /* ── LEARN TOPIC ────────────────────────────────────── */
 .topic-page { max-width: 740px; }
 .topic-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .topic-header { margin-bottom: 28px; }
+.topic-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.topic-title-row > div { min-width: 0; }
+.topic-title-row .btn { flex-shrink: 0; margin-top: 2px; }
 .topic-title { font-size: 30px; font-weight: 800; color: var(--text-head); letter-spacing: -0.5px; }
 .topic-subtitle { font-size: 15px; color: var(--text2); margin-top: 4px; }
 .topic-desc { font-size: 14px; color: var(--text); margin-top: 10px; line-height: 1.7; }
@@ -738,6 +752,10 @@ html[data-compact] .community-row { padding-block: 7px; }
 }
 
 .related-problems { display: flex; flex-direction: column; gap: 6px; }
+.topic-practice-empty {
+  padding: 14px 16px; border: 1px dashed var(--border); border-radius: 8px;
+  color: var(--text3); font-size: 13px; line-height: 1.6; background: var(--bg2);
+}
 .related-problem-card {
   display: flex; align-items: center; gap: 10px;
   background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
@@ -933,6 +951,24 @@ html[data-compact] .community-row { padding-block: 7px; }
 .pstat-label { font-size: 12px; color: var(--text3); }
 .progress-section { margin-bottom: 28px; }
 .progress-section-title { font-size: 15px; font-weight: 700; color: var(--text-head); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border2); }
+.progress-learning-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.progress-learning-head .progress-section-title { margin-bottom: 4px; }
+.progress-learning-desc { margin: 0; color: var(--text3); font-size: 12px; line-height: 1.5; }
+.learning-topic-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px; }
+.learning-topic-row {
+  display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px;
+  border: 1px solid var(--border2); border-radius: 8px; background: var(--bg2);
+  transition: border-color .12s, background .12s;
+}
+.learning-topic-row:hover { border-color: var(--accent); background: var(--accent-bg); }
+.learning-topic-row.completed { border-left: 3px solid var(--success); }
+.learning-topic-status { display: inline-flex; flex: 0 0 26px; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 7px; color: var(--accent); background: var(--accent-bg); }
+.learning-topic-row.completed .learning-topic-status { color: var(--success-t); background: var(--success-bg); }
+.learning-topic-status .icon { width: 15px; height: 15px; }
+.learning-topic-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.learning-topic-copy strong { overflow: hidden; color: var(--text-head); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.learning-topic-copy small { overflow: hidden; color: var(--text3); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.learning-topic-action { flex-shrink: 0; color: var(--accent); font-size: 11px; font-weight: 700; }
 .level-bars, .tag-bars { display: flex; flex-direction: column; gap: 10px; }
 .lbar-row, .tbar-row { display: flex; align-items: center; gap: 12px; }
 .lbar-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
@@ -1179,6 +1215,16 @@ html[data-compact] .community-row { padding-block: 7px; }
   transition: border-color .15s, transform .15s;
 }
 .cert-card:hover { border-color: var(--border); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+.cert-history-summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 10px; border-radius: 7px; background: var(--bg);
+  font-size: 11px; color: var(--text3);
+}
+.cert-history-summary strong { font-size: 12px; }
+.cert-history-summary.passed { border-left: 3px solid var(--success); }
+.cert-history-summary.passed strong { color: var(--success-t); }
+.cert-history-summary.failed { border-left: 3px solid var(--err); }
+.cert-history-summary.failed strong { color: var(--err); }
 .cert-card-top { display: flex; flex-direction: column; gap: 4px; }
 .cert-name-row { display: flex; align-items: center; gap: 10px; }
 .cert-trophy-icon { width: 24px; height: 24px; flex-shrink: 0; }
@@ -2273,6 +2319,8 @@ html[data-compact] .community-row { padding-block: 7px; }
 .exam-ready-info > div { background: var(--bg3); border-radius: 8px; padding: 10px; text-align: center; }
 .exam-ready-info span { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px; }
 .exam-ready-info strong { font-size: 14px; color: var(--text1); }
+.exam-ready-info small { display: block; margin-top: 3px; color: var(--text3); font-size: 10px; line-height: 1.35; }
+.exam-ready-note { margin: -8px 0 18px; color: var(--text3); font-size: 11px; line-height: 1.55; }
 .exam-ready-rules { font-size: 13px; color: var(--text2); line-height: 1.7; padding-left: 16px; margin-bottom: 24px; }
 .exam-ready-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .exam-page { display: flex; flex-direction: column; height: 100vh; background: var(--bg1); }
@@ -2324,6 +2372,17 @@ html[data-compact] .community-row { padding-block: 7px; }
 .exam-result-stats strong { font-size: 15px; font-weight: 800; color: var(--text1); }
 .stat-correct { color: #3fb950 !important; }
 .stat-wrong { color: #f78166 !important; }
+.exam-subject-results { margin-bottom: 22px; }
+.exam-subject-results h4 { margin: 0 0 8px; color: var(--text2); font-size: 13px; }
+.exam-subject-row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--border2); border-radius: 7px; background: var(--bg3); font-size: 12px; }
+.exam-subject-row + .exam-subject-row { margin-top: 6px; }
+.exam-subject-row.passed { border-left: 3px solid var(--success); }
+.exam-subject-row.failed { border-left: 3px solid var(--err); }
+.exam-subject-name { flex: 1; min-width: 0; color: var(--text1); font-weight: 700; }
+.exam-subject-score { color: var(--text2); white-space: nowrap; }
+.exam-subject-status { font-weight: 700; white-space: nowrap; }
+.exam-subject-row.passed .exam-subject-status { color: var(--success-t); }
+.exam-subject-row.failed .exam-subject-status { color: var(--err); }
 .exam-wrong-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text2); }
 .exam-wrong-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
 .exam-wrong-item { background: var(--bg3); border-radius: 8px; padding: 12px; }
@@ -3402,6 +3461,12 @@ html[data-compact] .community-row { padding-block: 7px; }
     padding-bottom: 12px;
   }
 
+  .page-header .learn-progress-summary {
+    flex-basis: 100%;
+    width: max-content;
+    margin-left: 0;
+  }
+
   .home-hero {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
@@ -3555,6 +3620,71 @@ html[data-compact] .community-row { padding-block: 7px; }
 
   .problem-quick-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .topic-title-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .topic-title-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .progress-learning-head {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .learning-progress-section .learn-progress-summary {
+    margin-left: 0;
+  }
+
+  .exam-ready {
+    align-items: flex-start;
+    padding: 16px 12px;
+  }
+
+  .exam-ready-card {
+    margin: auto 0;
+    padding: 24px 18px;
+  }
+
+  .exam-ready-info {
+    gap: 6px;
+  }
+
+  .exam-ready-info > div {
+    padding: 8px 5px;
+  }
+
+  .exam-ready-info strong {
+    font-size: 12px;
+  }
+
+  .exam-ready-info small {
+    font-size: 9px;
+  }
+
+  .exam-result-page {
+    padding: 14px 10px;
+  }
+
+  .exam-result-card {
+    padding: 22px 14px;
+  }
+
+  .exam-result-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .exam-subject-row {
+    flex-wrap: wrap;
+  }
+
+  .exam-subject-name {
+    flex-basis: calc(100% - 36px);
   }
 
   .exam-header {

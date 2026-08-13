@@ -3,6 +3,7 @@ import { LEARN_TOPICS } from '../data/learn';
 import { PROBLEMS } from '../data/problems';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeLearnTopics, translateTag } from '../lib/localizedContent';
+import { useLearningProgress } from '../lib/learningProgress';
 
 const ROADMAP = [
   { titleKey: 'roadmap.basic', tags: ['SELECT', 'DISTINCT', 'LIMIT'] },
@@ -16,12 +17,15 @@ export default function Learn() {
   const { language, t } = useLanguage();
   const tt = (tag) => translateTag(tag, t);
   const learnTopics = localizeLearnTopics(LEARN_TOPICS, language);
+  const learningProgress = useLearningProgress();
+  const completedTopics = LEARN_TOPICS.filter((topic) => learningProgress.topics[topic.id]?.completed).length;
 
   return (
     <div className="page">
       <div className="page-header">
         <h2 className="page-title">{t('learn.title')}</h2>
         <span className="page-desc">{t('learn.desc')}</span>
+        <span className="learn-progress-summary">{t('learn.progress', { done: completedTopics, total: LEARN_TOPICS.length })}</span>
       </div>
 
       <section className="roadmap-section">
@@ -47,11 +51,12 @@ export default function Learn() {
 
       <div className="learn-grid">
         {learnTopics.map((topic) => (
-          <Link key={topic.id} to={`/learn/${topic.id}`} className="learn-card">
+          <Link key={topic.id} to={`/learn/${topic.id}`} className={`learn-card${learningProgress.topics[topic.id]?.completed ? ' completed' : ''}`}>
             <div className="learn-card-title">{topic.title}</div>
             <div className="learn-card-sub">{topic.subtitle}</div>
             <div className="learn-card-desc">{topic.description}</div>
             <div className="learn-card-footer">
+              {learningProgress.topics[topic.id]?.completed && <span className="learn-complete-badge">{t('learn.completed')}</span>}
               {t('learn.card.footer', { examples: topic.examples.length, problems: topic.relatedProblems.length })}
             </div>
           </Link>

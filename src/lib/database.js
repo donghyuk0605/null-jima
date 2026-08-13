@@ -1,3 +1,5 @@
+import { getMissingQueryRequirements } from './queryRequirements';
+
 let db = null;
 let SQLRuntime = null;
 let pristineBytes = null;
@@ -434,9 +436,91 @@ export function getRelationships() {
   return rels;
 }
 
+const VALIDATION_MUTATIONS = `
+  UPDATE departments SET name = '검증개발팀', budget = budget + 1111 WHERE id = 1;
+  UPDATE employees SET name = '검증직원', salary = 7100000 WHERE id = 1;
+  UPDATE employees SET hire_date = '2025-12-31' WHERE id = 2;
+  UPDATE products SET price = price + 777 WHERE id = 1;
+  UPDATE orders SET quantity = quantity + 1 WHERE id = 1;
+  INSERT INTO employees (id, name, department_id, salary, hire_date)
+    VALUES (99, '검증신입', 1, 4750000, '2024-08-01');
+  INSERT INTO products (id, name, category, price, stock)
+    VALUES (99, '검증상품', '검증', 777, 3);
+`;
+
+function createValidationDatabase() {
+  const validationDb = new SQLRuntime.Database(pristineBytes);
+  validationDb.run(VALIDATION_MUTATIONS);
+  return validationDb;
+}
+
+function resultSetsMatch(userResults, answerResults, checkOrder) {
+  if (userResults.length !== answerResults.length) return false;
+  if (!userResults.length) return true;
+
+  const userResult = userResults[0];
+  const answerResult = answerResults[0];
+  if (userResult.columns.length !== answerResult.columns.length) return false;
+  if (userResult.values.length !== answerResult.values.length) return false;
+
+  const userRows = userResult.values.map(serializeRow);
+  const answerRows = answerResult.values.map(serializeRow);
+  const comparableUserRows = checkOrder ? userRows : [...userRows].sort();
+  const comparableAnswerRows = checkOrder ? answerRows : [...answerRows].sort();
+  return JSON.stringify(comparableUserRows) === JSON.stringify(comparableAnswerRows);
+}
+
+function passesValidationVariant(userSql, answerSql, checkOrder) {
+  const userDb = createValidationDatabase();
+  const answerDb = createValidationDatabase();
+  try {
+    return resultSetsMatch(
+      userDb.exec(userSql.trim()),
+      answerDb.exec(answerSql.trim()),
+      checkOrder,
+    );
+  } catch {
+    return false;
+  } finally {
+    userDb.close();
+    answerDb.close();
+  }
+}
+
 export function gradeQuery(userSql, answerSql, checkOrder = false, options = {}, t) {
   const tr = (key, vars) => t ? t(key, vars) : key;
   if (!SQLRuntime || !pristineBytes) return { correct: false, msg: tr('db.error.generic', { message: 'DB not initialized' }) };
+
+  const requirements = getMissingQueryRequirements(userSql, {
+    requiredTags: options.requiredTags,
+    requiredTables: options.requiredTables,
+  });
+  if (!requirements.readOnly) {
+    return {
+      correct: false,
+      msg: tr('grade.readOnly.msg'),
+      checks: [tr('grade.readOnly.check')],
+    };
+  }
+  if (requirements.missingTables.length > 0) {
+    return {
+      correct: false,
+      msg: tr('grade.table.msg', { tables: requirements.missingTables.join(', ') }),
+      checks: [tr('grade.table.check')],
+    };
+  }
+  if (requirements.missingTags.length > 0) {
+    const featureLabels = options.featureLabels || {};
+    const missingLabel = requirements.missingTags
+      .filter((tag) => tag !== 'SELECT')
+      .map((tag) => featureLabels[tag] || tag)[0] || 'SELECT';
+    return {
+      correct: false,
+      msg: tr('grade.feature.msg', { feature: missingLabel }),
+      checks: [tr('grade.feature.check')],
+    };
+  }
+
   const userDb = new SQLRuntime.Database(pristineBytes);
   const answerDb = new SQLRuntime.Database(pristineBytes);
   try {
@@ -512,6 +596,15 @@ export function gradeQuery(userSql, answerSql, checkOrder = false, options = {},
       checks.push(tr('grade.ok.col'));
     }
     if (checkOrder) checks.push(tr('grade.ok.order'));
+
+    if (!passesValidationVariant(userSql, answerSql, checkOrder)) {
+      return {
+        correct: false,
+        msg: tr('grade.variant.msg'),
+        checks: [tr('grade.variant.check')],
+      };
+    }
+    checks.push(tr('grade.variant.ok'));
 
     return { correct: true, checks };
   } catch (e) {

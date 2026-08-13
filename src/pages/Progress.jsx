@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { PROBLEMS, LEVEL_ORDER, TAG_COLORS } from '../data/problems';
+import { LEARN_TOPICS } from '../data/learn';
 import { useProgress, resetProgressWithSync, getWrongProblems } from '../lib/progress';
 import Icon from '../components/Icon';
 import { getHeatmapData, useStreak } from '../lib/streak';
 import { useLanguage } from '../contexts/LanguageContext';
-import { localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
+import { localizeLearnTopics, localizeProblems, translateLevel, translateTag } from '../lib/localizedContent';
+import { useLearningProgress } from '../lib/learningProgress';
 import { useAuth } from '../contexts/AuthContext';
 
 function HeatmapChart({ data, t }) {
@@ -67,6 +69,8 @@ export default function Progress() {
   const heatmap = getHeatmapData(17);
   const streak = useStreak();
   const prog = useProgress();
+  const learningProgress = useLearningProgress();
+  const localizedLearnTopics = localizeLearnTopics(LEARN_TOPICS, language);
   const wrongIds = getWrongProblems();
   const wrongProblems = localizedProblems.filter(p => wrongIds.includes(p.id));
 
@@ -78,6 +82,7 @@ export default function Progress() {
   }).length;
   const accuracy = tried === 0 ? null : Math.round((solved / tried) * 100);
   const noHintSolved = PROBLEMS.filter((problem) => prog[problem.id]?.solved && prog[problem.id]?.hintsUsed === 0).length;
+  const completedTopics = LEARN_TOPICS.filter((topic) => learningProgress.topics[topic.id]?.completed).length;
 
   const byLevel = LEVEL_ORDER.map((level) => {
     const lp = PROBLEMS.filter((p) => p.level === level);
@@ -149,6 +154,31 @@ export default function Progress() {
           <span className="pstat-label">{t('progress.stat.nohint')}</span>
         </div>
       </div>
+
+      <section className="progress-section learning-progress-section">
+        <div className="progress-learning-head">
+          <div>
+            <h3 className="progress-section-title">{t('progress.learning.title')}</h3>
+            <p className="progress-learning-desc">{t('progress.learning.desc')}</p>
+          </div>
+          <span className="learn-progress-summary">{t('learn.progress', { done: completedTopics, total: LEARN_TOPICS.length })}</span>
+        </div>
+        <div className="learning-topic-list">
+          {localizedLearnTopics.map((topic) => {
+            const completed = Boolean(learningProgress.topics[topic.id]?.completed);
+            return (
+              <Link key={topic.id} to={`/learn/${topic.id}`} className={`learning-topic-row${completed ? ' completed' : ''}`}>
+                <span className="learning-topic-status"><Icon name={completed ? 'success' : 'book'} /></span>
+                <span className="learning-topic-copy">
+                  <strong>{topic.title}</strong>
+                  <small>{topic.subtitle}</small>
+                </span>
+                <span className="learning-topic-action">{completed ? t('learn.completed') : t('progress.learning.open')}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {/* 난이도별 */}
       <div className="progress-section">

@@ -4,18 +4,7 @@ import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeCert, localizeQuiz } from '../lib/localizedContent';
-
-const EXAM_RESULTS_KEY = 'sqldojo_exam_results';
-
-function saveExamResult(certId, result) {
-  try {
-    const all = JSON.parse(localStorage.getItem(EXAM_RESULTS_KEY) || '[]');
-    all.unshift({ certId, ...result, date: new Date().toISOString() });
-    localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(all.slice(0, 10)));
-  } catch {
-    // Local history is optional; ignore storage failures.
-  }
-}
+import { saveExamResult } from '../lib/examResults';
 
 function formatTime(secs) {
   const h = Math.floor(secs / 3600);
@@ -23,6 +12,21 @@ function formatTime(secs) {
   const s = secs % 60;
   if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function shuffleQuiz(items, seed) {
+  const shuffled = [...items];
+  let state = seed >>> 0;
+  const random = () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 export default function CertExam() {
@@ -34,6 +38,8 @@ export default function CertExam() {
     () => localizeQuiz(certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [], language),
     [certId, language]
   );
+  const [orderSeed, setOrderSeed] = useState(() => Date.now());
+  const orderedQuiz = useMemo(() => shuffleQuiz(quiz, orderSeed), [quiz, orderSeed]);
   const totalTime = cert ? cert.examTime * 60 : 90 * 60;
 
   const [phase, setPhase] = useState('ready'); // 'ready' | 'exam' | 'result'
@@ -58,6 +64,10 @@ export default function CertExam() {
   const startExam = () => {
     clearInterval(timerRef.current);
     submittedRef.current = false;
+    setAnswers({});
+    answersRef.current = {};
+    setFlagged(new Set());
+    setCurrent(0);
     setPhase('exam');
     setTimeLeft(totalTime);
     timeLeftRef.current = totalTime;
@@ -77,12 +87,33 @@ export default function CertExam() {
     submittedRef.current = true;
     clearInterval(timerRef.current);
     const finalAnswers = answersRef.current;
-    const correct = quiz.filter(q => finalAnswers[q.id] === q.answer).length;
-    const wrong = quiz.filter(q => finalAnswers[q.id] !== undefined && finalAnswers[q.id] !== q.answer);
-    const unanswered = quiz.filter(q => finalAnswers[q.id] === undefined).length;
-    const score = Math.round((correct / quiz.length) * 100);
-    const passed = score >= 60;
-    const res = { correct, wrong: wrong.length, unanswered, score, passed, timeUsed: totalTime - timeLeftRef.current, answers: { ...finalAnswers } };
+    const correct = orderedQuiz.filter(q => finalAnswers[q.id] === q.answer).length;
+    const wrong = orderedQuiz.filter(q => finalAnswers[q.id] !== undefined && finalAnswers[q.id] !== q.answer);
+    const unanswered = orderedQuiz.filter(q => finalAnswers[q.id] === undefined).length;
+    const score = Math.round((correct / orderedQuiz.length) * 100);
+    const subjectResults = [...new Set(orderedQuiz.map(q => q.subject))].map((subject) => {
+      const subjectQuiz = orderedQuiz.filter(q => q.subject === subject);
+      const subjectCorrect = subjectQuiz.filter(q => finalAnswers[q.id] === q.answer).length;
+      const subjectScore = Math.round((subjectCorrect / subjectQuiz.length) * 100);
+      return {
+        subject,
+        correct: subjectCorrect,
+        total: subjectQuiz.length,
+        score: subjectScore,
+        passed: subjectScore >= 40,
+      };
+    });
+    const passed = score >= 60 && subjectResults.every(subjectResult => subjectResult.passed);
+    const res = {
+      correct,
+      wrong: wrong.length,
+      unanswered,
+      score,
+      passed,
+      subjectResults,
+      timeUsed: totalTime - timeLeftRef.current,
+      answers: { ...finalAnswers },
+    };
     saveExamResult(certId, res);
     setResult(res);
     setPhase('result');
@@ -109,8 +140,17 @@ export default function CertExam() {
           <div className="exam-ready-info">
             <div><span>{t('exam.ready.count')}</span><strong>{t('cert.exam.questions', { n: quiz.length })}</strong></div>
             <div><span>{t('exam.ready.time')}</span><strong>{t('cert.exam.minutes', { n: cert.examTime })}</strong></div>
-            <div><span>{t('exam.ready.pass.crit')}</span><strong>{t('exam.pass.min')}</strong></div>
+            <div>
+              <span>{t('exam.ready.pass.crit')}</span>
+              <strong>{t('exam.pass.min')}</strong>
+              <small>{t('exam.pass.subject')}</small>
+            </div>
           </div>
+          {quiz.length !== cert.totalQ && (
+            <p className="exam-ready-note">
+              {t('exam.ready.practiceNote', { available: quiz.length, official: cert.totalQ })}
+            </p>
+          )}
           <ul className="exam-ready-rules">
             <li>{t('exam.ready.rule5')}</li>
             <li>{t('exam.ready.rule6')}</li>
@@ -151,9 +191,19 @@ export default function CertExam() {
             <div><span>{t('exam.stat.unanswered')}</span><strong>{result.unanswered}{t('exam.stat.suffix')}</strong></div>
             <div><span>{t('exam.stat.time')}</span><strong>{formatTime(result.timeUsed)}</strong></div>
           </div>
+          <div className="exam-subject-results">
+            <h4>{t('exam.subject.title')}</h4>
+            {result.subjectResults.map((subjectResult) => (
+              <div key={subjectResult.subject} className={`exam-subject-row ${subjectResult.passed ? 'passed' : 'failed'}`}>
+                <span className="exam-subject-name">{subjectResult.subject}</span>
+                <span className="exam-subject-score">{subjectResult.correct}/{subjectResult.total} · {subjectResult.score}{t('exam.result.score')}</span>
+                <span className="exam-subject-status">{subjectResult.passed ? t('exam.subject.pass') : t('exam.subject.fail')}</span>
+              </div>
+            ))}
+          </div>
           <h4 className="exam-wrong-title">{t('exam.result.wrongList')}</h4>
           <div className="exam-wrong-list">
-            {quiz.filter(q => result.answers[q.id] !== q.answer).map(q => (
+            {orderedQuiz.filter(q => result.answers[q.id] !== q.answer).map(q => (
               <div key={q.id} className="exam-wrong-item">
                 <div className="exam-wrong-q">Q{q.id}. {q.question}</div>
                 <div className="exam-wrong-ans">
@@ -166,7 +216,7 @@ export default function CertExam() {
           </div>
           <div className="exam-result-actions">
             <button className="btn btn-ghost-sm" onClick={() => navigate(`/cert/${certId}`)}>{t('exam.cert.back')}</button>
-            <button className="btn btn-run" onClick={() => { setAnswers({}); answersRef.current = {}; setFlagged(new Set()); setCurrent(0); setResult(null); timeLeftRef.current = totalTime; setPhase('ready'); }}>{t('exam.retry')}</button>
+            <button className="btn btn-run" onClick={() => { setAnswers({}); answersRef.current = {}; setFlagged(new Set()); setCurrent(0); setResult(null); setOrderSeed(Date.now()); timeLeftRef.current = totalTime; setPhase('ready'); }}>{t('exam.retry')}</button>
           </div>
         </div>
       </div>
@@ -174,7 +224,7 @@ export default function CertExam() {
   }
 
   // EXAM SCREEN
-  const q = quiz[current];
+  const q = orderedQuiz[current];
   const answered = Object.keys(answers).length;
   const timerWarning = timeLeft < 300;
 
@@ -199,10 +249,10 @@ export default function CertExam() {
         {/* Question nav sidebar */}
         <div className="exam-nav">
           <div className="exam-nav-grid">
-            {quiz.map((_, i) => (
+            {orderedQuiz.map((_, i) => (
               <button
                 key={i}
-                className={`exam-nav-btn ${i === current ? 'current' : ''} ${answers[quiz[i].id] !== undefined ? 'answered' : ''} ${flagged.has(quiz[i].id) ? 'flagged' : ''}`}
+                className={`exam-nav-btn ${i === current ? 'current' : ''} ${answers[orderedQuiz[i].id] !== undefined ? 'answered' : ''} ${flagged.has(orderedQuiz[i].id) ? 'flagged' : ''}`}
                 onClick={() => setCurrent(i)}
               >
                 {i + 1}

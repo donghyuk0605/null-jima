@@ -3,6 +3,19 @@ import { CERT_LIST } from '../data/cert';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeCerts, translateLevel } from '../lib/localizedContent';
+import { getExamResults } from '../lib/examResults';
+
+function formatExamDate(date, language) {
+  if (!date) return '';
+  try {
+    return new Intl.DateTimeFormat(language === 'ja' ? 'ja-JP' : 'ko-KR', {
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(date));
+  } catch {
+    return '';
+  }
+}
 
 export default function Cert() {
   const { language, t } = useLanguage();
@@ -17,6 +30,15 @@ export default function Cert() {
       <div className="cert-grid">
         {certs.map((cert) => (
           <Link key={cert.id} to={`/cert/${cert.id}`} className="cert-card">
+            {(() => {
+              const latest = getExamResults(cert.id)[0];
+              return latest ? (
+                <div className={`cert-history-summary ${latest.passed ? 'passed' : 'failed'}`}>
+                  <span>{t('cert.history.latest', { date: formatExamDate(latest.date, language) })}</span>
+                  <strong>{latest.score}{t('exam.result.score')} · {latest.passed ? t('exam.result.pass') : t('exam.result.fail')}</strong>
+                </div>
+              ) : null;
+            })()}
             <div className="cert-card-top">
               <div className="cert-name-row">
                 <Icon name="trophy" className="cert-trophy-icon" style={{ color: cert.color }} />

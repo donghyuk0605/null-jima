@@ -174,7 +174,7 @@ export const PROBLEMS = [
     checkOrder: false,
   },
   {
-    id: 14, level: '중급', tags: ['JOIN', '집계함수'],
+    id: 14, level: '중급', tags: ['JOIN'],
     title: '주문 금액 합계',
     description: 'orders와 products를 JOIN하여 각 주문의 총 금액(quantity * price)을 조회하세요.\n컬럼: orders.id, 총금액',
     tables: ['orders', 'products'],
@@ -348,7 +348,7 @@ export const PROBLEMS = [
     checkOrder: true,
   },
   {
-    id: 27, level: '중급', tags: ['GROUP BY', 'HAVING', 'JOIN'],
+    id: 27, level: '중급', tags: ['GROUP BY', 'JOIN', 'LIMIT'],
     title: '총 주문 금액이 높은 직원 (상위 3명)',
     description: 'orders, employees, products를 JOIN하여 총 주문 금액(quantity * price 합계)이 높은 직원 이름과 총주문금액을 상위 3명만 조회하세요.',
     tables: ['orders', 'employees', 'products'],

@@ -5,6 +5,7 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { setProgressOwner, setProgressSyncUser, syncProgressFromFirestore } from './lib/progress';
 import { setSettingsOwner, setSettingsSyncUser, syncSettingsFromFirestore, useUserSettings } from './lib/userSettings';
 import { setActivityOwner } from './lib/streak';
+import { setLearningOwner, setLearningSyncUser, syncLearningFromFirestore } from './lib/learningProgress';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -99,23 +100,28 @@ function AppInner() {
     if (!user) {
       setProgressSyncUser(null);
       setSettingsSyncUser(null);
+      setLearningSyncUser(null);
       const localOwner = isGuest ? 'guest' : 'anonymous';
       setProgressOwner(localOwner);
       setSettingsOwner(localOwner);
       setActivityOwner(localOwner);
+      setLearningOwner(localOwner);
       return;
     }
     setProgressSyncUser(user.uid);
     setSettingsSyncUser(user.uid);
+    setLearningSyncUser(user.uid);
     setActivityOwner(user.uid);
     syncProgressFromFirestore(user.uid)
       .catch(() => {});
     syncSettingsFromFirestore(user.uid)
       .then((settings) => { if (settings) setLanguage(settings.language); })
       .catch(() => {});
+    syncLearningFromFirestore(user.uid).catch(() => {});
     return () => {
       setProgressSyncUser(null);
       setSettingsSyncUser(null);
+      setLearningSyncUser(null);
     };
   }, [isGuest, setLanguage, user]);
 

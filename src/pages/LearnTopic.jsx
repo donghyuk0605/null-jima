@@ -8,11 +8,13 @@ import ResultTable from '../components/ResultTable';
 import SqlEditor from '../components/SqlEditor';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeLearnTopic, localizeProblems, translateLevel } from '../lib/localizedContent';
+import { markTopicComplete, useLearningProgress } from '../lib/learningProgress';
 
 export default function LearnTopic() {
   const { topicId } = useParams();
   const navigate = useNavigate();
   const { language, t } = useLanguage();
+  const learningProgress = useLearningProgress();
   const rawTopic = LEARN_TOPICS.find((tp) => tp.id === topicId);
   const topic = rawTopic ? localizeLearnTopic(rawTopic, language) : null;
 
@@ -37,6 +39,7 @@ export default function LearnTopic() {
   };
 
   const relatedProblems = localizeProblems(PROBLEMS.filter((p) => topic.relatedProblems.includes(p.id)), language);
+  const isCompleted = Boolean(learningProgress.topics[topicId]?.completed);
 
   return (
     <div className="page topic-page">
@@ -47,8 +50,21 @@ export default function LearnTopic() {
       </div>
 
       <div className="topic-header">
-        <h2 className="topic-title">{topic.title}</h2>
-        <p className="topic-subtitle">{topic.subtitle}</p>
+        <div className="topic-title-row">
+          <div>
+            <h2 className="topic-title">{topic.title}</h2>
+            <p className="topic-subtitle">{topic.subtitle}</p>
+          </div>
+          <button
+            className={`btn ${isCompleted ? 'btn-secondary' : 'btn-primary'}`}
+            type="button"
+            onClick={() => markTopicComplete(topicId, !isCompleted)}
+            aria-pressed={isCompleted}
+          >
+            <Icon name="success" className="btn-icon" />
+            {isCompleted ? t('learn.markIncomplete') : t('learn.markComplete')}
+          </button>
+        </div>
         <p className="topic-desc">{topic.description}</p>
       </div>
 
@@ -96,7 +112,7 @@ export default function LearnTopic() {
         </ul>
       </section>
 
-      {relatedProblems.length > 0 && (
+      {relatedProblems.length > 0 ? (
         <section className="topic-section">
           <h3 className="section-title">{t('learn.practice.title')}</h3>
           <div className="related-problems">
@@ -108,6 +124,11 @@ export default function LearnTopic() {
               </Link>
             ))}
           </div>
+        </section>
+      ) : (
+        <section className="topic-section">
+          <h3 className="section-title">{t('learn.practice.title')}</h3>
+          <div className="topic-practice-empty">{t('learn.practice.empty')}</div>
         </section>
       )}
     </div>
