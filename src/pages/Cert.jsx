@@ -54,11 +54,11 @@ export default function Cert() {
             <div className="cert-stats">
               <div className="cert-stat">
                 <span className="cert-stat-label">{t('cert.subjects.label')}</span>
-                <span className="cert-stat-value">{t('cert.exam.questions', { n: cert.subjects.length })}</span>
+                <span className="cert-stat-value">{t('cert.exam.subjectsCount', { n: cert.subjects.length })}</span>
               </div>
               <div className="cert-stat">
                 <span className="cert-stat-label">{t('cert.pass.label')}</span>
-                <span className="cert-stat-value">{cert.passCriteria.split(',')[0]}</span>
+                <span className="cert-stat-value">{cert.cardPassCriteria || cert.passCriteria.split(',')[0]}</span>
               </div>
               <div className="cert-stat">
                 <span className="cert-stat-label">{t('cert.time.label')}</span>

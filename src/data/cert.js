@@ -13,8 +13,11 @@ export const CERT_LIST = [
     ],
     totalQ: 50, totalScore: 100,
     passCriteria: '총점 60점 이상, 각 과목 40% 이상',
+    practicePassScore: 60,
+    practiceSubjectPassScore: 40,
     examTime: 90,
-    frequency: '연 3회 (3월·6월·9월)',
+    frequency: '연 4회 정기 시행',
+    officialUrl: 'https://www.dataq.or.kr/www/sub/a_04.do',
     keyTopics: ['SELECT / WHERE / ORDER BY / GROUP BY / HAVING', 'JOIN (INNER, LEFT, RIGHT, SELF, CROSS)', '서브쿼리 (단일행, 다중행, 스칼라, 인라인뷰)', '집합 연산 (UNION, INTERSECT, EXCEPT)', '윈도우 함수 (ROW_NUMBER, RANK, LAG, LEAD)', 'CASE WHEN / DECODE', 'NULL 처리 (NVL, COALESCE, NULLIF)', 'DDL / DML / TCL 기본'],
     studyPlan: ['1~2주: SELECT, WHERE, ORDER BY, GROUP BY 완벽 숙지', '3~4주: JOIN 4종 + 서브쿼리 집중', '5주: 집합연산 + 윈도우함수', '6주: DDL/DML/TCL + 데이터 모델링 이론', '7~8주: 기출문제 풀이 + 오답 복습'],
   },
@@ -25,24 +28,55 @@ export const CERT_LIST = [
     level: '고급',
     org: 'KDATA (한국데이터산업진흥원)',
     color: '#e3b341',
-    desc: 'SQLD 취득 후 도전하는 전문가 자격증. SQL 튜닝과 아키텍처까지 포함됩니다.',
+    desc: '데이터 모델링, 고급 SQL, 실행 계획과 튜닝 역량을 함께 검증하는 전문가 자격증입니다.',
     subjects: [
-      { name: 'SQL 심화', questions: 40, score: 40, topics: ['고급 JOIN', '고급 서브쿼리', '계층형 쿼리', '윈도우함수 심화'] },
-      { name: 'SQL 최적화', questions: 50, score: 60, topics: ['옵티마이저', '인덱스 설계', '실행계획', 'SQL 튜닝'] },
+      { name: '데이터 모델링의 이해', questions: 10, score: 10, topics: ['데이터 모델', '정규화', '관계와 조인', '식별자'] },
+      { name: 'SQL 기본 및 활용', questions: 20, score: 20, topics: ['고급 JOIN', '서브쿼리', '계층형 쿼리', '윈도우 함수'] },
+      { name: 'SQL 고급활용 및 튜닝', questions: 42, score: 70, format: '객관식 40문항 · 40점 + 실기 2문항 · 30점', topics: ['옵티마이저', '인덱스 설계', '실행 계획', 'SQL 튜닝'] },
     ],
-    totalQ: 90, totalScore: 100,
+    totalQ: 72, totalScore: 100,
     passCriteria: '총점 60점 이상, 각 과목 40% 이상',
+    practicePassScore: 60,
+    practiceSubjectPassScore: 40,
     examTime: 180,
     frequency: '연 2회',
+    officialUrl: 'https://www.dataq.or.kr/www/sub/a_03.do',
     keyTopics: ['옵티마이저와 실행 계획 분석', '인덱스 종류와 설계 전략', '파티션 테이블 설계', '계층형 쿼리 (CONNECT BY)', '고급 분석 함수', 'Lock과 트랜잭션 관리', '대용량 데이터 처리', 'SQL 튜닝 기법'],
     studyPlan: ['SQLD 완벽 복습 후 시작 권장', '1~3주: SQL 심화 (계층형 쿼리, 고급 분석함수)', '4~6주: 실행계획 읽기 + 인덱스 이해', '7~9주: 튜닝 실습', '10~12주: 기출 + 실기 연습'],
   },
+  {
+    id: 'ocp',
+    name: 'OCP',
+    fullName: 'Oracle Database Administration 2019 Certified Professional',
+    level: '고급',
+    org: 'Oracle University',
+    color: '#f05237',
+    desc: 'Oracle Database 19c 관리자를 위한 Professional 경로입니다. 현재 모의고사는 1Z0-083의 고급 관리 범위를 중심으로 합니다.',
+    subjects: [
+      { name: '설치·패치·업그레이드', questions: 7, score: 23, format: '모의문제 7문항', topics: ['Oracle Restart', '패치', '업그레이드', 'Grid Infrastructure'] },
+      { name: '백업·복구와 RMAN', questions: 8, score: 27, format: '모의문제 8문항', topics: ['RMAN 백업', '복구 카탈로그', 'PITR', '중복·전송'] },
+      { name: '멀티테넌트', questions: 9, score: 30, format: '모의문제 9문항', topics: ['CDB/PDB', '클론·재배치', '공통 사용자', '애플리케이션 컨테이너'] },
+      { name: '가용성·진단·보안', questions: 6, score: 20, format: '모의문제 6문항', topics: ['Data Guard', '진단', '감사', '리소스 관리'] },
+    ],
+    totalQ: null,
+    totalScore: null,
+    examFormat: '자격 취득 경로: 1Z0-082 + 1Z0-083',
+    passCriteria: '연습 기준 65점 이상 (공식 합격 기준은 Oracle에서 확인)',
+    cardPassCriteria: '연습 65점 이상',
+    practicePassScore: 65,
+    practiceSubjectPassScore: null,
+    examTime: 120,
+    frequency: '상시 응시 (Oracle 일정 확인)',
+    officialUrl: 'https://learn.oracle.com/ols/learning-path/earn-the-oracle-database-19c-admin-professional-credential/117252/80836',
+    keyTopics: ['Oracle Database 19c 설치와 업그레이드', 'Grid Infrastructure와 Oracle Restart', 'RMAN 백업·복구 전략', '복구 카탈로그와 시점 복구', 'CDB/PDB 생성·복제·재배치', '멀티테넌트 보안과 공통 사용자', 'Data Guard 기본 운영', '성능 진단과 리소스 관리'],
+    studyPlan: ['1~2주: 19c 아키텍처와 Admin I 범위 복습', '3~4주: 설치·패치·업그레이드 절차', '5~7주: RMAN 백업·복구 시나리오 실습', '8~10주: CDB/PDB와 멀티테넌트 운영', '11~12주: 장애 대응 시나리오와 실전형 모의문제'],
+  },
 ];
 
-// SQLD 예상 문제 (과목별)
+// 공식 출제 범위를 바탕으로 직접 작성한 비공식 실전형 문제입니다.
 export const SQLD_QUIZ = [
   {
-    id: 1, subject: 'SQL 기본', difficulty: '기본',
+    id: 1, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: 'WHERE 절과 HAVING 절의 차이로 올바른 것은?',
     options: [
       'WHERE는 그룹화 후, HAVING은 그룹화 전에 조건을 적용한다',
@@ -54,10 +88,10 @@ export const SQLD_QUIZ = [
     explanation: 'WHERE는 GROUP BY 이전에 행 단위로 필터링합니다. HAVING은 GROUP BY 이후 그룹 단위로 필터링하며, 집계 함수를 조건으로 사용할 수 있습니다.',
   },
   {
-    id: 2, subject: 'SQL 기본', difficulty: '기본',
+    id: 2, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: 'NULL 값에 대한 설명으로 올바르지 않은 것은?',
     options: [
-      'NULL에 어떤 연산을 해도 결과는 NULL이다',
+      'NULL이 포함된 산술 연산 결과는 일반적으로 NULL이다',
       'NULL 비교에는 IS NULL 또는 IS NOT NULL을 사용한다',
       'COUNT(컬럼명)은 NULL 값도 포함하여 카운트한다',
       'NULL = NULL의 결과는 UNKNOWN이다',
@@ -66,7 +100,7 @@ export const SQLD_QUIZ = [
     explanation: 'COUNT(컬럼명)은 NULL을 제외하고 카운트합니다. 전체 행 수(NULL 포함)는 COUNT(*)를 사용합니다.',
   },
   {
-    id: 3, subject: 'SQL 기본', difficulty: '기본',
+    id: 3, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: 'SQL 명령어 분류 중 DDL(Data Definition Language)에 해당하는 것으로만 묶인 것은?',
     options: [
       'SELECT, INSERT, UPDATE, DELETE',
@@ -78,15 +112,14 @@ export const SQLD_QUIZ = [
     explanation: 'DDL: CREATE(생성), ALTER(변경), DROP(삭제), TRUNCATE(초기화). DML: SELECT/INSERT/UPDATE/DELETE. TCL: COMMIT/ROLLBACK/SAVEPOINT. DCL: GRANT/REVOKE.',
   },
   {
-    id: 4, subject: 'SQL 기본', difficulty: '기본',
-    question: '아래 SQL 실행 시 결과 행 수는?\nSELECT DISTINCT department_id FROM employees;',
-    options: ['2', '3', '4', '10'],
-    answer: 2,
-    explanation: 'employees 테이블에는 department_id가 1, 2, 3, 4인 직원들이 있으므로 DISTINCT 결과는 4행입니다.',
-    sql: 'SELECT DISTINCT department_id FROM employees;',
+    id: 4, subject: '데이터 모델링의 이해', difficulty: '기본',
+    question: '엔터티(Entity)가 성립하기 위한 특징으로 가장 적절하지 않은 것은?',
+    options: ['업무에서 관리할 필요가 있는 정보여야 한다', '두 개 이상의 인스턴스가 존재해야 한다', '주식별자로 인스턴스를 구분할 수 있어야 한다', '반드시 다른 엔터티와 두 개 이상의 관계를 가져야 한다'],
+    answer: 3,
+    explanation: '엔터티는 업무에서 필요한 정보이고 식별 가능하며 보통 두 개 이상의 인스턴스와 속성을 가집니다. 관계가 전혀 없거나 하나뿐인 엔터티도 업무적으로 존재할 수 있습니다.',
   },
   {
-    id: 5, subject: 'SQL 활용', difficulty: '중간',
+    id: 5, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: 'INNER JOIN과 LEFT OUTER JOIN의 차이로 올바른 것은?',
     options: [
       'INNER JOIN은 왼쪽 테이블의 모든 행을 반환한다',
@@ -98,27 +131,26 @@ export const SQLD_QUIZ = [
     explanation: 'INNER JOIN은 양쪽 테이블의 조인 조건이 일치하는 행만 반환합니다. LEFT JOIN은 왼쪽 테이블의 모든 행을 반환하고, 오른쪽에 일치하는 값이 없으면 NULL로 채웁니다.',
   },
   {
-    id: 6, subject: 'SQL 활용', difficulty: '중간',
+    id: 6, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: 'GROUP BY 절 사용 시 올바른 설명은?',
     options: [
       'SELECT에 집계함수가 아닌 컬럼은 반드시 GROUP BY에 포함되어야 한다',
       'GROUP BY는 ORDER BY 뒤에 위치해야 한다',
-      'GROUP BY 없이 HAVING을 사용할 수 있다',
-      'GROUP BY 컬럼은 SELECT에 없어도 된다',
+      'HAVING은 WHERE보다 먼저 실행되어 원본 행을 필터링한다',
+      '집계 함수는 WHERE 절에서 그룹 조건으로 사용할 수 있다',
     ],
     answer: 0,
     explanation: 'SELECT 절에서 집계 함수(COUNT, SUM 등)로 감싸지 않은 컬럼은 반드시 GROUP BY에 포함되어야 합니다. 실행 순서: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY.',
   },
   {
-    id: 7, subject: 'SQL 활용', difficulty: '중간',
-    question: '아래 SQL의 실행 결과로 올바른 것은?\nSELECT COUNT(*) FROM employees WHERE salary > 6000000;',
-    options: ['2', '3', '4', '5'],
+    id: 7, subject: '데이터 모델링의 이해', difficulty: '중간',
+    question: '속성의 특성에 따른 분류와 예시가 올바르게 연결된 것은?',
+    options: ['기본속성: 다른 속성으로 계산된 주문금액', '설계속성: 업무 규칙을 위해 새로 만든 상품분류코드', '파생속성: 원래 업무에서 수집된 고객명', '기본속성: 여러 값을 한 컬럼에 합친 주소목록'],
     answer: 1,
-    explanation: 'salary > 6000000인 직원: 김민준(6500000), 정도윤(7200000), 임재원(6100000) → 3명',
-    sql: 'SELECT COUNT(*) FROM employees WHERE salary > 6000000;',
+    explanation: '설계속성은 업무를 규칙화하거나 시스템 구현을 위해 만든 속성입니다. 기본속성은 원래 수집되는 정보, 파생속성은 다른 속성에서 계산된 값입니다.',
   },
   {
-    id: 8, subject: 'SQL 활용', difficulty: '중간',
+    id: 8, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: '윈도우 함수 RANK()와 DENSE_RANK()의 차이로 올바른 것은?',
     options: [
       'RANK()는 동순위 없이 1,2,3 순서로 매긴다',
@@ -130,7 +162,7 @@ export const SQLD_QUIZ = [
     explanation: '급여 100,100,90이 있을 때: RANK()는 1,1,3 (2위 건너뜀), DENSE_RANK()는 1,1,2 (건너뛰지 않음).',
   },
   {
-    id: 9, subject: 'SQL 활용', difficulty: '심화',
+    id: 9, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: '다음 중 서브쿼리 종류와 설명이 올바르게 연결된 것은?',
     options: [
       '스칼라 서브쿼리: FROM 절에 사용되는 서브쿼리',
@@ -142,7 +174,7 @@ export const SQLD_QUIZ = [
     explanation: '중첩(Nested) 서브쿼리: WHERE/HAVING 절. 스칼라 서브쿼리: SELECT 절에서 단일 값 반환. 인라인 뷰: FROM 절. 상관(Correlated) 서브쿼리: 메인쿼리의 컬럼을 참조하여 반복 실행.',
   },
   {
-    id: 10, subject: 'SQL 활용', difficulty: '심화',
+    id: 10, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: 'TRUNCATE와 DELETE의 차이로 올바른 것은?',
     options: [
       'TRUNCATE는 WHERE 조건을 사용할 수 있다',
@@ -154,7 +186,7 @@ export const SQLD_QUIZ = [
     explanation: 'TRUNCATE는 DDL로 자동 COMMIT되어 ROLLBACK 불가, WHERE 조건 사용 불가, 테이블 구조는 유지. DELETE는 DML로 ROLLBACK 가능, WHERE 조건 사용 가능, 행 단위 삭제.',
   },
   {
-    id: 11, subject: '데이터 모델링', difficulty: '기본',
+    id: 11, subject: '데이터 모델링의 이해', difficulty: '기본',
     question: '정규화의 목적으로 가장 적절한 것은?',
     options: [
       '데이터 조회 성능을 극대화하기 위해',
@@ -166,7 +198,7 @@ export const SQLD_QUIZ = [
     explanation: '정규화의 목적은 데이터 중복 최소화와 삽입·삭제·갱신 이상(Anomaly) 방지입니다. 단, 성능을 위해 의도적으로 반정규화(Denormalization)를 하기도 합니다.',
   },
   {
-    id: 12, subject: '데이터 모델링', difficulty: '기본',
+    id: 12, subject: '데이터 모델링의 이해', difficulty: '기본',
     question: '제1정규형(1NF)의 조건으로 올바른 것은?',
     options: [
       '부분 함수 종속을 제거한다',
@@ -178,7 +210,7 @@ export const SQLD_QUIZ = [
     explanation: '1NF: 모든 속성이 원자값(반복·복합 속성 없음). 2NF: 부분 함수 종속 제거. 3NF: 이행 함수 종속 제거. BCNF: 결정자가 후보키.',
   },
   {
-    id: 13, subject: '데이터 모델링', difficulty: '기본',
+    id: 13, subject: '데이터 모델링의 이해', difficulty: '기본',
     question: '식별자(Identifier)에 대한 설명으로 올바른 것은?',
     options: [
       '주식별자는 NULL 값을 가질 수 있다',
@@ -190,7 +222,7 @@ export const SQLD_QUIZ = [
     explanation: '주식별자는 유일성·최소성·불변성·존재성을 가져야 합니다. NULL 불가, 값 변경 불가, 최소 속성으로 구성해야 합니다.',
   },
   {
-    id: 14, subject: 'SQL 기본', difficulty: '기본',
+    id: 14, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: '아래 SQL에서 ORDER BY 절의 실행 순서로 올바른 것은?\nSELECT name, salary FROM employees WHERE salary > 5000000 ORDER BY salary DESC;',
     options: [
       'SELECT → FROM → WHERE → ORDER BY',
@@ -202,7 +234,7 @@ export const SQLD_QUIZ = [
     explanation: 'SQL 실행 순서: FROM → ON → JOIN → WHERE → GROUP BY → HAVING → SELECT → DISTINCT → ORDER BY → LIMIT. ORDER BY는 SELECT 이후 실행되므로 SELECT 별칭(alias)을 ORDER BY에서 사용할 수 있습니다.',
   },
   {
-    id: 15, subject: 'SQL 기본', difficulty: '기본',
+    id: 15, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: 'BETWEEN 연산자에 대한 설명으로 올바른 것은?',
     options: [
       'BETWEEN A AND B는 A 초과 B 미만의 값을 반환한다',
@@ -214,7 +246,7 @@ export const SQLD_QUIZ = [
     explanation: 'BETWEEN A AND B는 A 이상 B 이하(양 끝값 포함)입니다. 숫자, 문자열, 날짜 모두 사용 가능합니다. `WHERE salary BETWEEN 5000000 AND 7000000`은 `WHERE salary >= 5000000 AND salary <= 7000000`과 동일합니다.',
   },
   {
-    id: 16, subject: 'SQL 기본', difficulty: '기본',
+    id: 16, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: "LIKE 연산자에서 '_'(언더스코어)의 의미는?",
     options: [
       '0개 이상의 임의 문자',
@@ -226,7 +258,7 @@ export const SQLD_QUIZ = [
     explanation: "LIKE 와일드카드: '%'는 0개 이상의 임의 문자, '_'는 정확히 1개의 임의 문자입니다. 예: LIKE '_이%'는 두 번째 글자가 '이'인 문자열과 매칭됩니다.",
   },
   {
-    id: 17, subject: 'SQL 기본', difficulty: '중간',
+    id: 17, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: '다음 중 COALESCE 함수의 역할로 올바른 것은?',
     options: [
       '여러 값 중 최대값을 반환한다',
@@ -238,14 +270,14 @@ export const SQLD_QUIZ = [
     explanation: 'COALESCE(a, b, c, ...)는 첫 번째 NULL이 아닌 값을 반환합니다. 모두 NULL이면 NULL 반환. NULLIF(a, b)는 a=b이면 NULL, 아니면 a. NVL(a, b)는 Oracle 전용으로 a가 NULL이면 b.',
   },
   {
-    id: 18, subject: 'SQL 기본', difficulty: '중간',
-    question: "다음 CASE 식의 결과로 올바른 것은?\nSELECT CASE WHEN 1=1 THEN 'A' WHEN 2=2 THEN 'B' ELSE 'C' END;",
-    options: ["'A'", "'B'", "'C'", 'NULL'],
+    id: 18, subject: '데이터 모델링의 이해', difficulty: '중간',
+    question: '본질식별자와 인조식별자에 대한 설명으로 올바른 것은?',
+    options: ['본질식별자는 업무에서 원래 존재하는 속성으로 구성될 수 있다', '인조식별자는 반드시 여러 업무 속성을 결합한다', '본질식별자는 관계를 통해 절대 전달할 수 없다', '인조식별자를 사용하면 업무 유일성 제약이 필요 없다'],
     answer: 0,
-    explanation: "CASE WHEN은 조건을 위에서부터 순서대로 평가하고 처음 TRUE인 조건의 값을 반환합니다. 1=1이 TRUE이므로 'A'를 반환하고 이후 조건은 평가하지 않습니다.",
+    explanation: '본질식별자는 업무에서 자연스럽게 식별 역할을 하는 속성으로 구성됩니다. 인조식별자를 쓰더라도 업무적으로 유일해야 하는 속성에는 별도 UNIQUE 제약 등을 검토해야 합니다.',
   },
   {
-    id: 19, subject: 'SQL 기본', difficulty: '중간',
+    id: 19, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: 'UNION과 UNION ALL의 차이로 올바른 것은?',
     options: [
       'UNION ALL은 중복을 제거하고 UNION은 중복을 허용한다',
@@ -257,7 +289,7 @@ export const SQLD_QUIZ = [
     explanation: 'UNION: 두 결과의 합집합(중복 제거, 내부적으로 DISTINCT 수행). UNION ALL: 모든 행 포함(중복 있음, 성능 더 좋음). 두 쿼리의 컬럼 수와 데이터타입이 호환되어야 합니다.',
   },
   {
-    id: 20, subject: 'SQL 기본', difficulty: '중간',
+    id: 20, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: "IN 연산자와 서브쿼리를 결합할 때, 서브쿼리가 NULL을 포함한 결과를 반환하면 NOT IN의 결과는?",
     options: [
       '정상적으로 NULL을 제외하고 비교한다',
@@ -269,7 +301,7 @@ export const SQLD_QUIZ = [
     explanation: 'NOT IN 서브쿼리에 NULL이 포함되면 어떤 값도 "NOT IN"을 만족하지 못해 결과가 없습니다. NULL과의 비교는 항상 UNKNOWN이기 때문입니다. NOT EXISTS를 사용하거나 서브쿼리에 WHERE col IS NOT NULL을 추가해야 합니다.',
   },
   {
-    id: 21, subject: 'SQL 활용', difficulty: '중간',
+    id: 21, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: 'SELF JOIN에 대한 설명으로 올바른 것은?',
     options: [
       '두 개의 다른 테이블을 조인하는 방법이다',
@@ -281,14 +313,14 @@ export const SQLD_QUIZ = [
     explanation: 'SELF JOIN은 동일 테이블을 별칭(alias)을 다르게 주어 조인합니다. 예: 직원-상사 관계처럼 계층 구조를 가진 데이터 조회에 활용합니다. LEFT JOIN으로도 사용 가능합니다.',
   },
   {
-    id: 22, subject: 'SQL 활용', difficulty: '중간',
+    id: 22, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: '다음 중 집계함수(Aggregate Function)가 아닌 것은?',
     options: ['SUM()', 'AVG()', 'NVL()', 'MAX()'],
     answer: 2,
     explanation: '집계함수: COUNT, SUM, AVG, MAX, MIN, STDDEV, VARIANCE 등. NVL(a, b)는 Oracle의 NULL 처리 함수로 단일행 함수입니다.',
   },
   {
-    id: 23, subject: 'SQL 활용', difficulty: '중간',
+    id: 23, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: 'ROW_NUMBER() 윈도우 함수에 대한 설명으로 올바른 것은?',
     options: [
       '동순위가 있으면 같은 번호를 부여한다',
@@ -300,7 +332,7 @@ export const SQLD_QUIZ = [
     explanation: 'ROW_NUMBER()는 동순위와 무관하게 항상 고유한 번호(1, 2, 3, ...)를 부여합니다. RANK()는 동순위 후 건너뜀, DENSE_RANK()는 동순위 후 이어서 증가합니다.',
   },
   {
-    id: 24, subject: 'SQL 활용', difficulty: '심화',
+    id: 24, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: 'LAG(), LEAD() 함수에 대한 설명으로 올바른 것은?',
     options: [
       'LAG()는 현재 행 기준 다음 행의 값을, LEAD()는 이전 행의 값을 반환한다',
@@ -312,7 +344,7 @@ export const SQLD_QUIZ = [
     explanation: 'LAG(col, n)은 현재 행에서 n행 이전 값, LEAD(col, n)은 n행 이후 값을 반환합니다. 기본 n=1. 값이 없으면 NULL 반환(기본값 지정 가능). PARTITION BY는 선택사항입니다.',
   },
   {
-    id: 25, subject: 'SQL 활용', difficulty: '심화',
+    id: 25, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: '아래 쿼리의 결과로 올바른 것은?\nSELECT department_id, SUM(salary) OVER (ORDER BY department_id) AS cumsum FROM employees;',
     options: [
       '부서별 합계를 반환한다',
@@ -324,7 +356,7 @@ export const SQLD_QUIZ = [
     explanation: 'SUM() OVER (ORDER BY col)은 누적 합계를 계산합니다. ORDER BY만 있고 PARTITION BY가 없으면 전체 집합을 대상으로 순서에 따라 누적합산합니다. 각 행을 유지하면서 누적값을 추가한다는 점이 GROUP BY와 다릅니다.',
   },
   {
-    id: 26, subject: 'SQL 활용', difficulty: '심화',
+    id: 26, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: '상관 서브쿼리(Correlated Subquery)의 특징으로 올바른 것은?',
     options: [
       '외부 쿼리와 독립적으로 한 번만 실행된다',
@@ -336,7 +368,7 @@ export const SQLD_QUIZ = [
     explanation: '상관 서브쿼리는 외부 쿼리의 컬럼을 참조하므로 외부 쿼리의 각 행에 대해 반복 실행됩니다. 일반 서브쿼리는 한 번만 실행됩니다. WHERE EXISTS와 함께 자주 사용됩니다.',
   },
   {
-    id: 27, subject: 'SQL 활용', difficulty: '심화',
+    id: 27, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: 'INTERSECT 연산자의 결과로 올바른 것은?',
     options: [
       '두 쿼리 결과의 합집합(중복 제거)',
@@ -348,7 +380,7 @@ export const SQLD_QUIZ = [
     explanation: '집합 연산: UNION(합집합·중복제거), UNION ALL(합집합·중복포함), INTERSECT(교집합), EXCEPT/MINUS(차집합). INTERSECT는 두 결과 모두에 존재하는 행만 반환합니다.',
   },
   {
-    id: 28, subject: 'SQL 활용', difficulty: '심화',
+    id: 28, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: "다음 쿼리에서 발생하는 문제점은?\nSELECT name FROM employees WHERE department_id = (SELECT department_id FROM employees WHERE salary > 6000000);",
     options: [
       '문법 오류가 발생한다',
@@ -360,7 +392,7 @@ export const SQLD_QUIZ = [
     explanation: '= 연산자는 서브쿼리가 정확히 1행을 반환해야 합니다. 여러 행을 반환하면 "단일 행 서브쿼리의 결과가 둘 이상의 행" 오류가 발생합니다. 해결책: IN 연산자 사용 또는 서브쿼리에 LIMIT 1 추가.',
   },
   {
-    id: 29, subject: 'SQL 기본', difficulty: '기본',
+    id: 29, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: 'PRIMARY KEY 제약조건의 특징으로 올바른 것은?',
     options: [
       'NULL 값을 허용하며 중복 값도 허용한다',
@@ -372,7 +404,7 @@ export const SQLD_QUIZ = [
     explanation: 'PRIMARY KEY = NOT NULL + UNIQUE. 테이블당 1개만 정의 가능하며 자동으로 인덱스가 생성됩니다. UNIQUE 제약조건은 NULL 허용(단, 중복 NULL은 DB마다 다름).',
   },
   {
-    id: 30, subject: 'SQL 기본', difficulty: '기본',
+    id: 30, subject: 'SQL 기본 및 활용', difficulty: '기본',
     question: 'FOREIGN KEY(외래키)에 대한 설명으로 올바른 것은?',
     options: [
       '참조하는 테이블의 기본키와 값이 반드시 같아야 하며 NULL은 불가능하다',
@@ -388,7 +420,7 @@ export const SQLD_QUIZ = [
 // SQLP 예상 문제
 export const SQLP_QUIZ = [
   {
-    id: 1, subject: 'SQL 심화', difficulty: '중간',
+    id: 1, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: '계층형 쿼리(CONNECT BY)에서 LEVEL 의사컬럼(Pseudocolumn)의 역할로 올바른 것은?',
     options: [
       '현재 행의 행 번호를 반환한다',
@@ -400,7 +432,7 @@ export const SQLP_QUIZ = [
     explanation: 'Oracle CONNECT BY 구문에서 LEVEL은 루트 노드가 1이고, 자식 노드는 2, 그 자식은 3으로 증가합니다. START WITH로 루트를 지정하고 CONNECT BY PRIOR로 부모-자식 관계를 정의합니다.',
   },
   {
-    id: 2, subject: 'SQL 심화', difficulty: '중간',
+    id: 2, subject: 'SQL 기본 및 활용', difficulty: '중간',
     question: 'WITH 절(CTE: Common Table Expression)의 특징으로 올바른 것은?',
     options: [
       '영구적인 뷰를 생성한다',
@@ -412,7 +444,7 @@ export const SQLP_QUIZ = [
     explanation: 'CTE(WITH 절)는 쿼리 실행 범위 내에서만 유효한 임시 결과셋으로, 같은 쿼리 내에서 여러 번 참조 가능합니다. 재귀 CTE도 지원합니다. 위치는 SELECT/INSERT/UPDATE/DELETE 앞에 옵니다.',
   },
   {
-    id: 3, subject: 'SQL 최적화', difficulty: '중간',
+    id: 3, subject: 'SQL 고급활용 및 튜닝', difficulty: '중간',
     question: '옵티마이저(Optimizer)의 종류와 설명으로 올바른 것은?',
     options: [
       '규칙기반 옵티마이저(RBO)는 통계 정보를 기반으로 최적 실행계획을 선택한다',
@@ -424,7 +456,7 @@ export const SQLP_QUIZ = [
     explanation: 'CBO(Cost-Based Optimizer)는 테이블 통계(행 수, 분포도, 인덱스 등)를 기반으로 예상 비용을 계산해 실행계획을 선택합니다. 통계 정보가 부정확하면 잘못된 실행계획을 선택할 수 있습니다. 현재 주요 RDBMS는 모두 CBO를 사용합니다.',
   },
   {
-    id: 4, subject: 'SQL 최적화', difficulty: '중간',
+    id: 4, subject: 'SQL 고급활용 및 튜닝', difficulty: '중간',
     question: '인덱스(Index)의 특징으로 올바르지 않은 것은?',
     options: [
       '인덱스는 SELECT 조회 성능을 향상시킬 수 있다',
@@ -436,7 +468,7 @@ export const SQLP_QUIZ = [
     explanation: '인덱스는 조회 성능을 높이지만 DML(삽입·수정·삭제) 시 인덱스 유지 비용이 발생합니다. 인덱스를 과도하게 만들면 DML 성능이 저하되고 저장 공간도 증가합니다. 선택도(Selectivity)가 높은 컬럼에 인덱스를 생성하는 것이 효율적입니다.',
   },
   {
-    id: 5, subject: 'SQL 최적화', difficulty: '심화',
+    id: 5, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
     question: '실행계획(Execution Plan)에서 FULL TABLE SCAN이 INDEX SCAN보다 유리한 경우는?',
     options: [
       '조회 조건이 매우 선택적(소수의 행만 반환)일 때',
@@ -445,10 +477,10 @@ export const SQLP_QUIZ = [
       '항상 INDEX SCAN이 FULL TABLE SCAN보다 유리하다',
     ],
     answer: 1,
-    explanation: '대량의 데이터(일반적으로 전체의 20~30% 이상)를 읽어야 할 때는 FULL TABLE SCAN이 더 효율적입니다. 인덱스는 소량의 선택적 조회에 유리하며, 대량 조회 시 인덱스를 통한 랜덤 I/O가 오히려 더 느릴 수 있습니다.',
+    explanation: '테이블의 큰 비율을 읽어야 하면 인덱스 경유 랜덤 I/O보다 멀티블록 읽기를 활용하는 FULL TABLE SCAN이 더 효율적일 수 있습니다. 실제 선택은 통계와 비용 계산에 따라 달라집니다.',
   },
   {
-    id: 6, subject: 'SQL 최적화', difficulty: '심화',
+    id: 6, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
     question: '다음 중 인덱스를 활용하지 못하는 SQL 패턴이 아닌 것은?',
     options: [
       'WHERE SUBSTR(name, 1, 2) = \'김이\'',
@@ -460,19 +492,19 @@ export const SQLP_QUIZ = [
     explanation: '인덱스를 활용하지 못하는 패턴: 컬럼에 함수 적용(SUBSTR, UPPER 등), 연산(salary*1.1), 묵시적 형변환, IS NULL(B-Tree 인덱스에 NULL 저장 안 함). LIKE \'김%\'처럼 앞부분이 확정된 패턴은 인덱스를 활용합니다. LIKE \'%김\'은 불가.',
   },
   {
-    id: 7, subject: 'SQL 심화', difficulty: '심화',
+    id: 7, subject: 'SQL 기본 및 활용', difficulty: '심화',
     question: 'PIVOT과 UNPIVOT 연산에 대한 설명으로 올바른 것은?',
     options: [
       'PIVOT은 행을 열로, UNPIVOT은 열을 행으로 변환한다',
       'PIVOT은 열을 행으로, UNPIVOT은 행을 열로 변환한다',
       'PIVOT은 집계함수와 함께 사용할 수 없다',
-      'UNPIVOT은 표준 SQL에서 지원하지 않는다',
+      'UNPIVOT은 숫자 컬럼에만 사용할 수 있다',
     ],
     answer: 0,
     explanation: 'PIVOT: 행(row) → 열(column) 변환 (가로로 펼침). UNPIVOT: 열(column) → 행(row) 변환 (세로로 모음). PIVOT은 집계함수(SUM, COUNT 등)와 함께 사용합니다. Oracle, SQL Server 등에서 지원하며, 표준 SQL에서는 CASE WHEN으로 구현합니다.',
   },
   {
-    id: 8, subject: 'SQL 최적화', difficulty: '심화',
+    id: 8, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
     question: '파티션 테이블(Partitioned Table)의 장점으로 올바르지 않은 것은?',
     options: [
       '파티션 프루닝(Partition Pruning)으로 불필요한 파티션을 건너뛸 수 있다',
@@ -483,4 +515,381 @@ export const SQLP_QUIZ = [
     answer: 2,
     explanation: '파티션 테이블의 성능 이점(파티션 프루닝)은 WHERE 절에 파티션 키가 포함되어 있을 때 발동합니다. 파티션 키 없이 조회하면 모든 파티션을 스캔해야 할 수 있어 성능 이점이 없습니다.',
   },
+  {
+    id: 9, subject: '데이터 모델링의 이해', difficulty: '중간',
+    question: '한 고객이 여러 주문을 할 수 있고 각 주문은 반드시 한 고객에 속할 때, 고객과 주문의 관계로 가장 적절한 것은?',
+    options: ['1:1 필수 관계', '1:N 관계이며 주문 쪽이 필수 참여', 'M:N 관계', '관계가 없는 독립 엔터티'],
+    answer: 1,
+    explanation: '고객 한 명은 여러 주문을 가질 수 있으므로 1:N입니다. 각 주문이 반드시 한 고객에 속한다는 조건은 주문 엔터티의 관계 참여가 필수임을 뜻합니다.',
+  },
+  {
+    id: 10, subject: '데이터 모델링의 이해', difficulty: '중간',
+    question: '개념·논리·물리 데이터 모델에 대한 설명으로 올바른 것은?',
+    options: ['개념 모델은 특정 DBMS의 데이터 타입을 확정한다', '논리 모델은 업무 규칙과 엔터티 관계를 표현하고 DBMS 독립적으로 설계할 수 있다', '물리 모델은 업무 영역만 대략 구분한다', '논리 모델에서는 식별자를 정의하지 않는다'],
+    answer: 1,
+    explanation: '개념 모델은 업무 영역과 핵심 개체를, 논리 모델은 속성·식별자·관계·정규화를, 물리 모델은 특정 DBMS의 테이블·타입·인덱스 등을 구체화합니다.',
+  },
+  {
+    id: 11, subject: '데이터 모델링의 이해', difficulty: '중간',
+    question: '주문(주문번호, 고객번호, 고객등급)에서 주문번호가 기본키이고 고객번호 → 고객등급이 성립한다. 제3정규형을 만족시키기 위한 조치로 가장 적절한 것은?',
+    options: ['고객등급을 주문번호의 일부로 만든다', '고객번호와 고객등급을 별도 고객 엔터티로 분리한다', '모든 속성을 하나의 문자열로 합친다', '주문번호를 제거한다'],
+    answer: 1,
+    explanation: '주문번호 → 고객번호 → 고객등급의 이행 함수 종속이 있으므로 고객번호와 고객등급을 고객 엔터티로 분리해야 제3정규형을 만족합니다.',
+  },
+  {
+    id: 12, subject: '데이터 모델링의 이해', difficulty: '심화',
+    question: '비식별 관계(Non-identifying Relationship)에 대한 설명으로 올바른 것은?',
+    options: ['부모 식별자가 자식의 주식별자에 포함된다', '부모 식별자는 자식의 일반 속성인 외래키로 전달될 수 있다', '부모가 없으면 자식 엔터티 정의 자체가 불가능하다', '항상 1:1 관계만 표현한다'],
+    answer: 1,
+    explanation: '비식별 관계에서는 부모 식별자가 자식의 일반 속성인 외래키로 전달되며 자식의 주식별자에는 포함되지 않습니다.',
+  },
+  {
+    id: 13, subject: '데이터 모델링의 이해', difficulty: '심화',
+    question: '반정규화를 검토하기 전에 우선 수행할 조치로 가장 적절한 것은?',
+    options: ['모든 테이블을 즉시 하나로 합친다', '조회 패턴과 병목을 확인하고 인덱스·조인 방식 등 대안을 먼저 검토한다', '기본키를 모두 제거한다', '중복 데이터를 무조건 허용한다'],
+    answer: 1,
+    explanation: '반정규화는 중복과 정합성 관리 비용을 늘립니다. 실제 병목을 측정하고 인덱스, 클러스터링, 파티션, 쿼리 개선 같은 대안을 검토한 뒤 선택해야 합니다.',
+  },
+  {
+    id: 14, subject: 'SQL 기본 및 활용', difficulty: '중간',
+    question: 'NULL을 포함할 수 있는 서브쿼리 결과에서 일치하지 않는 행을 안전하게 찾는 방식으로 가장 적절한 것은?',
+    options: ['NOT IN만 사용한다', 'NOT EXISTS 상관 서브쿼리를 사용한다', '= ALL만 사용한다', 'CROSS JOIN을 사용한다'],
+    answer: 1,
+    explanation: 'NOT IN 목록에 NULL이 있으면 비교 결과가 UNKNOWN이 되어 예상과 달리 행이 반환되지 않을 수 있습니다. NOT EXISTS는 이 문제를 피하는 대표적인 방법입니다.',
+  },
+  {
+    id: 15, subject: 'SQL 기본 및 활용', difficulty: '심화',
+    question: 'MERGE 문을 사용하는 주된 목적으로 가장 적절한 것은?',
+    options: ['테이블 구조만 변경한다', '조인 조건의 일치 여부에 따라 UPDATE와 INSERT 등을 한 문장에서 처리한다', '트랜잭션을 강제로 종료한다', '인덱스 통계를 수집한다'],
+    answer: 1,
+    explanation: 'MERGE는 원본과 대상의 조인 결과에 따라 WHEN MATCHED와 WHEN NOT MATCHED 절에서 갱신·삽입 작업을 조건부로 수행합니다.',
+  },
+  {
+    id: 16, subject: 'SQL 기본 및 활용', difficulty: '심화',
+    question: '분석 함수에서 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW의 의미는?',
+    options: ['현재 행만 계산한다', '파티션의 첫 행부터 현재 행까지의 물리적 행 범위를 계산한다', '현재 행 이후만 계산한다', '동일 값인 행만 계산한다'],
+    answer: 1,
+    explanation: 'ROWS 프레임은 정렬된 결과의 물리적 행을 기준으로 파티션 시작부터 현재 행까지를 윈도우에 포함합니다.',
+  },
+  {
+    id: 17, subject: 'SQL 기본 및 활용', difficulty: '심화',
+    question: 'Oracle 계층형 질의에서 순환 관계로 인한 오류를 방지하고 순환 여부를 확인할 때 함께 사용할 수 있는 것은?',
+    options: ['CONNECT_BY_ISCYCLE과 NOCYCLE', 'GROUPING_ID와 CUBE', 'ROWID와 ROWNUM', 'MODEL과 RETURNING'],
+    answer: 0,
+    explanation: 'CONNECT BY NOCYCLE은 순환이 있어도 결과를 반환하게 하며 CONNECT_BY_ISCYCLE 의사 컬럼으로 순환 지점을 식별할 수 있습니다.',
+  },
+  {
+    id: 18, subject: 'SQL 기본 및 활용', difficulty: '심화',
+    question: 'GROUPING SETS의 용도로 가장 적절한 것은?',
+    options: ['여러 집계 조합을 한 번의 GROUP BY로 계산한다', '행을 무작위로 섞는다', '인덱스를 자동 생성한다', '트랜잭션 격리 수준을 변경한다'],
+    answer: 0,
+    explanation: 'GROUPING SETS는 필요한 집계 조합을 명시하여 여러 GROUP BY 결과를 한 번에 구할 수 있게 합니다.',
+  },
+  {
+    id: 19, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '소량의 선행 집합에서 후행 테이블의 인덱스를 반복 탐색할 때 일반적으로 적합한 조인 방식은?',
+    options: ['Nested Loops Join', 'Hash Join만 가능', 'Cartesian Join', 'Full Outer Join'],
+    answer: 0,
+    explanation: 'Nested Loops Join은 선행 집합이 작고 후행 테이블의 조인 키에 효율적인 인덱스가 있을 때 유리합니다.',
+  },
+  {
+    id: 20, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '대용량 비정렬 집합 간 동등 조인에서 메모리에 해시 테이블을 만들 수 있을 때 일반적으로 유리한 방식은?',
+    options: ['Hash Join', 'Nested Loops Join만 가능', 'CONNECT BY', 'PIVOT'],
+    answer: 0,
+    explanation: 'Hash Join은 작은 입력으로 해시 테이블을 만든 뒤 큰 입력을 탐색하므로 대용량 동등 조인에 효과적입니다. 비동등 조인에는 직접 적용되지 않습니다.',
+  },
+  {
+    id: 21, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: 'Sort Merge Join이 고려될 수 있는 상황으로 가장 적절한 것은?',
+    options: ['비동등 조인 또는 양쪽 입력이 이미 조인 키로 정렬된 경우', '조인 조건이 전혀 없는 경우', '항상 한 행만 조회하는 경우', 'DDL을 실행하는 경우'],
+    answer: 0,
+    explanation: 'Sort Merge Join은 입력을 조인 키로 정렬한 뒤 병합하며 비동등 조인이나 이미 정렬된 입력에서 선택될 수 있습니다.',
+  },
+  {
+    id: 22, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '복합 B-Tree 인덱스가 (A, B) 순서로 생성되어 있다. 일반적인 선두 컬럼 원칙을 가장 잘 설명한 것은?',
+    options: ['B 조건만 있어도 항상 A와 동일한 효율이다', 'A 조건이 포함된 탐색이 인덱스 범위를 좁히는 데 보통 더 유리하다', '컬럼 순서는 실행 계획과 무관하다', '복합 인덱스는 동등 조건에 사용할 수 없다'],
+    answer: 1,
+    explanation: '복합 인덱스는 선두 컬럼부터 정렬됩니다. A 조건이 있으면 탐색 범위를 효과적으로 좁힐 수 있으며 B만 조건으로 사용할 때는 접근 효율이 달라질 수 있습니다.',
+  },
+  {
+    id: 23, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '데이터 분포가 심하게 치우친 컬럼에서 옵티마이저의 선택도 추정에 도움을 주는 통계는?',
+    options: ['히스토그램', '세그먼트 이름', '사용자 비밀번호', '트랜잭션 이름'],
+    answer: 0,
+    explanation: '히스토그램은 컬럼 값의 분포 정보를 제공해 균등 분포 가정으로 인한 카디널리티 오차를 줄이는 데 도움을 줍니다.',
+  },
+  {
+    id: 24, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '바인드 값에 따라 선택도가 크게 달라 하나의 실행 계획이 모든 값에 적합하지 않을 때 Oracle이 활용할 수 있는 기능은?',
+    options: ['Adaptive Cursor Sharing', 'Flashback Drop', 'Data Pump', 'Database Link'],
+    answer: 0,
+    explanation: 'Adaptive Cursor Sharing은 바인드 값의 선택도 차이를 관찰해 필요하면 바인드 인식 자식 커서를 만들고 다른 실행 계획을 사용할 수 있게 합니다.',
+  },
+  {
+    id: 25, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '두 테이블이 같은 키와 호환되는 방식으로 파티션되어 있을 때 파티션 단위로 조인을 수행하는 최적화는?',
+    options: ['Partition-wise Join', 'Star Transformation', 'Scalar Subquery Caching', 'Index Skip Scan'],
+    answer: 0,
+    explanation: 'Partition-wise Join은 대응하는 파티션끼리 독립적으로 조인하여 데이터 이동과 작업 범위를 줄일 수 있습니다.',
+  },
+  {
+    id: 26, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '서브쿼리를 동등한 조인 형태로 변환해 더 다양한 조인 순서와 방법을 검토하게 하는 옵티마이저 변환은?',
+    options: ['Subquery Unnesting', 'Table Compression', 'Redo Apply', 'Block Media Recovery'],
+    answer: 0,
+    explanation: 'Subquery Unnesting은 중첩 서브쿼리를 조인 구조로 변환해 옵티마이저가 더 넓은 실행 계획 후보를 평가하도록 합니다.',
+  },
+  {
+    id: 27, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '인라인 뷰의 쿼리 블록을 바깥 쿼리 블록과 합쳐 최적화하는 변환은?',
+    options: ['View Merging', 'Log Switching', 'Checkpoint', 'Row Migration'],
+    answer: 0,
+    explanation: 'View Merging은 가능한 경우 뷰의 쿼리 블록을 외부 쿼리와 합쳐 조인 순서와 접근 경로 선택 범위를 넓힙니다.',
+  },
+  {
+    id: 28, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '한 세션이 수정한 행을 다른 세션이 수정하려다 대기할 때 대표적으로 관찰되는 잠금은?',
+    options: ['TX 트랜잭션 잠금', '데이터 파일 잠금만 발생', '라이브러리 캐시 핀만 발생', '아무 잠금도 발생하지 않음'],
+    answer: 0,
+    explanation: '행 변경 충돌에서는 후행 세션이 선행 트랜잭션의 COMMIT 또는 ROLLBACK을 기다리며 TX 관련 대기가 나타날 수 있습니다.',
+  },
+  {
+    id: 29, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: 'Oracle의 읽기 일관성(Consistent Read)을 제공하는 핵심 메커니즘은?',
+    options: ['UNDO를 이용해 쿼리 시작 시점에 맞는 블록 이미지를 구성한다', '모든 SELECT가 테이블 전체를 잠근다', 'REDO를 삭제한다', '항상 최신 커밋 이후 데이터만 무조건 읽는다'],
+    answer: 0,
+    explanation: 'Oracle은 UNDO 정보를 이용해 필요한 과거 버전의 블록을 구성하여 문장 또는 트랜잭션 수준의 읽기 일관성을 제공합니다.',
+  },
+  {
+    id: 30, subject: 'SQL 고급활용 및 튜닝', difficulty: '심화',
+    question: '실행 계획의 Predicate Information에서 ACCESS와 FILTER 조건의 차이로 가장 적절한 것은?',
+    options: ['ACCESS는 접근 범위를 정하는 데 사용되고 FILTER는 읽은 행을 추가로 거른다', '둘은 항상 완전히 같은 의미다', 'FILTER만 인덱스를 탐색한다', 'ACCESS는 결과 정렬만 담당한다'],
+    answer: 0,
+    explanation: 'ACCESS 조건은 인덱스나 조인 등의 접근 범위를 결정하는 데 쓰이고 FILTER 조건은 접근 후 후보 행에 추가 조건을 적용합니다.',
+  },
 ];
+
+export const OCP_QUIZ = [
+  {
+    id: 1, subject: '설치·패치·업그레이드', difficulty: '중간',
+    question: 'Oracle Database 바이너리에 RU 패치를 적용한 뒤 데이터베이스의 SQL 변경 사항을 반영하는 도구는?',
+    options: ['datapatch', 'DBCA', 'ASMCMD', 'RMAN'],
+    answer: 0,
+    explanation: 'OPatch가 Oracle Home의 바이너리를 패치한 뒤 datapatch를 실행해 열린 데이터베이스와 PDB에 SQL 패치 내용을 반영합니다.',
+  },
+  {
+    id: 2, subject: '설치·패치·업그레이드', difficulty: '중간',
+    question: '단일 서버에서 데이터베이스·리스너·ASM의 자동 재시작과 상태 관리를 제공하는 구성은?',
+    options: ['Oracle Restart', 'Oracle GoldenGate', 'Oracle Text', 'Data Pump'],
+    answer: 0,
+    explanation: 'Oracle Restart는 Oracle Grid Infrastructure for a Standalone Server에 포함되며 등록된 구성 요소의 시작 순서와 재시작을 관리합니다.',
+  },
+  {
+    id: 3, subject: '설치·패치·업그레이드', difficulty: '심화',
+    question: 'Out-of-place 패치 또는 업그레이드의 주된 장점은?',
+    options: ['기존 Oracle Home을 직접 덮어쓰지 않아 전환과 롤백 계획을 단순화한다', '백업이 필요 없어진다', '모든 SQL 호환성 문제가 자동 해결된다', '데이터 파일이 자동 삭제된다'],
+    answer: 0,
+    explanation: '새 Oracle Home에 소프트웨어를 준비한 뒤 전환하면 기존 Home을 보존할 수 있어 다운타임과 롤백 위험을 줄이는 데 유리합니다.',
+  },
+  {
+    id: 4, subject: '설치·패치·업그레이드', difficulty: '심화',
+    question: 'Oracle Database 업그레이드 분석·수정·배포를 자동화하고 진행 상황을 관리하는 19c 도구는?',
+    options: ['AutoUpgrade', 'SQL*Loader', 'Data Guard Broker', 'ADRCI'],
+    answer: 0,
+    explanation: 'AutoUpgrade는 analyze, fixups, deploy 등의 단계로 업그레이드 사전 점검과 실행을 자동화하고 상태를 추적합니다.',
+  },
+  {
+    id: 5, subject: '설치·패치·업그레이드', difficulty: '심화',
+    question: 'Read-only Oracle Home 구성에서 로그와 설정처럼 쓰기가 필요한 파일이 주로 분리되는 위치는?',
+    options: ['ORACLE_BASE 아래의 별도 위치', '데이터 딕셔너리 내부만', 'SYSTEM 테이블스페이스만', '사용자 TEMP 테이블스페이스'],
+    answer: 0,
+    explanation: 'Read-only Oracle Home은 소프트웨어 Home과 쓰기 가능한 구성·로그 파일을 분리해 이미지 기반 배포와 패치 관리를 단순화합니다.',
+  },
+  {
+    id: 6, subject: '설치·패치·업그레이드', difficulty: '중간',
+    question: '여러 Oracle Home과 설치된 제품 정보를 추적하는 중앙 인벤토리의 역할은?',
+    options: ['설치 구성 요소와 Oracle Home 등록 정보를 유지한다', '사용자 테이블 데이터를 저장한다', '온라인 REDO를 대체한다', 'RMAN 백업 조각만 보관한다'],
+    answer: 0,
+    explanation: 'Oracle Inventory는 설치된 Oracle 제품과 Home 정보를 관리하며 설치·패치 도구가 구성 상태를 확인할 때 사용합니다.',
+  },
+  {
+    id: 7, subject: '설치·패치·업그레이드', difficulty: '심화',
+    question: '데이터베이스 업그레이드 전에 수행할 작업으로 가장 적절한 것은?',
+    options: ['사전 점검 결과와 무효 객체, 컴포넌트 상태, 백업·복구 계획을 확인한다', '모든 백업을 삭제한다', 'ARCHIVELOG 모드를 무조건 해제한다', '통계와 로그를 모두 제거한다'],
+    answer: 0,
+    explanation: '업그레이드 전에는 도구의 사전 점검과 수정 권고를 검토하고 호환성, 객체 상태, 백업과 실패 시 복구 절차를 준비해야 합니다.',
+  },
+  {
+    id: 8, subject: '백업·복구와 RMAN', difficulty: '중간',
+    question: 'RMAN의 CONTROLFILE AUTOBACKUP을 활성화하는 주된 이유는?',
+    options: ['데이터 파일 구조 변경과 백업 후 제어 파일·SPFILE을 자동 보호한다', '모든 아카이브 로그를 자동 삭제한다', 'PDB를 자동 닫는다', 'SQL 튜닝 세트를 생성한다'],
+    answer: 0,
+    explanation: '제어 파일 자동 백업은 백업 작업이나 구조 변경 후 제어 파일과 SPFILE 복구에 필요한 사본을 자동으로 생성합니다.',
+  },
+  {
+    id: 9, subject: '백업·복구와 RMAN', difficulty: '중간',
+    question: 'RMAN에서 RESTORE와 RECOVER의 차이로 올바른 것은?',
+    options: ['RESTORE는 백업 파일을 복원하고 RECOVER는 REDO를 적용해 일관된 시점으로 전진시킨다', '두 명령은 완전히 동일하다', 'RECOVER가 백업 조각만 복사한다', 'RESTORE가 사용자 권한을 생성한다'],
+    answer: 0,
+    explanation: 'RESTORE는 백업본에서 데이터 파일 등을 가져오고 RECOVER는 아카이브·온라인 REDO를 적용해 필요한 SCN까지 복구합니다.',
+  },
+  {
+    id: 10, subject: '백업·복구와 RMAN', difficulty: '심화',
+    question: 'RMAN 누적(CUMULATIVE) 레벨 1 증분 백업이 포함하는 블록은?',
+    options: ['가장 최근 레벨 0 이후 변경된 블록', '직전 레벨 1 이후 변경 블록만', '변경 여부와 무관한 모든 블록', '제어 파일 블록만'],
+    answer: 0,
+    explanation: '누적 레벨 1은 기준 레벨 0 이후 변경된 블록을 포함합니다. 차등 레벨 1은 가장 최근 레벨 0 또는 1 이후 변경분을 포함합니다.',
+  },
+  {
+    id: 11, subject: '백업·복구와 RMAN', difficulty: '심화',
+    question: 'Block Change Tracking을 활성화했을 때 주로 개선되는 작업은?',
+    options: ['증분 백업이 변경 블록을 찾는 속도', '전체 백업의 압축률만', 'SQL 파싱 속도', '사용자 로그인 인증'],
+    answer: 0,
+    explanation: '변경 추적 파일은 증분 백업 시 데이터 파일 전체를 스캔하지 않고 변경된 블록을 빠르게 식별하도록 돕습니다.',
+  },
+  {
+    id: 12, subject: '백업·복구와 RMAN', difficulty: '심화',
+    question: '복구 카탈로그를 사용하는 RMAN 환경에서 RESYNC CATALOG의 역할은?',
+    options: ['대상 데이터베이스 제어 파일의 최신 백업 메타데이터를 카탈로그에 동기화한다', '데이터 파일을 복구한다', '리스너를 재시작한다', 'PDB를 복제한다'],
+    answer: 0,
+    explanation: 'RESYNC CATALOG는 대상 제어 파일의 백업·아카이브 로그·스키마 메타데이터를 복구 카탈로그에 반영합니다.',
+  },
+  {
+    id: 13, subject: '백업·복구와 RMAN', difficulty: '심화',
+    question: '테이블 시점 복구(Table Point-in-Time Recovery)에서 AUXILIARY DESTINATION이 필요한 이유는?',
+    options: ['필요한 시점까지 보조 데이터베이스를 복구하고 대상 객체를 추출하기 위해', '온라인 REDO 그룹을 늘리기 위해', '사용자 암호를 변경하기 위해', '통계만 수집하기 위해'],
+    answer: 0,
+    explanation: 'RMAN은 보조 인스턴스를 필요한 시점까지 복구한 뒤 Data Pump를 통해 테이블을 내보내고 대상에 가져오는 절차를 사용합니다.',
+  },
+  {
+    id: 14, subject: '백업·복구와 RMAN', difficulty: '심화',
+    question: 'FROM ACTIVE DATABASE를 사용한 RMAN DUPLICATE의 특징은?',
+    options: ['기존 백업 세트 없이 네트워크를 통해 대상 데이터베이스 블록을 보조 DB로 전송할 수 있다', '대상 DB가 없어도 임의 데이터를 만든다', '복구 카탈로그가 반드시 필요하다', '데이터 파일을 논리 SQL로만 변환한다'],
+    answer: 0,
+    explanation: 'Active duplication은 실행 중인 대상 데이터베이스에서 네트워크로 파일 또는 백업 세트를 전송해 복제본을 만듭니다.',
+  },
+  {
+    id: 15, subject: '백업·복구와 RMAN', difficulty: '중간',
+    question: 'RMAN BACKUP OPTIMIZATION이 활성화된 경우의 동작을 가장 잘 설명한 것은?',
+    options: ['설정 조건을 만족하는 동일 파일의 백업이 있으면 불필요한 재백업을 건너뛸 수 있다', '모든 백업을 항상 삭제한다', '복원 검증을 생략한다', '암호화가 자동 해제된다'],
+    answer: 0,
+    explanation: '백업 최적화는 동일 DBID, 체크포인트 등 RMAN 기준에 따라 이미 적합한 백업이 있는 파일의 재백업을 건너뛸 수 있게 합니다.',
+  },
+  {
+    id: 16, subject: '멀티테넌트', difficulty: '중간',
+    question: 'CDB$ROOT의 주된 역할은?',
+    options: ['CDB 전체의 공통 메타데이터와 공통 사용자 정보를 관리한다', '특정 애플리케이션 데이터만 저장한다', '임시 백업 조각만 저장한다', '각 PDB의 SYSTEM 데이터 파일을 공유한다'],
+    answer: 0,
+    explanation: 'CDB$ROOT는 컨테이너 데이터베이스의 루트로 공통 메타데이터와 공통 객체·사용자를 관리합니다. 각 PDB는 자체 데이터와 로컬 메타데이터를 가집니다.',
+  },
+  {
+    id: 17, subject: '멀티테넌트', difficulty: '중간',
+    question: '기본 명명 규칙을 사용할 때 CDB 전체에서 생성하는 공통 사용자 이름의 접두사는?',
+    options: ['C##', 'PDB##', 'SYS##만 가능', '접두사가 절대 필요 없다'],
+    answer: 0,
+    explanation: 'COMMON_USER_PREFIX 기본값은 C##이며 공통 사용자는 CDB$ROOT에서 생성되어 여러 컨테이너에 공통으로 존재합니다.',
+  },
+  {
+    id: 18, subject: '멀티테넌트', difficulty: '심화',
+    question: 'PDB를 unplug한 뒤 다른 CDB에 plug하기 전에 우선 확인할 사항은?',
+    options: ['대상 CDB와의 호환성을 점검한다', '모든 사용자 테이블을 DROP한다', '제어 파일을 수동 편집한다', 'CDB$ROOT를 삭제한다'],
+    answer: 0,
+    explanation: 'DBMS_PDB.CHECK_PLUG_COMPATIBILITY 등으로 버전, 옵션, 문자 집합과 구성 호환성을 확인하고 위반 항목을 검토해야 합니다.',
+  },
+  {
+    id: 19, subject: '멀티테넌트', difficulty: '심화',
+    question: 'Refreshable Clone PDB의 용도로 가장 적절한 것은?',
+    options: ['원본 PDB의 변경 사항을 주기적 또는 수동으로 반영하는 읽기 전용 복제본을 유지한다', '온라인 REDO를 삭제한다', '공통 사용자를 로컬 사용자로 변환한다', 'CDB를 비컨테이너 DB로 바꾼다'],
+    answer: 0,
+    explanation: 'Refreshable clone은 원본 PDB와의 링크를 유지하며 지정된 방식으로 변경 사항을 반영할 수 있어 테스트·보고 용도에 활용됩니다.',
+  },
+  {
+    id: 20, subject: '멀티테넌트', difficulty: '심화',
+    question: 'Application Container 구조의 구성 요소로 올바른 것은?',
+    options: ['Application Root, Application Seed, Application PDB', 'CDB$ROOT 하나만', 'ASM Disk Group만', 'Recovery Catalog만'],
+    answer: 0,
+    explanation: 'Application Container는 애플리케이션 공통 객체를 관리하는 Application Root와 선택적 Seed, 실제 데이터를 담는 Application PDB로 구성할 수 있습니다.',
+  },
+  {
+    id: 21, subject: '멀티테넌트', difficulty: '중간',
+    question: 'PDB를 CDB 재시작 후에도 이전 OPEN 상태로 자동 복원하려는 명령은?',
+    options: ['ALTER PLUGGABLE DATABASE SAVE STATE', 'ALTER DATABASE OPEN RESETLOGS', 'STARTUP NOMOUNT FORCE', 'RECOVER MANAGED STANDBY DATABASE'],
+    answer: 0,
+    explanation: 'SAVE STATE는 PDB의 열림 상태를 보존하여 CDB 인스턴스 재시작 후 자동으로 해당 상태를 복원하도록 합니다.',
+  },
+  {
+    id: 22, subject: '멀티테넌트', difficulty: '심화',
+    question: 'PDB 스냅샷 카루셀(snapshot carousel)의 목적은?',
+    options: ['PDB의 시점별 스냅샷을 일정 기간 유지해 빠른 복제나 시점 복구에 활용한다', 'SQL 실행 계획을 고정한다', '리스너 로그를 회전한다', '감사 정책을 삭제한다'],
+    answer: 0,
+    explanation: 'Snapshot carousel은 PDB 스냅샷을 주기적으로 생성·보존하여 특정 시점 기준의 PDB 복제 또는 복구 작업에 활용합니다.',
+  },
+  {
+    id: 23, subject: '멀티테넌트', difficulty: '심화',
+    question: 'Hot clone으로 PDB를 복제할 때의 특징으로 가장 적절한 것은?',
+    options: ['원본 PDB를 읽기/쓰기 상태로 유지한 채 복제할 수 있다', '원본 CDB를 반드시 종료해야 한다', '데이터 파일을 사용하지 않는다', '복제 PDB는 열 수 없다'],
+    answer: 0,
+    explanation: 'Hot clone은 조건을 충족한 환경에서 원본 PDB를 서비스 중인 상태로 복제해 가용성 저하를 줄입니다.',
+  },
+  {
+    id: 24, subject: '멀티테넌트', difficulty: '심화',
+    question: 'PDB relocate 작업의 주된 목적은?',
+    options: ['PDB를 다른 CDB로 이동하면서 서비스 중단을 최소화한다', 'PDB를 일반 스키마로 변환한다', 'UNDO를 모두 삭제한다', '공통 사용자를 제거한다'],
+    answer: 0,
+    explanation: 'PDB relocate는 PDB를 소스 CDB에서 대상 CDB로 이동하며 전환 시점까지 변경을 동기화해 중단 시간을 줄일 수 있습니다.',
+  },
+  {
+    id: 25, subject: '가용성·진단·보안', difficulty: '중간',
+    question: 'Data Guard에서 switchover와 failover의 차이로 올바른 것은?',
+    options: ['Switchover는 계획된 역할 전환이고 failover는 주 DB 장애 시 대기 DB를 승격하는 비계획 전환이다', '둘은 항상 데이터 손실을 발생시킨다', 'Failover만 역할을 바꾼다', 'Switchover는 백업을 삭제한다'],
+    answer: 0,
+    explanation: 'Switchover는 정상 상태에서 주·대기 역할을 계획적으로 교환합니다. Failover는 주 DB를 사용할 수 없을 때 대기 DB를 새 주 DB로 승격합니다.',
+  },
+  {
+    id: 26, subject: '가용성·진단·보안', difficulty: '심화',
+    question: 'Guaranteed Restore Point의 특징으로 가장 적절한 것은?',
+    options: ['필요한 Flashback 로그를 보존해 지정 시점으로 되돌릴 수 있도록 보장한다', '모든 백업을 대체한다', 'REDO 생성을 중지한다', 'PDB 사용자만 생성할 수 있다'],
+    answer: 0,
+    explanation: 'Guaranteed Restore Point는 해당 시점으로 Flashback Database가 가능하도록 필요한 로그를 보존하지만 공간 사용량과 운영 영향을 함께 관리해야 합니다.',
+  },
+  {
+    id: 27, subject: '가용성·진단·보안', difficulty: '중간',
+    question: 'ADR(Automatic Diagnostic Repository)에 저장되는 대표 정보는?',
+    options: ['Alert 로그, trace, incident와 진단 데이터', '사용자 테이블의 업무 데이터', 'RMAN 백업 조각만', '클라이언트 비밀번호 원문'],
+    answer: 0,
+    explanation: 'ADR은 데이터베이스와 리스너 등 Oracle 제품의 alert, trace, incident 패키지 같은 진단 정보를 표준 디렉터리 구조로 관리합니다.',
+  },
+  {
+    id: 28, subject: '가용성·진단·보안', difficulty: '심화',
+    question: 'Unified Auditing의 장점으로 가장 적절한 것은?',
+    options: ['여러 감사 소스를 통합 감사 추적과 정책으로 관리한다', '모든 SQL을 자동 튜닝한다', '백업을 자동 복원한다', 'PDB를 자동 재배치한다'],
+    answer: 0,
+    explanation: 'Unified Auditing은 표준 감사, 세분화 감사 등 여러 감사 정보를 통합된 정책과 감사 추적으로 관리할 수 있게 합니다.',
+  },
+  {
+    id: 29, subject: '가용성·진단·보안', difficulty: '심화',
+    question: 'Oracle Database Resource Manager의 주된 역할은?',
+    options: ['소비자 그룹별 CPU와 병렬 실행 등 자원 사용을 제어한다', '데이터 파일을 암호화한다', '백업 조각을 압축한다', 'SQL 문법을 변환한다'],
+    answer: 0,
+    explanation: 'Database Resource Manager는 리소스 계획과 소비자 그룹을 통해 워크로드별 CPU, 병렬 서버, 실행 시간 등의 자원 배분을 제어합니다.',
+  },
+  {
+    id: 30, subject: '가용성·진단·보안', difficulty: '심화',
+    question: '인스턴스 장애 후 Instance Recovery에서 REDO와 UNDO가 수행하는 역할로 올바른 것은?',
+    options: ['REDO로 변경을 롤포워드하고 UNDO로 미커밋 트랜잭션을 롤백한다', 'UNDO만으로 모든 변경을 재적용한다', 'REDO는 미커밋 데이터만 삭제한다', '둘 다 사용자 인증만 처리한다'],
+    answer: 0,
+    explanation: 'SMON이 필요한 REDO를 적용해 데이터 파일을 전진시킨 뒤 커밋되지 않은 트랜잭션은 UNDO를 사용해 롤백하여 일관성을 회복합니다.',
+  },
+];
+
+export const CERT_QUIZZES = {
+  sqld: SQLD_QUIZ,
+  sqlp: SQLP_QUIZ,
+  ocp: OCP_QUIZ,
+};
+
+export function getCertQuiz(certId) {
+  return CERT_QUIZZES[certId] || [];
+}

@@ -1285,6 +1285,15 @@ html[data-compact] .community-row { padding-block: 7px; }
 .cert-detail-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
 .cert-detail-fullname { font-size: 14px; color: var(--text2); }
 .cert-detail-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.cert-practice-notice {
+  display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap;
+  padding: 11px 13px; margin-top: 4px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--bg2); color: var(--text2);
+  font-size: 12px; line-height: 1.55;
+}
+.cert-practice-notice svg { flex: 0 0 auto; margin-top: 1px; color: var(--accent); }
+.cert-practice-notice span { flex: 1 1 420px; }
+.cert-practice-notice a { color: var(--accent); font-weight: 700; white-space: nowrap; }
 
 .cert-tabs { display: flex; border-bottom: 1px solid var(--border2); margin-bottom: 24px; gap: 0; }
 .cert-tab {
@@ -2448,11 +2457,13 @@ html[data-compact] .community-row { padding-block: 7px; }
 .exam-subject-row + .exam-subject-row { margin-top: 6px; }
 .exam-subject-row.passed { border-left: 3px solid var(--success); }
 .exam-subject-row.failed { border-left: 3px solid var(--err); }
+.exam-subject-row.diagnostic { border-left: 3px solid var(--accent); }
 .exam-subject-name { flex: 1; min-width: 0; color: var(--text1); font-weight: 700; }
 .exam-subject-score { color: var(--text2); white-space: nowrap; }
 .exam-subject-status { font-weight: 700; white-space: nowrap; }
 .exam-subject-row.passed .exam-subject-status { color: var(--success-t); }
 .exam-subject-row.failed .exam-subject-status { color: var(--err); }
+.exam-subject-row.diagnostic .exam-subject-status { color: var(--accent); }
 .exam-wrong-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text2); }
 .exam-wrong-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
 .exam-wrong-item { background: var(--bg3); border-radius: 8px; padding: 12px; }

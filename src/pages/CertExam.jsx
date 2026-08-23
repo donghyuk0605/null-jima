@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
+import { CERT_LIST, getCertQuiz } from '../data/cert';
 import Icon from '../components/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { localizeCert, localizeQuiz } from '../lib/localizedContent';
 import { saveExamResult } from '../lib/examResults';
+import { gradeCertificationExam } from '../lib/certExam';
 
 function formatTime(secs) {
   const h = Math.floor(secs / 3600);
@@ -26,7 +27,19 @@ function shuffleQuiz(items, seed) {
     const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return shuffled;
+
+  return shuffled.map((question) => {
+    const options = question.options.map((option, originalIndex) => ({ option, originalIndex }));
+    for (let i = options.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+    return {
+      ...question,
+      options: options.map(({ option }) => option),
+      answer: options.findIndex(({ originalIndex }) => originalIndex === question.answer),
+    };
+  });
 }
 
 export default function CertExam() {
@@ -35,7 +48,7 @@ export default function CertExam() {
   const { language, t } = useLanguage();
   const cert = localizeCert(CERT_LIST.find(c => c.id === certId), language);
   const quiz = useMemo(
-    () => localizeQuiz(certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [], language),
+    () => localizeQuiz(getCertQuiz(certId), language),
     [certId, language]
   );
   const [orderSeed, setOrderSeed] = useState(() => Date.now());
@@ -87,30 +100,12 @@ export default function CertExam() {
     submittedRef.current = true;
     clearInterval(timerRef.current);
     const finalAnswers = answersRef.current;
-    const correct = orderedQuiz.filter(q => finalAnswers[q.id] === q.answer).length;
-    const wrong = orderedQuiz.filter(q => finalAnswers[q.id] !== undefined && finalAnswers[q.id] !== q.answer);
-    const unanswered = orderedQuiz.filter(q => finalAnswers[q.id] === undefined).length;
-    const score = Math.round((correct / orderedQuiz.length) * 100);
-    const subjectResults = [...new Set(orderedQuiz.map(q => q.subject))].map((subject) => {
-      const subjectQuiz = orderedQuiz.filter(q => q.subject === subject);
-      const subjectCorrect = subjectQuiz.filter(q => finalAnswers[q.id] === q.answer).length;
-      const subjectScore = Math.round((subjectCorrect / subjectQuiz.length) * 100);
-      return {
-        subject,
-        correct: subjectCorrect,
-        total: subjectQuiz.length,
-        score: subjectScore,
-        passed: subjectScore >= 40,
-      };
+    const grade = gradeCertificationExam(orderedQuiz, finalAnswers, {
+      passScore: cert.practicePassScore,
+      subjectPassScore: cert.practiceSubjectPassScore,
     });
-    const passed = score >= 60 && subjectResults.every(subjectResult => subjectResult.passed);
     const res = {
-      correct,
-      wrong: wrong.length,
-      unanswered,
-      score,
-      passed,
-      subjectResults,
+      ...grade,
       timeUsed: totalTime - timeLeftRef.current,
       answers: { ...finalAnswers },
     };
@@ -142,15 +137,16 @@ export default function CertExam() {
             <div><span>{t('exam.ready.time')}</span><strong>{t('cert.exam.minutes', { n: cert.examTime })}</strong></div>
             <div>
               <span>{t('exam.ready.pass.crit')}</span>
-              <strong>{t('exam.pass.min')}</strong>
-              <small>{t('exam.pass.subject')}</small>
+              <strong>{t('exam.pass.min.dynamic', { score: cert.practicePassScore })}</strong>
+              <small>{Number.isFinite(cert.practiceSubjectPassScore) ? t('exam.pass.subject.dynamic', { score: cert.practiceSubjectPassScore }) : t('exam.pass.subject.diagnostic')}</small>
             </div>
           </div>
-          {quiz.length !== cert.totalQ && (
-            <p className="exam-ready-note">
-              {t('exam.ready.practiceNote', { available: quiz.length, official: cert.totalQ })}
-            </p>
-          )}
+          <p className="exam-ready-note">
+            {cert.totalQ
+              ? t('exam.ready.practiceNote', { available: quiz.length, official: cert.totalQ })
+              : t('exam.ready.practiceNoteFlexible', { available: quiz.length })}
+            {' '}{t('cert.practice.notice')}
+          </p>
           <ul className="exam-ready-rules">
             <li>{t('exam.ready.rule5')}</li>
             <li>{t('exam.ready.rule6')}</li>
@@ -194,10 +190,10 @@ export default function CertExam() {
           <div className="exam-subject-results">
             <h4>{t('exam.subject.title')}</h4>
             {result.subjectResults.map((subjectResult) => (
-              <div key={subjectResult.subject} className={`exam-subject-row ${subjectResult.passed ? 'passed' : 'failed'}`}>
+              <div key={subjectResult.subject} className={`exam-subject-row ${subjectResult.passed === null ? 'diagnostic' : subjectResult.passed ? 'passed' : 'failed'}`}>
                 <span className="exam-subject-name">{subjectResult.subject}</span>
                 <span className="exam-subject-score">{subjectResult.correct}/{subjectResult.total} · {subjectResult.score}{t('exam.result.score')}</span>
-                <span className="exam-subject-status">{subjectResult.passed ? t('exam.subject.pass') : t('exam.subject.fail')}</span>
+                <span className="exam-subject-status">{subjectResult.passed === null ? t('exam.subject.diagnostic') : subjectResult.passed ? t('exam.subject.pass') : t('exam.subject.fail')}</span>
               </div>
             ))}
           </div>

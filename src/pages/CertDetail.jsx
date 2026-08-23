@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { CERT_LIST, SQLD_QUIZ, SQLP_QUIZ } from '../data/cert';
+import { CERT_LIST, getCertQuiz } from '../data/cert';
 import { runProblemQuery, translateSqlError } from '../lib/database';
 import Icon from '../components/Icon';
 import ResultTable from '../components/ResultTable';
@@ -68,7 +68,7 @@ export default function CertDetail() {
     );
   }
 
-  const quiz = localizeQuiz(certId === 'sqld' ? SQLD_QUIZ : certId === 'sqlp' ? SQLP_QUIZ : [], language);
+  const quiz = localizeQuiz(getCertQuiz(certId), language);
   const coreSqlExamples = language === 'ja' ? sanitizeJapaneseText(CORE_SQL_EXAMPLES) : CORE_SQL_EXAMPLES;
 
   const runCoreSql = (idx, sqlStr) => {
@@ -148,6 +148,11 @@ export default function CertDetail() {
           <span className="cert-detail-fullname">{cert.fullName}</span>
         </div>
         <p className="cert-detail-desc">{cert.desc}</p>
+        <div className="cert-practice-notice">
+          <Icon name="help" style={{ width: 16, height: 16 }} />
+          <span>{t('cert.practice.notice')}</span>
+          <a href={cert.officialUrl} target="_blank" rel="noreferrer">{t('cert.official.link')}</a>
+        </div>
         <button
           className="btn btn-run exam-start-btn"
           onClick={() => navigate(`/cert/${cert.id}/exam`)}
@@ -159,7 +164,7 @@ export default function CertDetail() {
 
       {/* 탭 */}
       <div className="cert-tabs">
-        {['overview', 'sql', ...(certId === 'sqld' ? ['quiz'] : [])].map((tab) => (
+        {['overview', ...(certId === 'ocp' ? [] : ['sql']), 'quiz'].map((tab) => (
           <button
             key={tab}
             className={`cert-tab ${activeTab === tab ? 'active' : ''}`}
@@ -195,7 +200,7 @@ export default function CertDetail() {
               </div>
               <div className="cert-info-row">
                 <span className="cert-info-label">{t('cert.info.total')}</span>
-                <span className="cert-info-value">{t('cert.info.total.val', { total: cert.totalQ, score: cert.totalScore })}</span>
+                <span className="cert-info-value">{cert.examFormat || t('cert.info.total.val', { total: cert.totalQ, score: cert.totalScore })}</span>
               </div>
             </div>
           </section>
@@ -207,7 +212,7 @@ export default function CertDetail() {
                 <div key={i} className="cert-subject-card">
                   <div className="cert-subject-header">
                     <span className="cert-subject-name">{sub.name}</span>
-                    <span className="cert-subject-score">{t('cert.subjects.val', { questions: sub.questions, score: sub.score })}</span>
+                    <span className="cert-subject-score">{sub.format || t('cert.subjects.val', { questions: sub.questions, score: sub.score })}</span>
                   </div>
                   <div className="cert-subject-topics">
                     {sub.topics.map((topic) => (
@@ -280,8 +285,8 @@ export default function CertDetail() {
         </div>
       )}
 
-      {/* 예상문제 탭 (SQLD 전용) */}
-      {activeTab === 'quiz' && certId === 'sqld' && (
+      {/* 자격별 실전형 문제 탭 */}
+      {activeTab === 'quiz' && (
         <div className="cert-tab-content">
           {isQuizDone ? (
             <div className="cert-quiz-done">
