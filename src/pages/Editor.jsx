@@ -75,6 +75,8 @@ export default function Editor() {
   const [history, setHistory] = useState(() => loadHistory());
   const [fullscreen, setFullscreen] = useState(false);
   const [explainMode, setExplainMode] = useState(false);
+  const [schemaFilter, setSchemaFilter] = useState('');
+  const [expandedTables, setExpandedTables] = useState(() => new Set(getSchema().slice(0, 2).map((table) => table.name)));
 
   // Feature 1: selection tracking
   const [selection, setSelection] = useState('');
@@ -83,7 +85,9 @@ export default function Editor() {
   const [fontSize, setFontSize] = useState(() => settings.editorFontSize || 13);
 
   // Feature 4: sidebar collapse
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => typeof window === 'undefined' || !window.matchMedia('(max-width: 760px)').matches
+  );
 
   // Feature 5: shortcut modal
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -256,6 +260,29 @@ export default function Editor() {
     return obj;
   }, [schema]);
 
+  const filteredSchema = useMemo(() => {
+    const keyword = schemaFilter.trim().toLowerCase();
+    if (!keyword) return schema;
+    return schema.filter((table) => (
+      table.name.toLowerCase().includes(keyword)
+      || table.columns.some((column) => column.col.toLowerCase().includes(keyword))
+    ));
+  }, [schema, schemaFilter]);
+
+  const toggleTable = (tableName) => {
+    setExpandedTables((current) => {
+      const next = new Set(current);
+      if (next.has(tableName)) next.delete(tableName);
+      else next.add(tableName);
+      return next;
+    });
+  };
+
+  const openTableQuery = (tableName) => {
+    updateQuery(`SELECT *\nFROM ${tableName}\nLIMIT 10;`);
+    if (window.matchMedia('(max-width: 760px)').matches) setSidebarOpen(false);
+  };
+
   // Saved queries state
   const [savedQueries, setSavedQueries] = useState(() => getSavedQueries());
 
@@ -282,57 +309,94 @@ export default function Editor() {
 
   return (
     <div className={`page editor-page ${fullscreen ? 'editor-fullscreen' : ''}`}>
-      <div className="page-header">
-        <h2 className="page-title">{t('editor.title')}</h2>
-        <span className="page-desc">{t('editor.desc')}</span>
-        <button
-          className="btn btn-ghost-sm"
-          style={{ marginLeft: 'auto' }}
-          onClick={() => setFullscreen(f => !f)}
-          title={fullscreen ? t('editor.fullscreen.off') : t('editor.fullscreen.on')}
-        >
-          {fullscreen ? <><Icon name="minimize" style={{width:14,height:14}} /> {t('editor.fullscreen.off')}</> : <><Icon name="maximize" style={{width:14,height:14}} /> {t('editor.fullscreen.on')}</>}
-        </button>
+      <div className="page-header editor-studio-header">
+        <div className="editor-header-copy">
+          <span className="editor-eyebrow"><span className="editor-runtime-dot" />{t('editor.eyebrow')}</span>
+          <div className="editor-title-row">
+            <h2 className="page-title">{t('editor.title')}</h2>
+            <span className="editor-version">BETA</span>
+          </div>
+          <p className="page-desc">{t('editor.desc')}</p>
+          <div className="editor-runtime-badges">
+            <span><Icon name="bolt" />{t('editor.runtime.browser')}</span>
+            <span><Icon name="database" />{t('editor.runtime.dataset', { n: schema.length })}</span>
+            <span><Icon name="save" />{t('editor.runtime.autosave')}</span>
+          </div>
+        </div>
+        <div className="editor-header-actions">
+          <button
+            className={`btn btn-ghost-sm editor-data-toggle${sidebarOpen ? ' active' : ''}`}
+            onClick={() => setSidebarOpen((open) => !open)}
+            aria-pressed={sidebarOpen}
+          >
+            <Icon name="database" />
+            {sidebarOpen ? t('editor.sidebar.hide') : t('editor.sidebar.show')}
+          </button>
+          <button
+            className="btn btn-ghost-sm"
+            onClick={() => setFullscreen(f => !f)}
+            title={fullscreen ? t('editor.fullscreen.off') : t('editor.fullscreen.on')}
+          >
+            {fullscreen ? <><Icon name="minimize" /> {t('editor.fullscreen.off')}</> : <><Icon name="maximize" /> {t('editor.fullscreen.on')}</>}
+          </button>
+        </div>
       </div>
 
       <div className={`editor-page-layout ${!sidebarOpen ? 'sidebar-hidden' : ''}`}>
         <aside className="editor-page-sidebar">
-          {/* Feature 4: sidebar toggle button */}
-          <button
-            className="sidebar-toggle-btn"
-            onClick={() => setSidebarOpen(o => !o)}
-            title={sidebarOpen ? t('editor.sidebar.hide') : t('editor.sidebar.show')}
-          >
-            <Icon name={sidebarOpen ? 'chevron-left' : 'chevron-right'} style={{width:14,height:14}} />
-          </button>
-
           {editorMode === 'beginner' && <SyntaxPicker onPick={updateQuery} />}
 
-          <section className="editor-panel">
-            <div className="sidebar-label">{t('editor.schema')}</div>
-            {schema.map(table => (
-              <div key={table.name} className="schema-tbl">
-                <button
-                  className="schema-tbl-name"
-                  onClick={() => updateQuery(`SELECT *\nFROM ${table.name}\nLIMIT 10;`)}
-                  type="button"
-                >
-                  <Icon name="table" className="inline-icon" />
-                  <span className="schema-tbl-label">{table.name}</span>
-                  {tableStats[table.name] && (
-                    <span className="schema-row-count">{t('editor.status.rows', { n: tableStats[table.name].rowCount })}</span>
-                  )}
-                </button>
-                <div className="schema-cols">
-                  {table.columns.map(col => (
-                    <div key={col.col} className="schema-col-row">
-                      <span className="col-nm">{col.col}</span>
-                      <span className="col-tp">{col.type}</span>
-                    </div>
-                  ))}
-                </div>
+          <section className="editor-panel editor-schema-panel">
+            <div className="editor-sidebar-heading">
+              <div>
+                <span>DATASET</span>
+                <strong>{t('editor.schema')}</strong>
               </div>
-            ))}
+              <em>{schema.length}</em>
+            </div>
+            <label className="schema-search">
+              <Icon name="search" />
+              <input
+                type="search"
+                value={schemaFilter}
+                onChange={(event) => setSchemaFilter(event.target.value)}
+                placeholder={t('editor.schema.search')}
+                aria-label={t('editor.schema.search')}
+              />
+            </label>
+            <div className="schema-table-list">
+              {filteredSchema.map((table) => {
+                const expanded = expandedTables.has(table.name);
+                return (
+                  <div key={table.name} className={`schema-tbl${expanded ? ' expanded' : ''}`}>
+                    <div className="schema-tbl-head">
+                      <button className="schema-tbl-name" onClick={() => toggleTable(table.name)} type="button" aria-expanded={expanded}>
+                        <Icon name={expanded ? 'chevron-down' : 'chevron-right'} className="schema-chevron" />
+                        <Icon name="table" className="inline-icon" />
+                        <span className="schema-tbl-label">{table.name}</span>
+                        {tableStats[table.name] && (
+                          <span className="schema-row-count">{tableStats[table.name].rowCount}</span>
+                        )}
+                      </button>
+                      <button className="schema-open-query" onClick={() => openTableQuery(table.name)} type="button" title={t('editor.schema.open', { table: table.name })} aria-label={t('editor.schema.open', { table: table.name })}>
+                        <Icon name="play" />
+                      </button>
+                    </div>
+                    {expanded && (
+                      <div className="schema-cols">
+                        {table.columns.map(col => (
+                          <button key={col.col} className="schema-col-row" type="button" onClick={() => updateQuery(`${query}${query && !query.endsWith(' ') ? ' ' : ''}${col.col}`)}>
+                            <span className="col-nm">{col.col}</span>
+                            <span className="col-tp">{col.type}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {filteredSchema.length === 0 && <div className="editor-empty schema-empty">{t('editor.schema.empty')}</div>}
+            </div>
           </section>
 
           <section className="editor-panel">
@@ -389,18 +453,6 @@ export default function Editor() {
             )}
           </section>
         </aside>
-
-        {/* Feature 4: toggle button when sidebar is closed */}
-        {!sidebarOpen && (
-          <button
-            className="sidebar-toggle-btn"
-            style={{ alignSelf: 'flex-start', marginTop: '8px', marginRight: '4px' }}
-            onClick={() => setSidebarOpen(o => !o)}
-            title={t('editor.sidebar.show')}
-          >
-            <Icon name="chevron-right" style={{width:14,height:14}} />
-          </button>
-        )}
 
         <main className="editor-page-main">
           <div className="editor-card">
@@ -467,47 +519,41 @@ export default function Editor() {
               fontSize={fontSize}
             />
             <div className="editor-toolbar">
-              <button className="btn btn-run" onClick={execute}>
-                <Icon name="play" className="btn-icon" />
-                {t('editor.run')}
-              </button>
-              <button className="btn btn-ghost-sm" onClick={() => updateQuery(formatSql(query))}>
-                <Icon name="format" className="status-icon" />
-                {t('editor.format')}
-              </button>
-              <button className="btn btn-ghost-sm" onClick={clearEditor}>{t('editor.clear')}</button>
-              <button className="btn btn-ghost-sm" onClick={resetWorkspace}>{t('editor.database.reset')}</button>
-              <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title={t('editor.save')}><Icon name="save" className="status-icon" />{t('editor.save')}</button>
-              <button
-                className={`btn btn-ghost-sm ${explainMode ? 'btn-active' : ''}`}
-                onClick={() => setExplainMode(m => !m)}
-                title={t('editor.explain.toggle')}
-              >
-                EXPLAIN {explainMode && <Icon name="success" className="status-icon" />}
-              </button>
-
-              {/* Feature 3: font size controls */}
-              <div className="font-size-ctrl">
-                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.max(11, s - 1))} aria-label="Decrease editor font size"><span>A</span><Icon name="minus" /></button>
-                <span className="font-sz-val">{fontSize}px</span>
-                <button className="font-sz-btn" onClick={() => setFontSize(s => Math.min(22, s + 1))} aria-label="Increase editor font size"><span>A</span><Icon name="plus" /></button>
+              <div className="editor-toolbar-run">
+                <button className="btn btn-run" onClick={execute}>
+                  <Icon name="play" className="btn-icon" />
+                  {t('editor.run')}
+                </button>
+                {selection.trim() ? (
+                  <span className="editor-shortcut-hint selection-hint">{t('editor.selection.hint')}</span>
+                ) : (
+                  <span className="editor-shortcut-hint"><kbd>Ctrl</kbd><kbd>Enter</kbd></span>
+                )}
               </div>
-
-              {/* Feature 5: shortcut help button */}
-              <button
-                className="btn btn-ghost-sm"
-                onClick={() => setShowShortcuts(o => !o)}
-                title={t('editor.shortcut.title')}
-              >
-                <Icon name="help" className="status-icon" />
-              </button>
-
-              {/* Feature 1: selection hint */}
-              {selection.trim() ? (
-                <span className="editor-shortcut-hint selection-hint">{t('editor.selection.hint')}</span>
-              ) : (
-                <span className="editor-shortcut-hint">{t('editor.hint.ctrlEnter')}</span>
-              )}
+              <div className="editor-toolbar-tools">
+                <button className="btn btn-ghost-sm" onClick={() => updateQuery(formatSql(query))}>
+                  <Icon name="format" className="status-icon" />
+                  {t('editor.format')}
+                </button>
+                <button className="btn btn-ghost-sm" onClick={handleSaveQuery} title={t('editor.save')}><Icon name="save" className="status-icon" />{t('editor.save')}</button>
+                <button
+                  className={`btn btn-ghost-sm ${explainMode ? 'btn-active' : ''}`}
+                  onClick={() => setExplainMode(m => !m)}
+                  title={t('editor.explain.toggle')}
+                >
+                  EXPLAIN {explainMode && <Icon name="success" className="status-icon" />}
+                </button>
+                <button className="btn btn-ghost-sm" onClick={clearEditor}>{t('editor.clear')}</button>
+                <button className="btn btn-ghost-sm editor-reset-btn" onClick={resetWorkspace}>{t('editor.database.reset')}</button>
+                <div className="font-size-ctrl">
+                  <button className="font-sz-btn" onClick={() => setFontSize(s => Math.max(11, s - 1))} aria-label="Decrease editor font size"><span>A</span><Icon name="minus" /></button>
+                  <span className="font-sz-val">{fontSize}px</span>
+                  <button className="font-sz-btn" onClick={() => setFontSize(s => Math.min(22, s + 1))} aria-label="Increase editor font size"><span>A</span><Icon name="plus" /></button>
+                </div>
+                <button className="btn btn-ghost-sm editor-help-btn" onClick={() => setShowShortcuts(o => !o)} title={t('editor.shortcut.title')} aria-label={t('editor.shortcut.title')}>
+                  <Icon name="help" className="status-icon" />
+                </button>
+              </div>
             </div>
             <div className="editor-statusbar">
               <span>{safeText(activeTab?.name)}</span>
@@ -518,7 +564,18 @@ export default function Editor() {
             </div>
           </div>
 
-          <div className="result-card">
+          <section className={`editor-result-workbench${error ? ' has-error' : ''}${results ? ' has-results' : ''}`}>
+            <div className="editor-result-head">
+              <div>
+                <span>RESULT</span>
+                <strong>{error ? t('editor.result.error') : results ? t('editor.result.ready') : t('editor.result.empty')}</strong>
+              </div>
+              <div className="editor-result-metrics">
+                {elapsed != null && <span>{elapsed}ms</span>}
+                <span>{t('editor.status.rows', { n: results?.[0]?.values?.length ?? 0 })}</span>
+              </div>
+            </div>
+            <div className="result-card">
             {multiResults && multiResults.length > 1 ? (
               multiResults.map((entry, idx) => (
                 <div key={idx} className="result-multi-card">
@@ -545,7 +602,8 @@ export default function Editor() {
                 <ResultTable results={results} error={error} elapsed={elapsed} rowsModified={rowsModified} />
               </>
             )}
-          </div>
+            </div>
+          </section>
         </main>
       </div>
 

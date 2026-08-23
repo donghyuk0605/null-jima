@@ -40,13 +40,27 @@ export default function Home() {
     return { level, total: levelProblems.length, solved: levelSolved };
   });
 
+  const quickTools = [
+    { to: '/editor', icon: 'keyboard', title: t('home.tools.editor.title'), desc: t('home.tools.editor.desc'), meta: t('home.tools.editor.meta'), featured: true },
+    { to: '/problems', icon: 'target', title: t('home.tools.problems.title'), desc: t('home.tools.problems.desc'), meta: t('home.tools.problems.meta', { total }) },
+    { to: '/tables', icon: 'database', title: t('home.tools.tables.title'), desc: t('home.tools.tables.desc'), meta: t('home.tools.tables.meta') },
+    { to: '/playground', icon: 'play', title: t('home.tools.playground.title'), desc: t('home.tools.playground.desc'), meta: t('home.tools.playground.meta') },
+  ];
+
+  const visibleTopics = learnTopics.slice(0, 5);
+
   return (
     <div className="page home-page">
       <div className="home-hero">
         <div className="home-hero-copy">
-          <span className="home-kicker">SQL PRACTICE WORKBENCH</span>
+          <span className="home-kicker"><span className="home-live-dot" />{t('home.hero.kicker')}</span>
           <h1 className="home-title">{t('app.name')}</h1>
           <p className="home-subtitle">{t('home.hero.subtitle')}</p>
+          <div className="home-capabilities" aria-label={t('home.capabilities.label')}>
+            <span><Icon name="bolt" />{t('home.capability.install')}</span>
+            <span><Icon name="database" />{t('home.capability.dataset')}</span>
+            <span><Icon name="target" />{t('home.capability.grading')}</span>
+          </div>
           <div className="home-hero-progress" aria-label={t('problems.complete', { solved, total })}>
             <div className="home-hero-progress-copy">
               <span>{t('home.stat.current')}</span>
@@ -57,26 +71,68 @@ export default function Home() {
             </div>
           </div>
           <div className="home-actions">
-            <Link to="/editor" className="btn btn-primary"><Icon name="keyboard" className="btn-icon" />{t('home.cta.editor')}</Link>
-            <Link to="/problems" className="btn btn-secondary"><Icon name="pencil" className="btn-icon" />{t('home.cta.problems')}</Link>
-            <Link to="/learn" className="btn btn-ghost"><Icon name="book" className="btn-icon" />{t('home.cta.learn')}</Link>
+            <Link to="/editor" className="btn btn-primary home-primary-cta"><Icon name="play" className="btn-icon" />{t('home.cta.editor')}</Link>
+            <Link to={`/problems/${todayProblem.id}`} className="btn btn-secondary"><Icon name="target" className="btn-icon" />{t('home.next.continue')}</Link>
           </div>
         </div>
-        <div className="home-hero-console" aria-hidden="true">
-          <div className="home-console-bar">
-            <span />
-            <span />
-            <span />
-            <strong>practice.sql</strong>
+        <div className="home-workbench-preview" aria-hidden="true">
+          <div className="home-preview-topbar">
+            <div>
+              <span />
+              <span />
+              <span />
+            </div>
+            <strong>SQL Studio</strong>
+            <em>SQLite · browser</em>
           </div>
-          <pre>{`SELECT department_id,
-       COUNT(*) AS solved
-FROM practice_log
-WHERE status = 'correct'
-GROUP BY department_id
-ORDER BY solved DESC;`}</pre>
+          <div className="home-preview-body">
+            <div className="home-preview-schema">
+              <small>DATASET</small>
+              <strong><Icon name="table" />employees</strong>
+              <span>id <i>INTEGER</i></span>
+              <span>name <i>TEXT</i></span>
+              <span>department_id <i>INTEGER</i></span>
+              <span>salary <i>INTEGER</i></span>
+            </div>
+            <div className="home-preview-editor">
+              <div className="home-preview-tab">practice.sql</div>
+              <pre>{`SELECT department_id,
+       COUNT(*) AS members
+FROM employees
+GROUP BY department_id;`}</pre>
+              <div className="home-preview-run"><Icon name="play" /> RUN <kbd>Ctrl ↵</kbd></div>
+            </div>
+          </div>
+          <div className="home-preview-result">
+            <span>{t('home.preview.result')}</span>
+            <strong>4 {t('home.preview.rows')}</strong>
+            <i>{t('home.preview.ready')}</i>
+          </div>
         </div>
       </div>
+
+      <section className="home-tools-section" aria-labelledby="home-tools-title">
+        <div className="home-section-heading">
+          <div>
+            <span>{t('home.tools.eyebrow')}</span>
+            <h2 id="home-tools-title">{t('home.tools.title')}</h2>
+          </div>
+          <Link to="/editor">{t('home.tools.openStudio')} <Icon name="chevron-right" /></Link>
+        </div>
+        <div className="home-tool-grid">
+          {quickTools.map((tool) => (
+            <Link key={tool.to} to={tool.to} className={`home-tool-card${tool.featured ? ' featured' : ''}`}>
+              <span className="home-tool-icon"><Icon name={tool.icon} /></span>
+              <span className="home-tool-copy">
+                <strong>{tool.title}</strong>
+                <small>{tool.desc}</small>
+              </span>
+              <span className="home-tool-meta">{tool.meta}</span>
+              <Icon name="chevron-right" className="home-tool-arrow" />
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <div className="streak-widget">
         <div className="streak-main">
@@ -170,12 +226,13 @@ ORDER BY solved DESC;`}</pre>
             </Link>
           )}
           <div className="learn-list">
-            {learnTopics.map((topic) => (
+            {visibleTopics.map((topic) => (
               <Link key={topic.id} to={`/learn/${topic.id}`} className="learn-item">
                 <span className="learn-item-title">{topic.title}</span>
                 <span className="learn-item-sub">{topic.subtitle}</span>
               </Link>
             ))}
+            <Link to="/learn" className="home-learn-all">{t('home.learn.all')} <Icon name="chevron-right" /></Link>
           </div>
         </section>
       </div>

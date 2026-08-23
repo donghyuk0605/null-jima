@@ -19,6 +19,12 @@ const ICON_PATHS = {
       <path d="M12 17h.01" />
     </>
   ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-4-4" />
+    </>
+  ),
   save: (
     <>
       <path d="M5 3h12l2 2v16H5V3Z" />
