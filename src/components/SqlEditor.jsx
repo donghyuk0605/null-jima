@@ -59,7 +59,7 @@ export default function SqlEditor({
       value={value}
       onChange={onChange}
       extensions={extensions}
-      theme={theme === 'dark' ? oneDark : 'light'}
+      theme={isTerminal || theme === 'dark' ? oneDark : 'light'}
       height={height}
       editable={!readOnly}
       placeholder={placeholder}

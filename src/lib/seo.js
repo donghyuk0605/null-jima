@@ -1,7 +1,7 @@
 import { PROBLEMS } from '../data/problems.js';
 import { LEARN_TOPICS } from '../data/learn.js';
 import { CERT_LIST } from '../data/cert.js';
-import { localizeLearnTopic, localizeProblems } from './localizedContent.js';
+import { localizeCert, localizeLearnTopic, localizeProblems, translateTag } from './localizedContent.js';
 import { translations } from './translations.js';
 
 export const SITE_URL = 'https://null-jima.web.app';
@@ -82,8 +82,9 @@ export function getLoginReturnPath(value) {
   if (!value?.startsWith('/')) return '/';
   try {
     const url = new URL(value, SITE_URL);
-    if (url.origin !== SITE_URL) return '/';
-    return `${getBasePath(url.pathname)}${url.search}${url.hash}`;
+    const path = getBasePath(url.pathname);
+    if (url.origin !== SITE_URL || !getStaticPaths().includes(path)) return '/';
+    return `${path}${url.search}${url.hash}`;
   } catch {
     return '/';
   }
@@ -140,7 +141,7 @@ export function getPageSeo(pathname, language = getPathLanguage(pathname)) {
     description = content.description;
     parent = { path: '/problems', name: copy.problems[0] };
   } else if (cert || examCert) {
-    content = cert || examCert;
+    content = localizeCert(cert || examCert, lang);
     kind = cert ? 'certDetail' : 'exam';
     heading = `${content.name} ${copy[kind]}`;
     title = `${heading} | ${SITE_NAME}`;
@@ -178,7 +179,7 @@ export function getPageSeo(pathname, language = getPathLanguage(pathname)) {
       '@id': `${url}#webpage`, url, name: title, description, inLanguage: lang,
       isPartOf: { '@id': `${SITE_URL}/#website` },
       ...(kind === 'lesson' ? { learningResourceType: 'Tutorial', teaches: content.title, isAccessibleForFree: true } : {}),
-      ...(kind === 'problem' ? { learningResourceType: 'Exercise', teaches: content.tags.join(', '), isAccessibleForFree: true } : {}),
+      ...(kind === 'problem' ? { learningResourceType: 'Exercise', teaches: content.tags.map((tag) => translateTag(tag, (key) => seoTranslate(lang, key))).join(', '), isAccessibleForFree: true } : {}),
     });
     if (breadcrumbs.length > 1) {
       graph.push({

@@ -96,7 +96,7 @@ firebase deploy --only hosting,firestore:rules --project null-jima
 
 - 빌드 시 공개 학습 본문을 포함한 페이지별 HTML을 생성합니다. JavaScript 실행 전에도 문법 설명, 예제, 문제 내용을 읽을 수 있습니다.
 - 한국어는 기존 주소를, 일본어는 `/ja` 주소를 사용합니다. 페이지마다 언어별 canonical URL과 양방향 hreflang을 지정합니다.
-- 페이지별 제목, 설명, Open Graph, Twitter 공유 정보와 JSON-LD를 생성합니다. 공유 이미지는 저장소의 실제 앱 화면을 사용합니다.
+- 페이지별 제목, 설명, Open Graph, Twitter 공유 정보와 JSON-LD를 생성합니다. 공유 이미지는 저장소의 서비스 대표 이미지를 사용합니다.
 - `/sitemap.xml`에는 공개 학습 페이지만 포함합니다. 진행률, 사용자 설정, 로그인과 모의고사 실행 화면은 `noindex`로 설정합니다.
 - `/robots.txt`에서 사이트맵을 안내하며, 존재하지 않는 주소에는 실제 HTTP 404를 반환합니다.
 - 공개 학습은 로그인 없이 이용할 수 있습니다. 로그인과 커뮤니티 쓰기 권한은 기존 Firebase 인증을 사용합니다.

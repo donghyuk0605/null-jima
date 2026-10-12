@@ -1,3 +1,5 @@
+import { JAPANESE_LEARN_DETAILS, JAPANESE_CERT_DETAILS, JAPANESE_CERT_SUBJECTS } from '../data/japaneseLearning.js';
+
 const LEVEL_KEY = { '입문': 'lv.entry', '초급': 'lv.basic', '중급': 'lv.mid', '고급': 'lv.adv' };
 const TAG_KEY = {
   '집계함수': 'tag.agg',
@@ -123,14 +125,18 @@ export const localizeLearnTopic = (topic, language) => {
   if (language !== 'ja') return topic;
   const entry = JA_LEARN[topic.id];
   if (!entry) return topic;
+  const details = JAPANESE_LEARN_DETAILS[topic.id];
   return {
     ...topic,
     title: entry[0],
     subtitle: entry[1],
     description: entry[2],
-    syntax: sanitizeJapaneseText(topic.syntax),
-    examples: sanitizeJapaneseText(topic.examples),
-    tips: sanitizeJapaneseText(topic.tips),
+    syntax: details?.syntax ?? topic.syntax,
+    examples: topic.examples.map((example, index) => {
+      const translated = details?.examples[index];
+      return translated ? { ...example, title: translated[0], desc: translated[1], sql: translated[2] ?? example.sql } : example;
+    }),
+    tips: details?.tips ?? topic.tips,
   };
 };
 
@@ -143,8 +149,16 @@ export const translateTag = (tag, t) => t(TAG_KEY[tag] || tag);
 export const localizeCert = (cert, language) => {
   if (!cert) return cert;
   if (language !== 'ja') return cert;
+  const details = JAPANESE_CERT_DETAILS[cert.id] ?? {};
+  const { subjects, ...copy } = details;
   return {
-    ...sanitizeJapaneseText(cert),
+    ...cert,
+    ...copy,
+    subjects: cert.subjects.map((subject, index) => ({
+      ...subject,
+      ...subjects?.[index],
+      name: JAPANESE_CERT_SUBJECTS[subject.name] ?? subject.name,
+    })),
     level: cert.level,
     name: cert.name,
     fullName: cert.fullName,
@@ -161,6 +175,7 @@ export const localizeQuiz = (quiz, language) => {
   if (language !== 'ja') return quiz;
   return quiz.map((q) => ({
     ...sanitizeJapaneseText(q),
+    subject: JAPANESE_CERT_SUBJECTS[q.subject] ?? q.subject,
     id: q.id,
     answer: q.answer,
     sql: q.sql ? sanitizeJapaneseText(q.sql) : q.sql,

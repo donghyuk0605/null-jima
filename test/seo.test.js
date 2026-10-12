@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parse } from 'parse5';
+import initSqlJs from 'sql.js';
+import { LEARN_TOPICS } from '../src/data/learn.js';
+import { CERT_LIST, getCertQuiz } from '../src/data/cert.js';
+import { localizeCert, localizeLearnTopic, localizeQuiz } from '../src/lib/localizedContent.js';
 import {
   getBasePath, getIndexablePages, getLocalizedPath, getLoginReturnPath, getPageSeo,
   getPathLanguage, getStaticPaths, SITE_URL,
@@ -29,7 +33,7 @@ test('locale paths preserve routes and canonical URLs omit transient parameters'
 test('login return paths stay on the same origin and retain the current exercise', () => {
   assert.equal(getLoginReturnPath('/problems/13?mode=helper#sql'), '/problems/13?mode=helper#sql');
   assert.equal(getLoginReturnPath('/ja/problems/13'), '/problems/13');
-  for (const value of [null, 'https://example.com', '//example.com', '/\\example.com', '//[']) {
+  for (const value of [null, 'https://example.com', '//example.com', '/\\example.com', '//[', '/a/..//example.com', '/ja//example.com', '/unknown']) {
     assert.equal(getLoginReturnPath(value), '/');
   }
 });
@@ -104,4 +108,53 @@ test('JSON-LD escapes script boundaries and sitemap contains only indexable cano
   assert.ok(sitemap.includes(`${SITE_URL}/ja/learn/select`));
   assert.ok(!sitemap.includes('/progress'));
   assert.ok(!sitemap.includes('/exam'));
+});
+
+test('Japanese public learning prose is translated rather than word substitutions', () => {
+  for (const topic of LEARN_TOPICS) {
+    const ja = localizeLearnTopic(topic, 'ja');
+    assert.equal(ja.examples.length, topic.examples.length);
+    const prose = [ja.title, ja.subtitle, ja.description, ja.syntax, ...ja.tips, ...ja.examples.flatMap((example) => [example.title, example.desc])];
+    for (const text of prose) assert.doesNotMatch(text, /[가-힣]/, topic.id);
+  }
+});
+
+test('Japanese certification guides and quiz subjects use consistent labels', () => {
+  for (const cert of CERT_LIST) {
+    const ja = localizeCert(cert, 'ja');
+    const prose = [ja.desc, ja.org, ja.frequency, ja.passCriteria, ...ja.keyTopics, ...ja.studyPlan, ...ja.subjects.flatMap((subject) => [subject.name, ...subject.topics, subject.format || ''])];
+    for (const text of prose) assert.doesNotMatch(text, /[가-힣]/, cert.id);
+    assert.equal(ja.practicePassScore, cert.practicePassScore);
+    const subjects = new Set(ja.subjects.map((subject) => subject.name));
+    for (const question of localizeQuiz(getCertQuiz(cert.id), 'ja')) assert.ok(subjects.has(question.subject));
+  }
+});
+
+test('Japanese SQL examples execute and preserve the original filtered rows', async () => {
+  const SQL = await initSqlJs();
+  const db = new SQL.Database();
+  try {
+    db.run(`
+      CREATE TABLE departments (id INTEGER, name TEXT);
+      CREATE TABLE employees (id INTEGER, name TEXT, salary INTEGER, department_id INTEGER, hire_date TEXT);
+      CREATE TABLE products (id INTEGER, name TEXT, price INTEGER, stock INTEGER, category TEXT);
+      CREATE TABLE orders (id INTEGER, employee_id INTEGER, product_id INTEGER, quantity INTEGER, order_date TEXT);
+      INSERT INTO departments VALUES (1, '개발팀'), (2, '마케팅팀');
+      INSERT INTO employees VALUES (1, '정도윤', 7000000, 1, '2020-01-01'), (2, '김철수', 5000000, 2, '2022-01-01'), (3, '이영희', 6000000, 1, '2021-01-01');
+      INSERT INTO products VALUES (1, '노트북', 2000, 10, '전자제품'), (2, '의자', 1000, 5, '가구');
+      INSERT INTO orders VALUES (1, 1, 1, 2, '2026-01-01'), (2, 2, 2, 1, '2026-01-02');
+    `);
+    for (const topic of LEARN_TOPICS) {
+      const ja = localizeLearnTopic(topic, 'ja');
+      for (let index = 0; index < topic.examples.length; index += 1) {
+        const expected = db.exec(topic.examples[index].sql).map((result) => result.values.length);
+        const actual = db.exec(ja.examples[index].sql).map((result) => result.values.length);
+        assert.deepEqual(actual, expected, `${topic.id} example ${index + 1}`);
+      }
+    }
+    const where = localizeLearnTopic(LEARN_TOPICS.find((topic) => topic.id === 'where'), 'ja');
+    assert.equal(db.exec(where.examples[1].sql)[0].values[0][1], '정도윤');
+  } finally {
+    db.close();
+  }
 });

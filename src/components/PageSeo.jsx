@@ -33,7 +33,7 @@ export default function PageSeo() {
     updateMeta('property', 'og:image', SHARE_IMAGE);
     updateMeta('property', 'og:image:width', '1024');
     updateMeta('property', 'og:image:height', '574');
-    updateMeta('property', 'og:image:alt', language === 'ja' ? 'nullジマのSQL学習画面' : 'nullジマ SQL 학습 화면');
+    updateMeta('property', 'og:image:alt', language === 'ja' ? 'nullジマ SQL学習サービスの紹介' : 'nullジマ SQL 학습 서비스 소개');
     updateMeta('name', 'twitter:card', 'summary_large_image');
     updateMeta('name', 'twitter:title', page.title);
     updateMeta('name', 'twitter:description', page.description);

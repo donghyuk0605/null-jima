@@ -26,7 +26,7 @@ function metadataMarkup(page) {
     property('og:locale', page.locale),
     property('og:locale:alternate', page.language === 'ja' ? 'ko_KR' : 'ja_JP'),
     property('og:image', SHARE_IMAGE), property('og:image:width', '1024'), property('og:image:height', '574'),
-    property('og:image:alt', page.language === 'ja' ? 'nullジマのSQL学習画面' : 'nullジマ SQL 학습 화면'),
+    property('og:image:alt', page.language === 'ja' ? 'nullジマ SQL学習サービスの紹介' : 'nullジマ SQL 학습 서비스 소개'),
     meta('twitter:card', 'summary_large_image'), meta('twitter:title', page.title),
     meta('twitter:description', page.description), meta('twitter:image', SHARE_IMAGE),
     page.canonical && h('link', { rel: 'canonical', href: page.canonical }),
