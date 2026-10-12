@@ -1,22 +1,27 @@
 import { useLanguage } from '../contexts/LanguageContext';
+import { useLocation } from 'react-router-dom';
+import { getLocalizedPath } from '../lib/seo';
 
 export default function LanguageSwitcher({ className = '' }) {
   const { language, languages, setLanguage, t } = useLanguage();
+  const { pathname, search, hash } = useLocation();
 
   return (
     <div className={`language-switcher ${className}`} aria-label={t('lang.select')}>
       {languages.map((lang) => (
-        <button
+        <a
           key={lang.id}
-          type="button"
+          href={`${getLocalizedPath(pathname, lang.id)}${search}${hash}`}
+          hrefLang={lang.id}
           className={`language-btn ${language === lang.id ? 'active' : ''}`}
-          onClick={() => setLanguage(lang.id)}
+          onClick={(event) => { event.preventDefault(); setLanguage(lang.id); }}
           title={lang.nativeLabel}
           aria-label={lang.nativeLabel}
+          aria-current={language === lang.id ? 'true' : undefined}
         >
           <FlagIcon id={lang.id} />
           <span>{lang.id.toUpperCase()}</span>
-        </button>
+        </a>
       ))}
     </div>
   );

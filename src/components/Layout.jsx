@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useProgress } from '../lib/progress';
 import { PROBLEMS } from '../data/problems';
 import { useAuth } from '../contexts/AuthContext';
@@ -54,7 +54,9 @@ export default function Layout({ children, theme, onToggleTheme }) {
   const prog = useProgress();
   const solved = PROBLEMS.filter((problem) => prog[problem.id]?.solved).length;
   const total = PROBLEMS.length;
-  const { user, isGuest, login, logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { pathname, search } = useLocation();
+  const loginPath = `/login?next=${encodeURIComponent(`${pathname}${search}`)}`;
 
   return (
     <div className="layout">
@@ -139,18 +141,18 @@ export default function Layout({ children, theme, onToggleTheme }) {
                 <button className="nav-logout-btn" onClick={logout}>{t('nav.logout')}</button>
               </div>
             </div>
-          ) : isGuest ? (
+          ) : (
             <div className="nav-guest">
               <span className="nav-guest-label">{t('nav.guest')}</span>
-              <button
+              <NavLink
                 className="nav-login-btn"
-                onClick={() => { login().catch(() => {}); }}
+                to={loginPath}
               >
                 <GoogleIcon />
                 {t('nav.login')}
-              </button>
+              </NavLink>
             </div>
-          ) : null}
+          )}
         </div>
 
         <div className="nav-social">
@@ -190,6 +192,11 @@ export default function Layout({ children, theme, onToggleTheme }) {
           </button>
         </div>
         <div className="mobile-menu-scroll">
+          {!user && (
+            <NavLink className="nav-login-btn" to={loginPath} onClick={() => setMobileMenuOpen(false)}>
+              <GoogleIcon />{t('nav.login')}
+            </NavLink>
+          )}
           {NAV.map((section) => (
             <section key={section.groupKey} className="mobile-menu-section">
               <h2>{t(section.groupKey)}</h2>

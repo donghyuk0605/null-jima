@@ -1,5 +1,5 @@
-const CACHE = 'nulljima-v3';
-const PRECACHE = ['/', '/index.html'];
+const CACHE = 'nulljima-seo-v4';
+const PRECACHE = ['/', '/ja'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
@@ -25,10 +25,12 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request).then((res) => {
         if (res.ok) {
-          e.waitUntil(caches.open(CACHE).then((cache) => cache.put('/index.html', res.clone())));
+          e.waitUntil(caches.open(CACHE).then((cache) => cache.put(e.request, res.clone())));
         }
         return res;
-      }).catch(() => caches.match('/index.html'))
+      }).catch(async () =>
+        await caches.match(e.request) || caches.match(url.pathname === '/ja' || url.pathname.startsWith('/ja/') ? '/ja' : '/')
+      )
     );
     return;
   }

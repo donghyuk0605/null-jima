@@ -18,4 +18,16 @@ const stripVendorEmoji = () => ({
 
 export default defineConfig({
   plugins: [react(), stripVendorEmoji()],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'vendor-firebase', test: /node_modules\/(?:@firebase|firebase)\//, priority: 20 },
+            { name: 'vendor-react', test: /node_modules\/(?:react|react-dom|react-router|react-router-dom|scheduler)\//, priority: 10 },
+          ],
+        },
+      },
+    },
+  },
 })

@@ -54,7 +54,7 @@ export default function LearnTopic() {
       <div className="topic-header">
         <div className="topic-title-row">
           <div>
-            <h2 className="topic-title">{topic.title}</h2>
+            <h1 className="topic-title">{topic.title}</h1>
             <p className="topic-subtitle">{topic.subtitle}</p>
           </div>
           <button

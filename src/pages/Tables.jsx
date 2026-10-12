@@ -39,7 +39,7 @@ export default function Tables() {
     <div className="page">
       {showER && <ERDiagram onClose={() => setShowER(false)} />}
       <div className="page-header">
-        <h2 className="page-title">{t('tables.title')}</h2>
+        <h1 className="page-title">{t('tables.title')}</h1>
         <span className="page-desc">{t('tables.desc')}</span>
         <button className="btn btn-ghost-sm" onClick={() => setShowER(s => !s)}>{t('tables.er')}</button>
       </div>

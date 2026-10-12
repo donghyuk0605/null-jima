@@ -84,9 +84,24 @@ npm run build
 
 ## Firebase 배포
 
+변경 내용을 먼저 커밋하고 GitHub에 푸시한 뒤 배포합니다. Hosting 배포 직전에 최신 소스를 자동으로 빌드합니다.
+
 ```bash
 firebase deploy --only hosting,firestore:rules --project null-jima
 ```
+
+`/release.json`에서 배포된 Git 커밋과 빌드 시각을 확인할 수 있습니다.
+
+## 검색 최적화
+
+- 빌드 시 공개 학습 본문을 포함한 페이지별 HTML을 생성합니다. JavaScript 실행 전에도 문법 설명, 예제, 문제 내용을 읽을 수 있습니다.
+- 한국어는 기존 주소를, 일본어는 `/ja` 주소를 사용합니다. 페이지마다 언어별 canonical URL과 양방향 hreflang을 지정합니다.
+- 페이지별 제목, 설명, Open Graph, Twitter 공유 정보와 JSON-LD를 생성합니다. 공유 이미지는 저장소의 실제 앱 화면을 사용합니다.
+- `/sitemap.xml`에는 공개 학습 페이지만 포함합니다. 진행률, 사용자 설정, 로그인과 모의고사 실행 화면은 `noindex`로 설정합니다.
+- `/robots.txt`에서 사이트맵을 안내하며, 존재하지 않는 주소에는 실제 HTTP 404를 반환합니다.
+- 공개 학습은 로그인 없이 이용할 수 있습니다. 로그인과 커뮤니티 쓰기 권한은 기존 Firebase 인증을 사용합니다.
+
+[Google Search Console](https://search.google.com/search-console)에 `https://null-jima.web.app/sitemap.xml`을 제출해 색인 상태를 확인할 수 있습니다.
 
 커뮤니티 공식 예시 글은 관리자 인증 정보가 준비된 환경에서만 등록합니다.
 

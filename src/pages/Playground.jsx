@@ -439,7 +439,7 @@ export default function Playground() {
   return (
     <div className="page playground-page">
       <div className="page-header">
-        <h2 className="page-title">{t('playground.title')}</h2>
+        <h1 className="page-title">{t('playground.title')}</h1>
         <span className="page-desc">{t('playground.desc')}</span>
       </div>
 

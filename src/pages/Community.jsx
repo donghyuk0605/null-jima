@@ -227,7 +227,7 @@ export default function Community() {
   return (
     <div className="page community-page">
       <div className="page-header">
-        <h2 className="page-title">{t('community.title')}</h2>
+        <h1 className="page-title">{t('community.title')}</h1>
         <span className="page-desc">{t('community.desc')}</span>
       </div>
 

@@ -143,7 +143,7 @@ export default function CertDetail() {
         <Link to="/cert" className="btn btn-ghost-sm">{t('cert.nav.back')}</Link>
         <div className="cert-detail-title-row">
           <Icon name="trophy" style={{ width: 28, height: 28, color: cert.color }} />
-          <h2 className="cert-detail-title" style={{ color: cert.color }}>{cert.name}</h2>
+          <h1 className="cert-detail-title" style={{ color: cert.color }}>{cert.name}</h1>
           <span className={`badge level-${cert.level}`}>{translateLevel(cert.level, t)}</span>
           <span className="cert-detail-fullname">{cert.fullName}</span>
         </div>

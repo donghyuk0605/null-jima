@@ -25,7 +25,7 @@ export default function Learn() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2 className="page-title">{t('learn.title')}</h2>
+        <h1 className="page-title">{t('learn.title')}</h1>
         <span className="page-desc">{t('learn.desc')}</span>
         <span className="learn-progress-summary">{t('learn.progress', { done: completedTopics, total: LEARN_TOPICS.length })}</span>
       </div>

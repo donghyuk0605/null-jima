@@ -234,7 +234,7 @@ function ProblemDetailContent({ problem }) {
           </div>
 
           <div className="problem-title-row">
-            <h2 className="problem-title">{problem.title}</h2>
+            <h1 className="problem-title">{problem.title}</h1>
             <button
                 className={`fav-btn ${progress?.favorite ? 'fav-active' : ''}`}
                 onClick={handleFavorite}

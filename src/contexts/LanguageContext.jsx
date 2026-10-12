@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { getUserSettings, saveUserSettings, saveUserSettingsWithSync } from '../lib/userSettings';
 import { useAuth } from './AuthContext';
 import { translations } from '../lib/translations';
+import { getLocalizedPath, getPathLanguage } from '../lib/seo';
 
 const LanguageContext = createContext(null);
 
@@ -32,7 +33,7 @@ export function LanguageProvider({ children }) {
   }, [user]);
 
   const [language, setLanguageState] = useState(() =>
-    resolveLanguage(getUserSettings().language)
+    getPathLanguage(window.location.pathname)
   );
 
   const value = useMemo(() => {
@@ -47,6 +48,9 @@ export function LanguageProvider({ children }) {
         saveUserSettings(next);
       }
       setLanguageState(resolved);
+      if (resolved !== getPathLanguage(window.location.pathname)) {
+        window.location.assign(`${getLocalizedPath(window.location.pathname, resolved)}${window.location.search}${window.location.hash}`);
+      }
     };
 
     const t = (key, vars) => {

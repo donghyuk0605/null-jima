@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Icon from '../components/Icon';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { getLoginReturnPath } from '../lib/seo';
 
 const PREVIEW_LINES = [
   { indent: 0, keyword: 'SELECT', rest: ' e.name, d.name AS department,' },
@@ -18,6 +20,10 @@ const PREVIEW_LINES = [
 export default function Login() {
   const { login, enterGuestMode } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const requestedPath = new URLSearchParams(search).get('next');
+  const returnPath = getLoginReturnPath(requestedPath);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,6 +32,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login();
+      navigate(returnPath, { replace: true });
     } catch (e) {
       if (e.code !== 'auth/popup-closed-by-user') {
         setError(t('login.failed'));
@@ -110,7 +117,7 @@ export default function Login() {
             <span />
           </div>
 
-          <button className="login-guest-btn" onClick={enterGuestMode}>
+          <button className="login-guest-btn" onClick={() => { enterGuestMode(); navigate(returnPath, { replace: true }); }}>
             {t('login.guestStart')}
           </button>
           <p className="login-guest-note">

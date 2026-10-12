@@ -313,7 +313,7 @@ export default function Editor() {
         <div className="editor-header-copy">
           <span className="editor-eyebrow"><span className="editor-runtime-dot" />{t('editor.eyebrow')}</span>
           <div className="editor-title-row">
-            <h2 className="page-title">{t('editor.title')}</h2>
+            <h1 className="page-title">{t('editor.title')}</h1>
             <span className="editor-version">BETA</span>
           </div>
           <p className="page-desc">{t('editor.desc')}</p>

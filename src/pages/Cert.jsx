@@ -23,7 +23,7 @@ export default function Cert() {
   return (
     <div className="page cert-page">
       <div className="page-header">
-        <h2 className="page-title">{t('cert.title')}</h2>
+        <h1 className="page-title">{t('cert.title')}</h1>
         <span className="page-desc">{t('cert.desc')}</span>
       </div>
 

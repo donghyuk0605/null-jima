@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { setProgressOwner, setProgressSyncUser, syncProgressFromFirestore } from './lib/progress';
@@ -9,6 +9,8 @@ import { setLearningOwner, setLearningSyncUser, syncLearningFromFirestore } from
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import ErrorBoundary from './components/ErrorBoundary';
+import PageSeo from './components/PageSeo';
+import { getPathLanguage } from './lib/seo';
 import './App.css';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -74,7 +76,8 @@ function DatabaseGate({ children }) {
 
 function AppInner() {
   const { user, isGuest } = useAuth();
-  const { setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
+  const { pathname } = useLocation();
   const settings = useUserSettings();
   const [theme, setTheme] = useState(
     () => localStorage.getItem(THEME_KEY) || 'light'
@@ -89,14 +92,11 @@ function AppInner() {
     document.documentElement.toggleAttribute('data-compact', settings.compactMode);
   }, [settings.compactMode]);
 
-  useEffect(() => {
-    document.title = `${t('app.name')} — ${t('app.subtitle')}`;
-  }, [t]);
-
   const toggleTheme = () =>
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   useEffect(() => {
+    if (user === undefined) return undefined;
     if (!user) {
       setProgressSyncUser(null);
       setSettingsSyncUser(null);
@@ -115,7 +115,6 @@ function AppInner() {
     syncProgressFromFirestore(user.uid)
       .catch(() => {});
     syncSettingsFromFirestore(user.uid)
-      .then((settings) => { if (settings) setLanguage(settings.language); })
       .catch(() => {});
     syncLearningFromFirestore(user.uid).catch(() => {});
     return () => {
@@ -123,26 +122,15 @@ function AppInner() {
       setSettingsSyncUser(null);
       setLearningSyncUser(null);
     };
-  }, [isGuest, setLanguage, user]);
+  }, [isGuest, user]);
 
-  // Auth state still loading
-  if (user === undefined) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
-  }
-
-  // Not logged in and not guest → show login screen
-  if (user === null && !isGuest) {
+  if (pathname === '/login') {
     return <Login />;
   }
 
   return (
-    <BrowserRouter>
-      <Layout theme={theme} onToggleTheme={toggleTheme}>
-        <Suspense fallback={<div className="route-loading"><div className="spinner" /><span>{t('loading.page')}</span></div>}>
+    <Layout theme={theme} onToggleTheme={toggleTheme}>
+      <Suspense fallback={<div className="route-loading"><div className="spinner" /><span>{t('loading.page')}</span></div>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/editor" element={<DatabaseGate><Editor /></DatabaseGate>} />
@@ -160,20 +148,22 @@ function AppInner() {
           <Route path="/cert/:certId/exam" element={<CertExam />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </Suspense>
-      </Layout>
-    </BrowserRouter>
+      </Suspense>
+    </Layout>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <ErrorBoundary>
-          <AppInner />
-        </ErrorBoundary>
-      </LanguageProvider>
-    </AuthProvider>
+    <BrowserRouter basename={getPathLanguage(window.location.pathname) === 'ja' ? '/ja' : '/'}>
+      <AuthProvider>
+        <LanguageProvider>
+          <ErrorBoundary>
+            <PageSeo />
+            <AppInner />
+          </ErrorBoundary>
+        </LanguageProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

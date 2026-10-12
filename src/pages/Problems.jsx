@@ -42,7 +42,7 @@ export default function Problems() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2 className="page-title">{t('problems.title')}</h2>
+        <h1 className="page-title">{t('problems.title')}</h1>
         <span className="page-desc">{t('problems.desc')}</span>
       </div>
 
